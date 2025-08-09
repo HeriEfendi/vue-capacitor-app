@@ -1,38 +1,79 @@
-import { appDatabase } from './db'
+import { db } from './schema';
 
-function createCrudRepository(table) {
-  return {
+// Category Repository
+export const CategoryRepository = {
+  async getAll() {
+    return await db.categories.toArray();
+  },
+  async getById(id) {
+    return await db.categories.get(id);
+  },
+  async add(category) {
+    const id = await db.categories.add(category);
+    return { id, ...category };
+  },
+  async update(id, changes) {
+    await db.categories.update(id, changes);
+    return { id, ...changes };
+  },
+  async delete(id) {
+    await db.categories.delete(id);
+  },
+};
+
+// Product Repository
+export const ProductRepository = {
+  async getAll() {
+    return await db.products.toArray();
+  },
+  async getFeatured() {
+    // Implementasi untuk mendapatkan produk unggulan (misalnya, berdasarkan properti 'featured')
+    return await db.products.where('featured').equals(1).toArray();
+  },
+  async getById(id) {
+    return await db.products.get(id);
+  },
+  async add(product) {
+    const id = await db.products.add(product);
+    return { id, ...product };
+  },
+  async update(id, changes) {
+    await db.products.update(id, changes);
+    return { id, ...changes };
+  },
+  async delete(id) {
+    await db.products.delete(id);
+  },
+};
+
+const createRepo = (tableName) => ({
     async add(record) {
-      const id = await table.add({ ...record, createdAt: new Date().toISOString() })
-      return { id, ...record }
+    const id = await db[tableName].add({ ...record, createdAt: new Date().toISOString() });
+    return { id, ...record };
     },
     async bulkAdd(records) {
-      return table.bulkAdd(records.map(r => ({ ...r, createdAt: new Date().toISOString() })))
+    return db[tableName].bulkAdd(records.map(r => ({ ...r, createdAt: new Date().toISOString() })));
     },
     async update(id, changes) {
-      await table.update(id, { ...changes, updatedAt: new Date().toISOString() })
+    await db[tableName].update(id, { ...changes, updatedAt: new Date().toISOString() });
     },
     async delete(id) {
-      await table.delete(id)
+    await db[tableName].delete(id);
     },
     async getById(id) {
-      return table.get(id)
+    return db[tableName].get(id);
     },
     async getAll() {
-      return table.toArray()
+    return db[tableName].toArray();
     },
     async where(index, value) {
-      return table.where(index).equals(value).toArray()
+    return db[tableName].where(index).equals(value).toArray();
     },
-  }
-}
-
-export const capitalCostsRepo = createCrudRepository(appDatabase.table('capitalCosts'))
-export const debtsRepo = createCrudRepository(appDatabase.table('debts'))
-export const incomesRepo = createCrudRepository(appDatabase.table('incomes'))
-export const expensesRepo = createCrudRepository(appDatabase.table('expenses'))
-export const rawMaterialsRepo = createCrudRepository(appDatabase.table('rawMaterials'))
-export const productsRepo = createCrudRepository(appDatabase.table('products'))
-export const dailyLedgerRepo = createCrudRepository(appDatabase.table('dailyLedger'))
-
+});
+export const capitalCostsRepo = createRepo('capitalCosts');
+export const debtsRepo = createRepo('debts');
+export const incomesRepo = createRepo('incomes');
+export const expensesRepo = createRepo('expenses');
+export const rawMaterialsRepo = createRepo('rawMaterials');
+export const dailyLedgerRepo = createRepo('dailyLedger');
 
