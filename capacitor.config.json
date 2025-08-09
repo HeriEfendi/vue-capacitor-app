@@ -1,0 +1,5 @@
+{
+  "appId": "com.example.vuecapacitorapp",
+  "appName": "Vue Capacitor App",
+  "webDir": "dist"
+}
