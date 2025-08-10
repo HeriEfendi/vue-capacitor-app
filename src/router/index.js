@@ -1,46 +1,71 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
+import DefaultLayout from '../layout/DefaultLayout.vue'
 import HomeView from '../views/HomeView.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    name: 'Layout',
+    component: DefaultLayout,
+    redirect: '/dashboard',
+    children: [
+      {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: HomeView, // Assuming HomeView is your dashboard for now
+      },
+      {
+        path: 'products',
+        name: 'Products',
+        component: () => import('../views/ProductsView.vue'),
+      },
+      {
+        path: 'raw-materials',
+        name: 'RawMaterials',
+        component: () => import('../views/RawMaterialsView.vue'),
+      },
+      {
+        path: 'categories',
+        name: 'Categories',
+        component: () => import('../views/CategoriesView.vue'),
+      },
+      {
+        path: 'expenses',
+        name: 'Expenses',
+        component: () => import('../views/ExpensesView.vue'),
+      },
+      {
+        path: 'incomes',
+        name: 'Incomes',
+        component: () => import('../views/IncomesView.vue'),
+      },
+      {
+        path: 'debts',
+        name: 'Debts',
+        component: () => import('../views/DebtsView.vue'),
+      },
+      {
+        path: 'capital',
+        name: 'Capital',
+        component: () => import('../views/CapitalView.vue'),
+      },
+      {
+        path: 'about',
+        name: 'About',
+        component: () => import('../views/AboutView.vue'),
+      },
+      {
+        path: 'contact',
+        name: 'Contact',
+        component: () => import('../views/ContactView.vue'),
+      },
+      // Add other routes from your README here
+    ],
   },
-  {
-    path: '/products',
-    name: 'products',
-    component: () => import('../views/ProductsView.vue')
-  },
-  {
-    path: '/categories',
-    name: 'categories',
-    component: () => import('../views/CategoriesView.vue')
-  },
-  {
-    path: '/about',
-    name: 'about',
-    component: () => import('../views/AboutView.vue')
-  },
-  {
-    path: '/contact',
-    name: 'contact',
-    component: () => import('../views/ContactView.vue')
-  },
-  {
-    path: '/product/:id',
-    name: 'product-detail',
-    component: () => import('../views/ProductDetailView.vue')
-  },
-  {
-    path: '/category/:id',
-    name: 'category-detail',
-    component: () => import('../views/CategoryDetailView.vue')
-  }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(), // Using Hash History is better for Capacitor
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
@@ -48,7 +73,8 @@ const router = createRouter({
     } else {
       return { top: 0 }
     }
-  }
+
+  },
 })
 
 export default router

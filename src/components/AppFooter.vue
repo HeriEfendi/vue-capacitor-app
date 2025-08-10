@@ -1,35 +1,39 @@
 <template>
-  <footer class="bg-dark text-light py-4">
+  <footer class="app-footer">
     <div class="container">
       <div class="row">
-        <div class="col-md-4">
+        <div class="col-lg-4 mb-4 mb-lg-0">
           <h5>{{ companyInfo.name }}</h5>
-          <p>{{ companyInfo.description }}</p>
+          <p class="text-muted">{{ companyInfo.description }}</p>
         </div>
-        <div class="col-md-4">
+        <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
           <h5>Quick Links</h5>
           <ul class="list-unstyled">
             <li v-for="link in quickLinks" :key="link.path">
-              <a
-                href="#"
-                class="text-light"
-                @click.prevent="navigate(link.path)"
-              >
+              <a href="#" @click.prevent="navigate(link.path)">
                 {{ link.name }}
               </a>
             </li>
           </ul>
         </div>
-        <div class="col-md-4">
+        <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
           <h5>Hubungi Kami</h5>
-          <p>
-            Email: {{ contact.email }}<br>
-            Phone: {{ contact.phone }}<br>
-            Alamat: {{ contact.address }}
-          </p>
+          <ul class="list-unstyled">
+            <li>Email: {{ contact.email }}</li>
+            <li>Phone: {{ contact.phone }}</li>
+            <li>Alamat: {{ contact.address }}</li>
+          </ul>
+        </div>
+        <div class="col-lg-3">
+          <h5>Ikuti Kami</h5>
+          <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+          </div>
         </div>
       </div>
-      <div class="text-center mt-3">
+      <div class="footer-bottom text-center">
         <p class="mb-0">&copy; {{ currentYear }} {{ companyInfo.name }}. All rights reserved.</p>
       </div>
     </div>
@@ -81,29 +85,58 @@ export default {
 </script>
 
 <style scoped>
-footer {
-  margin-top: auto;
+.app-footer {
+  background-color: var(--bs-dark);
+  color: #adb5bd; /* Lighter grey for better readability on dark background */
+  padding: 60px 0 20px 0;
+  margin-top: auto; /* Pushes footer to the bottom */
 }
 
 h5 {
+  color: #ffffff;
   font-weight: 600;
   margin-bottom: 1.5rem;
 }
 
+ul {
+  padding-left: 0;
+}
+
 ul li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 a {
+  color: #adb5bd;
   text-decoration: none;
-  transition: opacity 0.3s;
+  transition: color 0.3s ease;
 }
 
 a:hover {
-  opacity: 0.8;
+  color: #ffffff;
 }
 
-p {
-  line-height: 1.6;
+.social-icons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #495057;
+  color: #ffffff;
+  margin-right: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.social-icons a:hover {
+  background-color: var(--bs-primary);
+}
+
+.footer-bottom {
+  border-top: 1px solid #495057;
+  padding-top: 20px;
+  margin-top: 40px;
 }
 </style>
+

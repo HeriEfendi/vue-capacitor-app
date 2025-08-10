@@ -57,24 +57,49 @@ export default {
 
 <style scoped>
 .navbar {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: #ffffff; /* White background */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Softer shadow */
+  padding: 1rem 0;
   position: sticky;
   top: 0;
   z-index: 1030;
 }
 
 .navbar-brand {
-  font-weight: bold;
+  font-weight: 700; /* Bolder brand name */
+  font-size: 1.5rem;
+  color: var(--bs-dark);
 }
 
 .nav-link {
   font-weight: 500;
   padding: 0.5rem 1rem;
+  color: #555; /* Slightly muted color for nav links */
+  position: relative;
+  transition: color 0.3s ease;
 }
 
-/* vue-router akan secara otomatis menambahkan class ini ke link yang aktif */
+.nav-link:hover,
 .router-link-exact-active {
   color: var(--bs-primary) !important;
-  font-weight: bold;
+}
+
+/* Optional: Add a subtle underline effect on hover/active */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bs-primary);
+  transition: width 0.3s ease-in-out;
+}
+
+.nav-link:hover::after,
+.router-link-exact-active::after {
+  width: 100%;
 }
 </style>
+

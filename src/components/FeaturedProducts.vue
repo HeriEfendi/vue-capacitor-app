@@ -69,32 +69,55 @@ export default {
 <style scoped>
 .featured-products {
   padding: 60px 0;
+  background-color: #ffffff; /* Use a clean white background */
+}
+
+h2 {
+  font-weight: 700;
+  margin-bottom: 3rem; /* More space below the title */
 }
 
 .product-card {
-  border: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.3s;
+  border: 1px solid #e9ecef; /* Subtle border */
+  border-radius: 10px;
+  transition: all 0.3s ease-in-out;
+  overflow: hidden; /* Hide overflowing parts of the image */
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-8px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
 }
 
 .card-img-top {
-  height: 200px;
+  height: 220px;
   object-fit: cover;
+}
+
+.card-body {
+  padding: 1.5rem;
+  text-align: center; /* Center align content */
 }
 
 .card-title {
   font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--bs-dark);
   margin-bottom: 0.5rem;
 }
 
 .card-text {
   color: var(--bs-primary);
-  font-weight: bold;
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
+  font-weight: 700; /* Bolder price */
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-primary {
+  width: 100%; /* Full-width button */
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  border-radius: 8px;
 }
 </style>
+

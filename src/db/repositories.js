@@ -70,10 +70,31 @@ const createRepo = (tableName) => ({
     return db[tableName].where(index).equals(value).toArray();
     },
 });
+
 export const capitalCostsRepo = createRepo('capitalCosts');
 export const debtsRepo = createRepo('debts');
 export const incomesRepo = createRepo('incomes');
 export const expensesRepo = createRepo('expenses');
 export const rawMaterialsRepo = createRepo('rawMaterials');
 export const dailyLedgerRepo = createRepo('dailyLedger');
+
+export const RawMaterialsRepository = {
+  async getAll() {
+    return await db.rawMaterials.toArray();
+  },
+  async getById(id) {
+    return await db.rawMaterials.get(id);
+  },
+  async add(rawMaterial) {
+    const id = await db.rawMaterials.add(rawMaterial);
+    return { id, ...rawMaterial };
+  },
+  async update(id, changes) {
+    await db.rawMaterials.update(id, changes);
+    return { id, ...changes };
+  },
+  async delete(id) {
+    await db.rawMaterials.delete(id);
+  },
+};
 

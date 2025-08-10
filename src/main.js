@@ -1,7 +1,13 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import store from './store'
 import { seedDatabase } from './db/schema'
+
+// Import CoreUI CSS
+import '@coreui/coreui/dist/css/coreui.min.css'
+import CIcon from '@coreui/icons-vue';
+import * as icons from '@coreui/icons';
 
 // Styles
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -11,15 +17,22 @@ import './style.css'
 // Bootstrap JS
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
-// Initialize and seed database
-seedDatabase().then(() => {
+async function initializeApp() {
+  try {
+    await seedDatabase();
   console.log('Database seeded successfully.');
-}).catch(error => {
-  console.error('Failed to seed database:', error)
-});
+  } catch (error) {
+    console.error('Failed to seed database:', error);
+  }
+  const app = createApp(App);
 
-const app = createApp(App)
+  app.use(store);
+  app.use(router);
+  app.provide('icons', icons); // Provide icons globally
+  app.component('CIcon', CIcon); // Register CIcon globally
 
-app.use(router)
+  app.mount('#app');
+}
 
-app.mount('#app')
+initializeApp();
+

@@ -5,7 +5,7 @@
         <div class="col-lg-6">
           <h1 class="display-4">{{ title }}</h1>
           <p class="lead">{{ description }}</p>
-          <a href="#" class="btn btn-primary btn-lg" @click.prevent="onShopNow">
+          <a href="#" class="btn btn-primary" @click.prevent="onShopNow">
             {{ buttonText }}
           </a>
         </div>
@@ -52,29 +52,52 @@ export default {
 
 <style scoped>
 .hero-section {
-  background-color: #f8f9fa;
-  padding: 80px 0;
+  /* Subtle gradient background */
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 100px 0;
+  text-align: center; /* Center align text on small screens */
+}
+
+@media (min-width: 992px) {
+  .hero-section {
+    text-align: left; /* Left align text on larger screens */
+  }
 }
 
 .display-4 {
-  font-weight: bold;
-  margin-bottom: 1rem;
+  font-weight: 700; /* Bolder title */
+  margin-bottom: 1.5rem;
+  color: var(--bs-dark);
 }
 
 .lead {
-  margin-bottom: 2rem;
+  font-size: 1.25rem;
+  color: var(--bs-secondary);
+  margin-bottom: 2.5rem;
 }
 
-.btn-lg {
-  padding: 0.75rem 2rem;
+.btn-primary {
+  padding: 1rem 2.5rem; /* Larger button */
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 50px; /* Pill-shaped button */
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2); /* Button shadow */
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
 }
 
 .img-fluid {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 15px; /* Softer border-radius for the image */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
 .img-fluid:hover {
-  transform: scale(1.02);
+  transform: scale(1.03); /* Slightly larger hover effect */
 }
 </style>
+

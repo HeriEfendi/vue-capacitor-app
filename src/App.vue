@@ -3,23 +3,15 @@
 </template>
 
 <script>
+import { provide } from 'vue';
+import { useStore } from 'vuex';
+
 export default {
-  name: 'App'
-}
+  name: 'App',
+  setup() {
+    const store = useStore();
+    provide('sidebarVisible', store.state.sidebarVisible);
+  },
+};
 </script>
-
-<style>
-/* Global styles can be added here */
-.app-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif;
-  line-height: 1.6;
-}
-</style>
 

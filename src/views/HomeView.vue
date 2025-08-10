@@ -15,6 +15,8 @@
     <!-- Why Choose Us -->
     <why-choose-us />
 
+    <CButton color="danger" @click="resetDatabase">Reset Database</CButton>
+
     <!-- Footer Component -->
     <app-footer />
   </div>
@@ -29,6 +31,8 @@ import FeaturedProducts from '../components/FeaturedProducts.vue'
 import WhyChooseUs from '../components/WhyChooseUs.vue'
 import AppFooter from '../components/AppFooter.vue'
 import { CategoryRepository, ProductRepository } from '../db/repositories'
+import { db, seedDatabase } from '../db/schema'
+import { CButton } from '@coreui/vue';
 export default {
   name: 'HomeView',
   components: {
@@ -37,19 +41,26 @@ export default {
     CategorySection,
     FeaturedProducts,
     WhyChooseUs,
-    AppFooter
+    AppFooter,
+    CButton
   },
   setup() {
     const categories = ref([])
     const featuredProducts = ref([])
     const fetchData = async () => {
       try {
-        categories.value = await CategoryRepository.getAll()
-        featuredProducts.value = await ProductRepository.getFeatured()
+        categories.value = await CategoryRepository.getAll();
+        featuredProducts.value = await ProductRepository.getFeatured();
       } catch (error) {
-        console.error('Error fetching data:', error)
+        console.error('Error fetching data:', error);
       }
-    }
+    };
+    const resetDatabase = async () => {
+      await db.delete();
+      await db.open();
+      await seedDatabase();
+      fetchData();
+    };
 
     onMounted(() => {
       fetchData()
@@ -57,7 +68,8 @@ export default {
 
     return {
       categories,
-      featuredProducts
+      featuredProducts,
+      resetDatabase
     }
   }
 }
@@ -70,3 +82,4 @@ export default {
   flex-direction: column;
 }
 </style>
+

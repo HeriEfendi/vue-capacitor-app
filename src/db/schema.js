@@ -1,103 +1,58 @@
-import Dexie from 'dexie'
+import Dexie from 'dexie';
 
-export const db = new Dexie('umkmDatabase')
+export const db = new Dexie('umkm_marketplace');
+
+let databaseSeeded = false;
 
 db.version(1).stores({
-  categories: '++id, name, image, description, slug',
-  products: '++id, name, price, description, image, categoryId, featured, stock, slug',
-  orders: '++id, userId, products, totalAmount, status, createdAt',
-  users: '++id, name, email, phone, address',
-  cart: '++id, userId, productId, quantity'
-})
+  categories: 'id, name',
+  products: '++id, name, price, stock, categoryId, featured',
+  capitalCosts: '++id, createdAt, name, amount',
+  debts: '++id, createdAt, name, amount, dueDate',
+  incomes: '++id, createdAt, name, amount',
+  expenses: '++id, createdAt, name, amount, type',
+  rawMaterials: '++id, name, unit, stock',
+  dailyLedger: '++id, createdAt, description, amount, type'
+});
 
-// Menambahkan hooks untuk slug generation
-db.categories.hook('creating', function (primKey, obj) {
-  if (!obj.slug) {
-    obj.slug = generateSlug(obj.name)
-  }
-})
-
-db.products.hook('creating', function (primKey, obj) {
-  if (!obj.slug) {
-    obj.slug = generateSlug(obj.name)
-  }
-})
-
-function generateSlug(text) {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '')
-}
-
-// Initial seed data
 export async function seedDatabase() {
-  const categoriesCount = await db.categories.count()
-  const productsCount = await db.products.count()
-
-  if (categoriesCount === 0) {
-    await db.categories.bulkAdd([
-      {
-        name: 'Makanan',
-        image: 'https://placehold.co/300x200',
-        description: 'Berbagai makanan tradisional dan modern dari UMKM lokal'
-      },
-      {
-        name: 'Fashion',
-        image: 'https://placehold.co/300x200',
-        description: 'Pakaian dan aksesori fashion buatan pengrajin lokal'
-      },
-      {
-        name: 'Kerajinan',
-        image: 'https://placehold.co/300x200',
-        description: 'Kerajinan tangan berkualitas dari pengrajin Indonesia'
-      },
-      {
-        name: 'Aksesoris',
-        image: 'https://placehold.co/300x200',
-        description: 'Berbagai aksesori unik dan menarik'
-      }
-    ])
+  if (databaseSeeded) {
+    console.log('Database already seeded.');
+    return;
   }
 
-  if (productsCount === 0) {
-    await db.products.bulkAdd([
-      {
-        name: 'Kue Tradisional',
-        price: 150000,
-        description: 'Kue tradisional yang dibuat dengan bahan berkualitas',
-        image: 'https://placehold.co/300x200',
+  // Clear existing data from tables before seeding
+  await db.categories.clear();
+  await db.products.clear();
+
+  const categories = [
+    { id: 1, name: 'Makanan' },
+    { id: 2, name: 'Minuman' },
+    { id: 3, name: 'Kerajinan Tangan' },
+    { id: 4, name: 'Pakaian' },
+  ];
+
+  await db.categories.bulkAdd(categories);
+
+  function generateDummyProducts(count) {
+    const products = [];
+    for (let i = 1; i <= count; i++) {
+      products.push({
+        name: `Produk Makanan ${i}`,
+        price: Math.floor(Math.random() * 100000) + 20000,
+        stock: Math.floor(Math.random() * 100) + 10,
+        description: `Deskripsi produk makanan ${i}. Ini adalah produk unggulan dari UMKM kami.`,
+        image: `https://placehold.co/200x150/random`,
         categoryId: 1,
-        featured: true,
-        stock: 50
-      },
-      {
-        name: 'Batik Modern',
-        price: 200000,
-        description: 'Batik modern dengan desain kontemporer',
-        image: 'https://placehold.co/300x200',
-        categoryId: 2,
-        featured: true,
-        stock: 30
-      },
-      {
-        name: 'Tas Anyaman',
-        price: 175000,
-        description: 'Tas anyaman tradisional dengan sentuhan modern',
-        image: 'https://placehold.co/300x200',
-        categoryId: 3,
-        featured: true,
-        stock: 25
-      },
-      {
-        name: 'Gelang Etnik',
-        price: 250000,
-        description: 'Gelang dengan desain etnik khas Indonesia',
-        image: 'https://placehold.co/300x200',
-        categoryId: 4,
-        featured: true,
-        stock: 40
-      }
-    ])
+        featured: 0 // 0 means not featured by default
+      });
+    }
+    return products;
   }
+
+  const products = generateDummyProducts(20);
+  await db.products.bulkAdd(products);
+
+  databaseSeeded = true;
 }
+

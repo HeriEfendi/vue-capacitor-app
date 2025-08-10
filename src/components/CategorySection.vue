@@ -53,23 +53,50 @@ export default {
 <style scoped>
 .category-card {
   cursor: pointer;
-  transition: transform 0.3s;
-  margin-bottom: 20px;
   border: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 15px; /* Softer radius */
+  overflow: hidden; /* Important for the image overlay effect */
+  position: relative;
+  transition: all 0.4s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
 .category-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-10px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
 }
 
 .card-img-top {
-  height: 200px;
+  width: 100%;
+  height: 250px; /* A bit taller */
   object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.category-card:hover .card-img-top {
+  transform: scale(1.05); /* Zoom effect on hover */
+}
+
+.card-body {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
+  padding: 1.5rem 1rem;
+  transition: all 0.4s ease;
 }
 
 .card-title {
-  margin-bottom: 0;
+  color: #ffffff;
   font-weight: 600;
+  margin-bottom: 0;
+  transform: translateY(10px); /* Initially moved down */
+  transition: transform 0.4s ease;
+}
+
+.category-card:hover .card-title {
+  transform: translateY(0); /* Move up on hover */
 }
 </style>
+
