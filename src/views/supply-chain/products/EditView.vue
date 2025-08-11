@@ -37,7 +37,7 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ProductRepository } from '../db/repositories'
+import { ProductRepository } from '../../../db/repositories'
 import { CCard, CCardBody, CForm, CFormInput, CFormLabel, CFormTextarea, CButton } from '@coreui/vue'
 
 export default {

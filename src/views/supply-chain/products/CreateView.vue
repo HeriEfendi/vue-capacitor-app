@@ -36,19 +36,18 @@
 
 <script>
 import { ref } from 'vue'
-import { ProductRepository } from '../db/repositories'
+import { useRouter } from 'vue-router'
+import { ProductRepository } from '../../../db/repositories'
 import { CCard, CCardBody, CForm, CFormInput, CFormLabel, CFormTextarea, CButton } from '@coreui/vue'
 
 export default {
   name: 'ProductCreateView',
   components: { CCard, CCardBody, CForm, CFormInput, CFormLabel, CFormTextarea, CButton },
-  setup(_, { router }) {
+  setup() {
+    const router = useRouter()
     const newProduct = ref({ name: '', price: 0, stock: 0, description: '', image: null })
     const handleImageUpload = (e) => { const f = e.target.files[0]; if (f) newProduct.value.image = f }
-    const addProduct = async () => {
-      await ProductRepository.add(newProduct.value)
-      router.push('/products')
-    }
+    const addProduct = async () => { await ProductRepository.add(newProduct.value); router.push('/products') }
     return { newProduct, handleImageUpload, addProduct }
   }
 }

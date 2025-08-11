@@ -27,7 +27,7 @@
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { RawMaterialsRepository } from '../db/repositories'
+import { RawMaterialsRepository } from '../../../db/repositories'
 import { CCard, CCardBody, CForm, CFormInput, CFormLabel, CButton } from '@coreui/vue'
 
 export default {

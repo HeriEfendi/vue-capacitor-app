@@ -31,7 +31,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { ProductRepository } from '../db/repositories'
+import { ProductRepository } from '../../../db/repositories'
 import { CCard, CCardBody, CCardFooter, CCardTitle, CCardText, CButton, CImage } from '@coreui/vue'
 
 export default {

@@ -36,7 +36,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { RawMaterialsRepository } from '../db/repositories'
+import { RawMaterialsRepository } from '../../../db/repositories'
 import { useRouter } from 'vue-router'
 import { CCard, CCardBody, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell, CButton } from '@coreui/vue'
 

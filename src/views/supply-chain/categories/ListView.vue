@@ -32,7 +32,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { CategoryRepository } from '../db/repositories'
+import { CategoryRepository } from '../../../db/repositories'
 import { useRouter } from 'vue-router'
 import { CCard, CCardBody, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell, CButton } from '@coreui/vue'
 
