@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import DefaultLayout from '../layout/DefaultLayout.vue'
 import HomeView from '../views/HomeView.vue'
 
@@ -16,19 +16,25 @@ const routes = [
       },
       {
         path: 'products',
-        name: 'Products',
-        component: () => import('../views/ProductsView.vue'),
+        name: 'ProductsList',
+        component: () => import('../views/ProductsListView.vue'),
       },
+      { path: 'products/create', name: 'ProductCreate', component: () => import('../views/ProductCreateView.vue') },
+      { path: 'products/:id/edit', name: 'ProductEdit', component: () => import('../views/ProductEditView.vue') },
       {
         path: 'raw-materials',
-        name: 'RawMaterials',
-        component: () => import('../views/RawMaterialsView.vue'),
+        name: 'RawMaterialsList',
+        component: () => import('../views/RawMaterialsListView.vue'),
       },
+      { path: 'raw-materials/create', name: 'RawMaterialsCreate', component: () => import('../views/RawMaterialsCreateView.vue') },
+      { path: 'raw-materials/:id/edit', name: 'RawMaterialsEdit', component: () => import('../views/RawMaterialsEditView.vue') },
       {
         path: 'categories',
-        name: 'Categories',
-        component: () => import('../views/CategoriesView.vue'),
+        name: 'CategoriesList',
+        component: () => import('../views/CategoriesListView.vue'),
       },
+      { path: 'categories/create', name: 'CategoryCreate', component: () => import('../views/CategoryCreateView.vue') },
+      { path: 'categories/:id/edit', name: 'CategoryEdit', component: () => import('../views/CategoryEditView.vue') },
       {
         path: 'expenses',
         name: 'Expenses',
@@ -59,13 +65,14 @@ const routes = [
         name: 'Contact',
         component: () => import('../views/ContactView.vue'),
       },
-      // Add other routes from your README here
+      { path: ':pathMatch(.*)*', name: 'NotFoundChild', component: () => import('../views/NotFound.vue'), meta: { bare: true } },
     ],
   },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFound.vue'), meta: { bare: true } },
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(), // Using Hash History is better for Capacitor
+  history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {

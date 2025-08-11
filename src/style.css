@@ -101,8 +101,14 @@ a {
 
 /* Ensure the content is not overlapped by the sidebar */
 /* New shell to enforce two-column layout */
-.app-shell { display: grid; grid-template-columns: var(--cui-sidebar-occupy-start, 256px) 1fr; min-height: 100vh; }
+.app-shell { display: grid; grid-template-columns: 256px 1fr; min-height: 100vh; transition: grid-template-columns 0.25s ease; position: relative; }
 .app-main { grid-column: 2 / 3; }
+
+/* Expand/Collapse responsive to store flag via body class toggle */
+body.sidebar-collapsed .app-shell { grid-template-columns: 0 1fr; }
+
+/* Ensure sidebar does not overlay clicks on content */
+.c-sidebar { position: sticky; top: 0; height: 100vh; z-index: 1041; pointer-events: auto; }
 
 .c-body { background-color: transparent; flex: 1; display: flex; flex-direction: column; }
 
@@ -127,7 +133,7 @@ a {
   font-weight: 700;
   letter-spacing: 0.2px;
 }
-.c-sidebar-nav .nav-link { display: flex; align-items: center; gap: 10px; }
+.c-sidebar-nav .nav-link { display: flex; align-items: center; gap: 10px; width: 100%; }
 .c-sidebar-nav .nav-link span { flex: 1; }
 .c-sidebar-nav .nav-link .nav-icon {
   margin-right: 8px;

@@ -1,8 +1,8 @@
 <template>
-  <CHeader position="sticky" class="mb-4" :class="[{ 'header-dark': isDark }]" style="left: var(--cui-sidebar-occupy-start, 0);">
+  <CHeader position="sticky" class="mb-4" :class="[{ 'header-dark': isDark }]">
     <CContainer fluid class="d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center">
-        <CHeaderToggler class="ps-1" @click="$store.commit('toggleSidebar')">
+        <CHeaderToggler class="ps-1" @click="toggleSidebar">
           <CIcon icon="cil-menu" size="lg" />
         </CHeaderToggler>
         <CHeaderBrand class="ms-2 d-none d-lg-block" to="/">
@@ -22,6 +22,7 @@ import { CContainer, CHeader, CHeaderBrand, CHeaderToggler, CFormSwitch } from '
 import CIcon from '@coreui/icons-vue'
 import { cilMenu } from '@coreui/icons'
 import { computed, onMounted } from 'vue'
+import { useStore } from 'vuex'
 
 export default {
   name: 'AppHeader',
@@ -34,7 +35,16 @@ export default {
     CIcon,
   },
   setup() {
+    const store = useStore()
     const isDark = computed(() => window?.localStorage?.getItem('theme') === 'dark')
+    const toggleSidebar = () => {
+      store.commit('toggleSidebar')
+      if (store.state.sidebarVisible) {
+        document.body.classList.remove('sidebar-collapsed')
+      } else {
+        document.body.classList.add('sidebar-collapsed')
+      }
+    }
     const toggleTheme = () => {
       const next = isDark.value ? 'light' : 'dark'
       window.localStorage.setItem('theme', next)
@@ -43,8 +53,13 @@ export default {
     onMounted(() => {
       const saved = window.localStorage.getItem('theme') || 'light'
       document.documentElement.setAttribute('data-theme', saved)
+      if (store.state.sidebarVisible) {
+        document.body.classList.remove('sidebar-collapsed')
+      } else {
+        document.body.classList.add('sidebar-collapsed')
+      }
     })
-    return { cilMenu, isDark, toggleTheme }
+    return { cilMenu, isDark, toggleTheme, toggleSidebar }
   },
 }
 </script>

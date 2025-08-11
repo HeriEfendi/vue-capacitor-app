@@ -31,7 +31,9 @@ async function initializeApp() {
   app.provide('icons', icons); // Provide icons globally
   app.component('CIcon', CIcon); // Register CIcon globally
 
-  app.mount('#app');
+  const vm = app.mount('#app');
+  // expose app for header toggle interop
+  window.__app__ = vm;
 }
 
 initializeApp();

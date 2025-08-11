@@ -5,7 +5,9 @@
       <AppHeader />
       <div class="flex-grow-1 px-3">
         <CContainer lg>
-          <router-view />
+          <router-view v-slot="{ Component, route }">
+            <component :is="Component" />
+          </router-view>
         </CContainer>
       </div>
       <AppFooter />

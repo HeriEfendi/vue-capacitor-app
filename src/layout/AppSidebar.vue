@@ -5,57 +5,56 @@
     class="border-end c-sidebar"
     @visible-change="(value) => $store.commit('updateSidebarVisible', value)"
   >
-    <CSidebarBrand>UMKM App</CSidebarBrand>
     <CSidebarNav>
       <CNavItem>
-        <CNavLink component="RouterLink" :to="{ name: 'Dashboard' }">
+        <RouterLink to="/dashboard" class="nav-link d-flex align-items-center gap-2">
           <CIcon custom-class-name="nav-icon" :icon="cilSpeedometer" />
           <span>Dashboard</span>
-        </CNavLink>
+        </RouterLink>
       </CNavItem>
       <CNavTitle>Supply Chain</CNavTitle>
       <CNavItem>
-        <CNavLink component="RouterLink" :to="{ name: 'Products' }">
+        <RouterLink to="/products" class="nav-link d-flex align-items-center gap-2">
           <CIcon custom-class-name="nav-icon" :icon="cilBasket" />
           <span>Produk Jadi</span>
-        </CNavLink>
+        </RouterLink>
       </CNavItem>
       <CNavItem>
-        <CNavLink component="RouterLink" :to="{ name: 'RawMaterials' }">
+        <RouterLink to="/raw-materials" class="nav-link d-flex align-items-center gap-2">
           <CIcon custom-class-name="nav-icon" :icon="cilList" />
           <span>Bahan Baku</span>
-        </CNavLink>
+        </RouterLink>
       </CNavItem>
       <CNavItem>
-        <CNavLink component="RouterLink" :to="{ name: 'Categories' }">
+        <RouterLink to="/categories" class="nav-link d-flex align-items-center gap-2">
           <CIcon custom-class-name="nav-icon" :icon="cilList" />
           <span>Kategori</span>
-        </CNavLink>
+        </RouterLink>
       </CNavItem>
       <CNavTitle>Akuntansi</CNavTitle>
       <CNavItem>
-        <CNavLink component="RouterLink" :to="{ name: 'Expenses' }">
+        <RouterLink to="/expenses" class="nav-link d-flex align-items-center gap-2">
           <CIcon custom-class-name="nav-icon" :icon="cilList" />
           <span>Pengeluaran</span>
-        </CNavLink>
+        </RouterLink>
       </CNavItem>
       <CNavItem>
-        <CNavLink component="RouterLink" :to="{ name: 'Incomes' }">
+        <RouterLink to="/incomes" class="nav-link d-flex align-items-center gap-2">
           <CIcon custom-class-name="nav-icon" :icon="cilList" />
           <span>Pendapatan</span>
-        </CNavLink>
+        </RouterLink>
       </CNavItem>
       <CNavItem>
-        <CNavLink component="RouterLink" :to="{ name: 'Debts' }">
+        <RouterLink to="/debts" class="nav-link d-flex align-items-center gap-2">
           <CIcon custom-class-name="nav-icon" :icon="cilList" />
           <span>Utang</span>
-        </CNavLink>
+        </RouterLink>
       </CNavItem>
       <CNavItem>
-        <CNavLink component="RouterLink" :to="{ name: 'Capital' }">
+        <RouterLink to="/capital" class="nav-link d-flex align-items-center gap-2">
           <CIcon custom-class-name="nav-icon" :icon="cilList" />
           <span>Modal</span>
-        </CNavLink>
+        </RouterLink>
       </CNavItem>
       <!-- Add other nav items here based on README -->
     </CSidebarNav>
@@ -69,7 +68,6 @@ import {
   CSidebarBrand,
   CSidebarNav,
   CNavItem,
-  CNavLink,
   CNavTitle,
   CSidebarToggler,
 } from '@coreui/vue'
@@ -77,6 +75,7 @@ import CIcon from '@coreui/icons-vue'
 import { cilSpeedometer, cilBasket, cilList } from '@coreui/icons'
 import { useStore } from 'vuex'
 import { computed, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
 
 export default {
   name: 'AppSidebar',
@@ -85,10 +84,10 @@ export default {
     CSidebarBrand,
     CSidebarNav,
     CNavItem,
-    CNavLink,
     CNavTitle,
     CSidebarToggler,
     CIcon,
+    RouterLink,
   },
   setup() {
     const store = useStore()
