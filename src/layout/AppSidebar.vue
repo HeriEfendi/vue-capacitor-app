@@ -1,6 +1,8 @@
 <template>
   <CSidebar
     :visible="$store.state.sidebarVisible"
+    :unfoldable="false"
+    responsive
     :color-scheme="isDark ? 'dark' : 'light'"
     class="border-end c-sidebar"
     @visible-change="(value) => $store.commit('updateSidebarVisible', value)"
@@ -56,6 +58,28 @@
           <span>Modal</span>
         </RouterLink>
       </CNavItem>
+
+      <!-- ─── General Setting ──────────────────────────────── -->
+      <CNavTitle>General Setting</CNavTitle>
+      <CNavItem>
+        <RouterLink to="/users" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilPeople" />
+          <span>Users</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/todo" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilTask" />
+          <span>To Do List</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/profile" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilUser" />
+          <span>Profile</span>
+        </RouterLink>
+      </CNavItem>
+
       <!-- Add other nav items here based on README -->
     </CSidebarNav>
     <CSidebarToggler class="d-none d-lg-flex" @click="$store.commit('toggleSidebar')" />
@@ -72,7 +96,7 @@ import {
   CSidebarToggler,
 } from '@coreui/vue'
 import CIcon from '@coreui/icons-vue'
-import { cilSpeedometer, cilBasket, cilList } from '@coreui/icons'
+import { cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser } from '@coreui/icons'
 import { useStore } from 'vuex'
 import { computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -103,7 +127,10 @@ export default {
       isDark,
       cilSpeedometer,
       cilBasket,
-      cilList
+      cilList,
+      cilPeople,
+      cilTask,
+      cilUser,
     }
   },
 }

@@ -63,6 +63,38 @@ const routes = [
       },
       { path: 'capital/create', name: 'CapitalCreate', component: () => import('../views/accounting/capital/CreateView.vue') },
       { path: 'capital/:id/edit', name: 'CapitalEdit', component: () => import('../views/accounting/capital/EditView.vue') },
+
+      // ─── Users ──────────────────────────────────────────────────────
+      {
+        path: 'users',
+        name: 'UsersList',
+        component: () => import('../views/users/ListView.vue'),
+      },
+
+      // ─── Todo List ──────────────────────────────────────────────────
+      {
+        path: 'todo',
+        name: 'TodoList',
+        component: () => import('../views/todo/ListView.vue'),
+      },
+      {
+        path: 'todo/create',
+        name: 'TodoCreate',
+        component: () => import('../views/todo/FormView.vue'),
+      },
+      {
+        path: 'todo/:id/edit',
+        name: 'TodoEdit',
+        component: () => import('../views/todo/FormView.vue'),
+      },
+
+      // ─── Profile ────────────────────────────────────────────────────
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('../views/profile/ProfileView.vue'),
+      },
+
       {
         path: 'about',
         name: 'About',

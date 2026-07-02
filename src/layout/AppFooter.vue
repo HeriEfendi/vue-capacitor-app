@@ -1,7 +1,7 @@
 <template>
   <CFooter>
     <div>
-      <span>&copy; {{ new Date().getFullYear() }} UMKM App.</span>
+      <span>&copy; {{ new Date().getFullYear() }} H DEV.</span>
     </div>
     <div>
       <span>Powered by</span>

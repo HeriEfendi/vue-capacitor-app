@@ -1,17 +1,20 @@
 <template>
-  <div class="app-shell">
+  <div class="d-flex wrapper">
     <AppSidebar />
-    <div class="app-main d-flex flex-column min-vh-100 bg-light">
+    <div class="wrapper d-flex flex-column min-vh-100 bg-light flex-grow-1">
       <AppHeader />
-      <div class="flex-grow-1 px-3">
+      <div class="body flex-grow-1 px-3">
         <CContainer lg>
-          <router-view v-slot="{ Component, route }">
-            <component :is="Component" />
-          </router-view>
+          <router-view />
         </CContainer>
       </div>
       <AppFooter />
     </div>
+    <div
+      v-if="$store.state.sidebarVisible"
+      class="sidebar-overlay d-lg-none"
+      @click="$store.commit('updateSidebarVisible', false)"
+    ></div>
   </div>
 </template>
 
@@ -20,8 +23,9 @@ import { CContainer } from '@coreui/vue'
 import AppHeader from './AppHeader.vue'
 import AppSidebar from './AppSidebar.vue'
 import AppFooter from './AppFooter.vue'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
 
 export default {
   name: 'DefaultLayout',
@@ -33,7 +37,14 @@ export default {
   },
   setup() {
     const store = useStore()
+    const route = useRoute()
     const isSidebarMinimized = computed(() => !store.state.sidebarVisible)
+
+    watch(() => route.path, () => {
+      if (window.innerWidth < 768) {
+        store.commit('updateSidebarVisible', false)
+      }
+    })
 
     return {
       isSidebarMinimized,

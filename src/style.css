@@ -101,25 +101,7 @@ a {
 
 /* Ensure the content is not overlapped by the sidebar */
 /* New shell to enforce two-column layout */
-.app-shell { display: grid; grid-template-columns: 256px 1fr; min-height: 100vh; transition: grid-template-columns 0.25s ease; position: relative; }
-.app-main { grid-column: 2 / 3; }
 
-/* Expand/Collapse responsive to store flag via body class toggle */
-body.sidebar-collapsed .app-shell { grid-template-columns: 0 1fr; }
-
-/* Ensure sidebar does not overlay clicks on content */
-.c-sidebar { position: sticky; top: 0; height: 100vh; z-index: 1041; pointer-events: auto; }
-
-.c-body { background-color: transparent; flex: 1; display: flex; flex-direction: column; }
-
-.c-main { flex: 1; background-color: transparent; }
-
-.c-sidebar { flex-basis: 256px; flex-shrink: 0; }
-
-/* When sidebar is minimized, adjust body margin */
-.c-sidebar-minimized .c-sidebar {
-  margin-left: -200px; /* Adjust this value as needed */
-}
 
 /* Optional: Adjust container to fill remaining space */
 .c-container {
@@ -191,4 +173,15 @@ body.sidebar-collapsed .app-shell { grid-template-columns: 0 1fr; }
   background: #111827;
   color: #e5e7eb;
 }
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
 
