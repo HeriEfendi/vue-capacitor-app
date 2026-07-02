@@ -63,6 +63,16 @@ const routes = [
       },
       { path: 'capital/create', name: 'CapitalCreate', component: () => import('../views/accounting/capital/CreateView.vue') },
       { path: 'capital/:id/edit', name: 'CapitalEdit', component: () => import('../views/accounting/capital/EditView.vue') },
+      {
+        path: 'financial-records',
+        name: 'FinancialRecords',
+        component: () => import('../views/financial-records/Index.vue'),
+      },
+      {
+        path: 'financial-records/:id',
+        name: 'FinancialRecordsDetails',
+        component: () => import('../views/financial-records/Details.vue'),
+      },
 
       // ─── Users ──────────────────────────────────────────────────────
       {

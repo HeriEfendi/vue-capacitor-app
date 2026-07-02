@@ -58,6 +58,12 @@
           <span>Modal</span>
         </RouterLink>
       </CNavItem>
+      <CNavItem>
+        <RouterLink to="/financial-records" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilList" />
+          <span>Catatan Keuangan</span>
+        </RouterLink>
+      </CNavItem>
 
       <!-- ─── General Setting ──────────────────────────────── -->
       <CNavTitle>General Setting</CNavTitle>
