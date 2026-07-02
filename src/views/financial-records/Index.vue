@@ -19,6 +19,8 @@ import {
   CCol,
   CSpinner
 } from '@coreui/vue'
+import { CIcon } from '@coreui/icons-vue'
+import * as icons from '@coreui/icons'
 
 interface Project {
   id: number
@@ -138,6 +140,7 @@ onMounted(fetchProjects)
       </div>
       <CButton
         color="primary"
+        size="sm"
         @click="dialogCreate = true"
       >
         Buat Projek Baru
@@ -145,35 +148,38 @@ onMounted(fetchProjects)
     </CCol>
 
     <!-- Summary Cards -->
-    <CCol xs="12" md="4">
-      <CCard class="h-100" color="success">
-        <CCardBody class="d-flex align-items-center gap-4">
-          <div>
-            <p class="text-caption text-disabled mb-1">Total Modal Semua Projek</p>
-            <p class="text-h6 font-weight-bold mb-0">{{ formatCurrency(totalDepositsAll) }}</p>
-          </div>
+    <CCol xs="12" md="4" class="d-flex mb-3">
+      <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e8f5e9;">
+        <CCardBody class="d-flex flex-column">
+            <div class="d-flex align-items-center mb-1">
+                <div class="p-1 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="sm" /></div>
+                <div class="text-muted fw-medium small">Total Modal Semua Projek</div>
+            </div>
+            <div class="fs-6 fw-bold text-success">{{ formatCurrency(totalDepositsAll) }}</div>
         </CCardBody>
       </CCard>
     </CCol>
 
-    <CCol xs="12" md="4">
-      <CCard class="h-100" color="danger">
-        <CCardBody class="d-flex align-items-center gap-4">
-          <div>
-            <p class="text-caption text-disabled mb-1">Total Pengeluaran Semua Projek</p>
-            <p class="text-h6 font-weight-bold mb-0">{{ formatCurrency(totalExpensesAll) }}</p>
-          </div>
+    <CCol xs="12" md="4" class="d-flex mb-3">
+      <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #ffebee;">
+        <CCardBody class="d-flex flex-column">
+            <div class="d-flex align-items-center mb-1">
+                <div class="p-1 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="sm" /></div>
+                <div class="text-muted fw-medium small">Total Pengeluaran Semua Projek</div>
+            </div>
+            <div class="fs-6 fw-bold text-danger">{{ formatCurrency(totalExpensesAll) }}</div>
         </CCardBody>
       </CCard>
     </CCol>
 
-    <CCol xs="12" md="4">
-      <CCard class="h-100" color="primary">
-        <CCardBody class="d-flex align-items-center gap-4">
-          <div>
-            <p class="text-caption text-disabled mb-1">Total Sisa Saldo Semua Projek</p>
-            <p class="text-h6 font-weight-bold mb-0">{{ formatCurrency(totalBalanceAll) }}</p>
-          </div>
+    <CCol xs="12" md="4" class="d-flex mb-3">
+      <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e3f2fd;">
+        <CCardBody class="d-flex flex-column">
+            <div class="d-flex align-items-center mb-1">
+                <div class="p-1 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="sm" /></div>
+                <div class="text-muted fw-medium small">Total Sisa Saldo Semua Projek</div>
+            </div>
+            <div class="fs-6 fw-bold text-primary">{{ formatCurrency(totalBalanceAll) }}</div>
         </CCardBody>
       </CCard>
     </CCol>
@@ -197,24 +203,25 @@ onMounted(fetchProjects)
       xs="12"
       sm="6"
       lg="4"
+      class="mb-3"
     >
       <CCard
         class="project-card h-100"
         @click="goToDetail(project.id)"
         style="cursor: pointer;"
       >
-        <CCardBody class="pa-5">
+        <CCardBody class="p-4">
           <div class="d-flex justify-content-between align-items-start mb-3">
             <CBadge :color="getStatusColor(project.status)" size="small">
               {{ project.status === 'Active' ? 'Aktif' : 'Selesai' }}
             </CBadge>
             <div>
                 <CButton
-                  icon="bx-trash"
-                  variant="text"
-                  size="small"
+                  color="danger"
+                  size="sm"
                   @click.stop="dialogDeleteId = project.id"
                 >Hapus</CButton>
+                
             </div>
           </div>
 
@@ -249,9 +256,8 @@ onMounted(fetchProjects)
               {{ formatCurrency(project.balance) }}
             </span>
             <CButton
-              variant="tonal"
               color="primary"
-              size="small"
+              size="sm"
               @click.stop="goToDetail(project.id)"
             >
               Detail
@@ -272,6 +278,7 @@ onMounted(fetchProjects)
           label="Nama Projek"
           placeholder="cth: Bangun Rumah, Tambak Udang 2025..."
           class="mb-4"
+          size="sm"
           autofocus
         />
         <CFormTextarea
@@ -280,17 +287,19 @@ onMounted(fetchProjects)
           placeholder="Keterangan singkat tentang projek ini..."
           rows="3"
           class="mb-4"
+          size="sm"
         />
         <CFormSelect
           v-model="formNew.status"
           label="Status Projek"
+          size="sm"
           :options="[{ label: 'Aktif', value: 'Active' }, { label: 'Selesai', value: 'Completed' }]"
         />
       </CForm>
     </CModalBody>
     <CModalFooter>
-        <CButton color="secondary" @click="dialogCreate = false">Batal</CButton>
-        <CButton color="primary" :disabled="submitting" @click="createProject">Buat Projek</CButton>
+        <CButton color="secondary" size="sm" @click="dialogCreate = false">Batal</CButton>
+        <CButton color="primary" size="sm" :disabled="submitting" @click="createProject">Buat Projek</CButton>
     </CModalFooter>
   </CModal>
 
@@ -303,8 +312,8 @@ onMounted(fetchProjects)
         Apakah Anda yakin ingin menghapus projek ini beserta seluruh catatan transaksinya? Tindakan ini tidak dapat dibatalkan.
     </CModalBody>
     <CModalFooter>
-        <CButton color="secondary" @click="dialogDeleteId = null">Batal</CButton>
-        <CButton color="danger" @click="deleteProject(dialogDeleteId!)">Ya, Hapus</CButton>
+        <CButton color="secondary" size="sm" @click="dialogDeleteId = null">Batal</CButton>
+        <CButton color="danger" size="sm" @click="deleteProject(dialogDeleteId!)">Ya, Hapus</CButton>
     </CModalFooter>
     </CModal>
 

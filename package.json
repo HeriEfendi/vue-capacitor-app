@@ -23,7 +23,8 @@
     "vue": "^3.5.18",
     "vue-router": "^4.5.1",
     "vue3-apexcharts": "^1.11.1",
-    "vuex": "^4.0.2"
+    "vuex": "^4.0.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.4.1",
