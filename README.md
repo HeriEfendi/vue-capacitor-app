@@ -115,3 +115,16 @@ Berikut adalah struktur data dasar yang akan digunakan:
 ```
 *Setiap pembaruan atau penambahan fitur pada proyek ini harus diperbarui juga di dalam file README.md ini.*
 
+
+
+npm run build
+npx cap sync android
+cd android
+./gradlew assembleDebug
+
+
+unutk build debug masuk ke folder android lalu gunakan : `./gradlew assembleDebug`
+unutk merilis apk masuk ke folder android lalu gunakan: `./gradlew assembleRelease`
+
+maka apk akan tersimpan di folder `android/app/build/outputs/apk/release`
+
