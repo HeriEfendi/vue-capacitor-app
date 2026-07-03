@@ -433,9 +433,9 @@ onMounted(fetchProject)
           <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mt-2">
             <div>
               <div class="d-flex align-items-center gap-2 mb-1">
-                <CButton color="secondary" size="lg" @click="router.back()" class="text-nowrap me-2">
-                  <CIcon :icon="icons.cilArrowLeft" class="me-1" /> Back
-                </CButton>
+                <button @click="router.back()" class="btn btn-outline-secondary status-select me-2" style="transform: scaleX(-1);">
+                  <CIcon :icon="icons.cilArrowRight" />
+                </button>
                 <h2 class="text-h4 font-weight-bold">{{ project.name }}</h2>
                 <CBadge :color="project.status === 'Active' ? 'success' : 'secondary'">
                   {{ project.status === 'Active' ? 'Aktif' : 'Selesai' }}
@@ -444,11 +444,11 @@ onMounted(fetchProject)
               <p class="text-body-2 text-disabled mb-0">{{ project.description || 'Tidak ada deskripsi' }}</p>
             </div>
             <div class="d-flex flex-wrap gap-2">
-              <CButton color="warning" size="lg" class="text-white" @click="handleImport"><CIcon :icon="icons.cilCloudUpload" class="me-1" /> Import Excel</CButton>
+              <CButton color="warning" size="lg" class="btn-warning status-select text-white" @click="handleImport"><CIcon :icon="icons.cilCloudUpload" class="me-1" /> Import Excel</CButton>
               <input type="file" ref="fileInput" class="d-none" @change="onFileChange" accept=".xlsx, .xls" />
-              <CButton color="info" size="lg" class="text-white" @click="downloadTemplate"><CIcon :icon="icons.cilCloudDownload" class="me-1" /> Template</CButton>
-              <CButton color="success" size="lg" class="text-white" @click="exportToExcel"><CIcon :icon="icons.cilSpreadsheet" class="me-1" /> Export Excel</CButton>
-              <CButton color="primary" size="lg" @click="openCreateDialog">
+              <CButton color="info" size="lg" class="btn-info status-select text-white" @click="downloadTemplate"><CIcon :icon="icons.cilCloudDownload" class="me-1" /> Template</CButton>
+              <CButton color="success" size="lg" class="btn-success status-select text-white" @click="exportToExcel"><CIcon :icon="icons.cilSpreadsheet" class="me-1" /> Export Excel</CButton>
+              <CButton color="primary" size="lg" class="btn-primary status-select" @click="openCreateDialog">
                 <CIcon :icon="icons.cilPlus" class="me-1" /> Tambah Transaksi
               </CButton>
             </div>
@@ -531,9 +531,9 @@ onMounted(fetchProject)
               </h5>
 
               <div class="btn-group">
-                <CButton :color="filterType === 'SEMUA' ? 'primary' : 'light'" size="lg" @click="filterType = 'SEMUA'">Semua</CButton>
-                <CButton :color="filterType === 'DEPOSIT' ? 'primary' : 'light'" size="lg" @click="filterType = 'DEPOSIT'">Modal</CButton>
-                <CButton :color="filterType === 'EXPENSE' ? 'primary' : 'light'" size="lg" @click="filterType = 'EXPENSE'">Pengeluaran</CButton>
+                <button :class="['btn', filterType === 'SEMUA' ? 'btn-outline-primary status-select' : 'btn-outline-secondary status-select']" @click="filterType = 'SEMUA'">Semua</button>
+                <button :class="['btn', filterType === 'DEPOSIT' ? 'btn-outline-primary status-select' : 'btn-outline-secondary status-select']" @click="filterType = 'DEPOSIT'">Modal</button>
+                <button :class="['btn', filterType === 'EXPENSE' ? 'btn-outline-primary status-select' : 'btn-outline-secondary status-select']" @click="filterType = 'EXPENSE'">Pengeluaran</button>
               </div>
             </div>
           <div class="overflow-auto">
@@ -541,7 +541,7 @@ onMounted(fetchProject)
               <table v-if="filteredTransactions.length > 0" class="table table-hover align-middle mb-0">
                 <thead class="table-light" >
                   <tr>
-                    <th style="background-color: aqua;">Tipe</th>
+                    <th>Tipe</th>
                     <th>Tanggal</th>
                     <th>Kategori</th>
                     <th>Deskripsi</th>
@@ -563,22 +563,22 @@ onMounted(fetchProject)
                       {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
                     </td>
                     <td class="text-center text-nowrap">
-                      <button class="btn btn-sm btn-outline-primary me-2" @click="openEditDialog(tx)">
+                      <button class="btn btn-sm btn-outline-primary status-select me-2" @click="openEditDialog(tx)">
                         <i class="fas fa-edit"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-danger" @click="dialogDeleteTxId = tx.id">
+                      <button class="btn btn-sm btn-outline-danger status-select" @click="dialogDeleteTxId = tx.id">
                         <i class="fas fa-trash"></i>
                       </button>
                     </td>
                   </tr>
                 </tbody>
               </table>
-              <!-- <div v-else class="text-center text-disabled py-8">
+              <div v-else class="text-center text-disabled py-8">
                 <p class="text-body-2">Belum ada transaksi</p>
-                <CButton color="primary" size="lg" class="mt-2" @click="openCreateDialog">
+                <button class="btn btn-primary status-select mt-2" @click="openCreateDialog">
                   + Tambah Transaksi Pertama
-                </CButton>
-              </div> -->
+                </button>
+              </div>
             </div>
           </div>
            
@@ -593,7 +593,7 @@ onMounted(fetchProject)
       <CCol>
         <h2>Projek tidak ditemukan</h2>
         <p>Projek yang Anda cari tidak ada atau telah dihapus.</p>
-        <CButton color="primary" size="lg" @click="router.back()">Kembali ke Semua Projek</CButton>
+        <button class="btn btn-primary status-select" @click="router.back()">Kembali ke Semua Projek</button>
       </CCol>
     </CRow>
   </template>
@@ -629,10 +629,10 @@ onMounted(fetchProject)
         </CForm>
     </CModalBody>
     <CModalFooter>
-      <CButton color="secondary" size="lg" @click="closeDialog">Batal</CButton>
-      <CButton :color="formTx.type === 'DEPOSIT' ? 'success' : 'danger'" size="lg" :disabled="submitting" @click="saveTransaction">
-        {{ editingTxId ? 'Simpan Perubahan' : 'Simpan Transaksi' }}
-      </CButton>
+      <button class="btn btn-secondary status-select" @click="closeDialog"><i class="fas fa-times me-2"></i>Batal</button>
+      <button :class="['btn', formTx.type === 'DEPOSIT' ? 'btn-success' : 'btn-danger', 'status-select']" :disabled="submitting" @click="saveTransaction">
+        <i class="fas fa-save me-2"></i>{{ editingTxId ? 'Simpan Perubahan' : 'Simpan Transaksi' }}
+      </button>
     </CModalFooter>
   </CModal>
 
@@ -643,8 +643,8 @@ onMounted(fetchProject)
         Apakah Anda yakin ingin menghapus transaksi ini? Saldo projek akan diperbarui secara otomatis.
       </CModalBody>
       <CModalFooter>
-        <CButton color="secondary" size="lg" @click="dialogDeleteTxId = null">Batal</CButton>
-        <CButton color="danger" size="lg" @click="deleteTransaction(dialogDeleteTxId!)">Hapus</CButton>
+        <button class="btn btn-secondary status-select" @click="dialogDeleteTxId = null"><i class="fas fa-times me-2"></i>Batal</button>
+        <button class="btn btn-danger status-select" @click="deleteTransaction(dialogDeleteTxId!)"><i class="fas fa-trash me-2"></i>Hapus</button>
       </CModalFooter>
     </CModal>
 

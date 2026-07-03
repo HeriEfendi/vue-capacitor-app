@@ -122,7 +122,9 @@ export const TodoRepository = {
       priority: task.priority || 'Medium',
       status: task.status || 'TO DO',
       due_date: task.due_date || '',
+      target_time: task.target_time || '',
       label: task.label || '',
+      type: task.type || null,
       created_at: now(),
     };
     todos.push(newTask);

@@ -166,7 +166,7 @@ onMounted(fetchProjects)
         <p class="text-subtitle-2 text-disabled mt-1 mb-0">Kelola keuangan semua projek Anda</p>
       </div>
       <button
-        class="btn btn-primary btn-lg d-flex align-items-center gap-2"
+        class="btn btn-outline-primary status-select"
         @click="dialogCreate = true"
       >
         <i class="fas fa-plus"></i> Buat Projek
@@ -220,7 +220,7 @@ onMounted(fetchProjects)
     <CCol v-if="!loading && projects.length === 0" xs="12" class="text-center py-12">
       <p class="text-h6 text-disabled">Belum ada projek keuangan</p>
       <p class="text-body-2 text-disabled mb-4">Klik tombol "Buat Projek Baru" untuk memulai mencatat keuangan projek Anda</p>
-      <CButton color="primary" @click="dialogCreate = true">Buat Projek Pertama</CButton>
+      <button class="btn btn-outline-primary status-select" @click="dialogCreate = true">Buat Projek Pertama</button>
     </CCol>
 
     <CCol
@@ -243,11 +243,11 @@ onMounted(fetchProjects)
             </CBadge>
             <div class="d-flex gap-2">
                 <button
-                  class="btn btn-sm btn-outline-primary"
+                  class="btn btn-sm btn-outline-primary status-select"
                   @click.stop="openEditProject(project)"
                 ><i class="fas fa-edit"></i></button>
                 <button
-                  class="btn btn-sm btn-outline-danger"
+                  class="btn btn-sm btn-outline-danger status-select"
                   @click.stop="dialogDeleteId = project.id"
                 ><i class="fas fa-trash"></i></button>
             </div>
@@ -284,7 +284,7 @@ onMounted(fetchProjects)
               {{ formatCurrency(project.balance) }}
             </span>
             <button
-              class="btn btn-primary btn-sm"
+              class="btn btn-sm btn-outline-primary status-select"
               @click.stop="goToDetail(project.id)"
             >
               <i class="fas fa-arrow-right"></i>
@@ -325,8 +325,8 @@ onMounted(fetchProjects)
       </CForm>
     </CModalBody>
     <CModalFooter>
-        <button class="btn btn-secondary btn-lg" @click="dialogCreate = false"><i class="fas fa-times me-2"></i>Batal</button>
-        <button class="btn btn-primary btn-lg" :disabled="submitting" @click="createProject"><i class="fas fa-plus me-2"></i>Buat Projek</button>
+        <button class="btn btn-secondary status-select" @click="dialogCreate = false"><i class="fas fa-times me-2"></i>Batal</button>
+        <button class="btn btn-primary status-select" :disabled="submitting" @click="createProject"><i class="fas fa-plus me-2"></i>Buat Projek</button>
     </CModalFooter>
   </CModal>
 
@@ -339,8 +339,8 @@ onMounted(fetchProjects)
         Apakah Anda yakin ingin menghapus projek ini beserta seluruh catatan transaksinya? Tindakan ini tidak dapat dibatalkan.
     </CModalBody>
     <CModalFooter>
-        <CButton color="secondary" size="lg" @click="dialogDeleteId = null">Batal</CButton>
-        <CButton color="danger" size="lg" @click="deleteProject(dialogDeleteId!)">Ya, Hapus</CButton>
+        <button class="btn btn-secondary status-select" @click="dialogDeleteId = null">Batal</button>
+        <button class="btn btn-danger status-select" @click="deleteProject(dialogDeleteId!)">Ya, Hapus</button>
     </CModalFooter>
     </CModal>
 
@@ -355,8 +355,8 @@ onMounted(fetchProjects)
       </CForm>
     </CModalBody>
     <CModalFooter>
-        <button class="btn btn-secondary btn-lg" @click="dialogEdit = false"><i class="fas fa-times me-2"></i>Batal</button>
-        <button class="btn btn-primary btn-lg" :disabled="submitting" @click="updateProject"><i class="fas fa-save me-2"></i>Simpan</button>
+        <button class="btn btn-secondary status-select" @click="dialogEdit = false"><i class="fas fa-times me-2"></i>Batal</button>
+        <button class="btn btn-primary status-select" :disabled="submitting" @click="updateProject"><i class="fas fa-save me-2"></i>Simpan</button>
     </CModalFooter>
     </CModal>
 

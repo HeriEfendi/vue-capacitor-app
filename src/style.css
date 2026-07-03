@@ -239,3 +239,59 @@ a {
 }
 
 
+
+/* Common Component Styles */
+.status-select {
+  border-radius: 8px;
+  padding: 6px 10px;
+  height: auto;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background-position: right 0.5rem center;
+}
+
+.btn-outline-primary.status-select {
+  border-color: #b8daff;
+  background-color: #cce5ff;
+  color: #004085;
+}
+.btn-outline-primary.status-select:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-outline-danger.status-select {
+  border-color: #f5c6cb;
+}
+.btn-outline-danger.status-select:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.status-todo {
+  background-color: #e8eaf6;
+  color: #3949ab;
+  border-color: #c5cae9;
+}
+.status-inprogress {
+  background-color: #fff3e0;
+  color: #e65100;
+  border-color: #ffe0b2;
+}
+.status-done {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-color: #c8e6c9;
+}
+
+.btn-outline-secondary.status-select {
+  border-color: #dee2e6;
+  background-color: #e9ecef;
+  color: #495057;
+}
+.btn-outline-secondary.status-select:hover {
+  background-color: #adb5bd;
+  color: white;
+}
