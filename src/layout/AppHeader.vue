@@ -1,56 +1,62 @@
 <template>
-  <CHeader position="sticky" :class="[{ 'header-dark': isDark }]">
-    <CContainer fluid class="d-flex align-items-center justify-content-between">
+  <CHeader position="sticky" class="border-0 w-100 bg-transparent pt-3" style="top: 0; left: 0; z-index: 1050; min-height: 50px;">
+    <CContainer fluid class="d-flex align-items-center justify-content-between p-2">
       <div class="d-flex align-items-center">
-        <CHeaderToggler class="ps-1" @click="toggleSidebar">
+        <CHeaderToggler 
+          v-if="!isDashboard" 
+          @click="goBack" 
+          class="rounded-circle border-0 p-2 d-flex align-items-center justify-content-center"
+          style="width: 40px; height: 40px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+        >
+          <CIcon icon="cil-arrow-left" size="lg" />
+        </CHeaderToggler>
+      </div>
+      <div class="flex-grow-1 d-flex justify-content-center">
+        <div class="rounded-pill d-flex align-items-center justify-content-center px-4" style="height: 40px; width: 90%; font-weight: 700; font-size: 0.9rem; color: #333; background: rgba(255, 255, 255, 0.8); box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+          HDEV MOBILE
+        </div>
+      </div>
+      <div class="d-flex align-items-center">
+        <CHeaderToggler 
+          class="rounded-circle border-0 p-2 d-flex align-items-center justify-content-center" 
+          @click="toggleSidebar"
+          style="width: 40px; height: 40px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+        >
           <CIcon icon="cil-menu" size="lg" />
         </CHeaderToggler>
-        <CHeaderBrand class="ms-2" to="/dashboard">
-          <img src="/icon-192.png" alt="Logo" width="24" height="24" class="me-2" />
-          H DEV
-        </CHeaderBrand>
-      </div>
-      <div class="d-flex align-items-center gap-2">
-        <span class="small text-secondary d-none d-md-inline">{{ isDark ? 'Dark' : 'Light' }} Mode</span>
-        <CFormSwitch color="dark" :checked="isDark" @change="toggleTheme" />
       </div>
     </CContainer>
   </CHeader>
 </template>
 
 <script>
-import { CContainer, CHeader, CHeaderBrand, CHeaderToggler, CFormSwitch } from '@coreui/vue'
+import { CContainer, CHeader, CHeaderToggler } from '@coreui/vue'
 import CIcon from '@coreui/icons-vue'
-import { cilMenu } from '@coreui/icons'
-import { computed, onMounted, watchEffect } from 'vue'
+import { cilMenu, cilArrowLeft } from '@coreui/icons'
+import { computed } from 'vue'
 import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
 
 export default {
   name: 'AppHeader',
   components: {
     CContainer,
     CHeader,
-    CHeaderBrand,
     CHeaderToggler,
-    CFormSwitch,
     CIcon,
   },
   setup() {
     const store = useStore()
     const isDark = computed(() => store.state.theme === 'dark')
+    const route = useRoute()
+    const isDashboard = computed(() => route.path === '/dashboard')
+    const goBack = () => window.history.back()
+
     const toggleSidebar = () => {
       store.commit('toggleSidebar')
     }
-    const toggleTheme = () => {
-      store.commit('toggleTheme')
-    }
     
-    // Sync to document element
-    watchEffect(() => {
-      document.documentElement.setAttribute('data-theme', store.state.theme)
-    })
-    
-    return { cilMenu, isDark, toggleTheme, toggleSidebar }
+    return { cilMenu, cilArrowLeft, isDashboard, goBack, toggleSidebar }
   },
 }
 </script>

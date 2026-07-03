@@ -11,12 +11,12 @@
   --bs-dark: #343a40;
   --text-secondary: #6b7280;
 
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
   line-height: 1.6;
   font-weight: 400;
   color-scheme: light;
   color: #212529;
-  background-color: #f8f9fa;
+  background-color: #f0f4f9;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -39,6 +39,8 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  overflow-x: hidden;
+  background-color: #ecf3fd !important;
 }
 
 [data-theme="dark"] .body {
@@ -79,7 +81,7 @@ a {
 
 .card {
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 1.5rem;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   background-color: #fff;
@@ -203,15 +205,7 @@ a {
   color: #e5e7eb;
 }
 
-.sidebar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-}
+
 
 /* Header */
 [data-theme="dark"] table thead tr th {
@@ -295,3 +289,8 @@ a {
   background-color: #adb5bd;
   color: white;
 }
+.c-sidebar.show { width: 100vw !important; max-width: 100vw !important; }
+.c-sidebar { transition: width 0.2s ease-in-out, transform 0.2s ease-in-out !important; }
+.c-sidebar { background-color: #0b3473 !important; color: white !important; } 
+.c-sidebar .nav-link, .c-sidebar .nav-link span, .c-sidebar .nav-icon, .c-sidebar .nav-title { color: white !important; font-weight: normal !important; }
+.c-sidebar .nav-icon { font-weight: 700 !important; }

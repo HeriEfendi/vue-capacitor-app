@@ -433,9 +433,6 @@ onMounted(fetchProject)
           <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mt-2">
             <div>
               <div class="d-flex align-items-center gap-2 mb-1">
-                <button @click="router.back()" class="btn btn-outline-secondary status-select me-2" style="transform: scaleX(-1);">
-                  <CIcon :icon="icons.cilArrowRight" />
-                </button>
                 <h2 class="text-h4 font-weight-bold">{{ project.name }}</h2>
                 <CBadge :color="project.status === 'Active' ? 'success' : 'secondary'">
                   {{ project.status === 'Active' ? 'Aktif' : 'Selesai' }}
@@ -457,7 +454,7 @@ onMounted(fetchProject)
       </CRow>
 
       <CRow class="g-4 mb-4">
-        <CCol xs="12" sm="6" md="3" class="d-flex">
+        <CCol xs="6" sm="4" md="3" class="d-flex">
           <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e8f5e9;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
@@ -468,7 +465,7 @@ onMounted(fetchProject)
               </CCardBody>
           </CCard>
         </CCol>
-        <CCol xs="12" sm="6" md="3" class="d-flex">
+        <CCol xs="6" sm="4" md="3" class="d-flex">
           <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #ffebee;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
@@ -479,7 +476,7 @@ onMounted(fetchProject)
               </CCardBody>
           </CCard>
         </CCol>
-        <CCol xs="12" sm="6" md="3" class="d-flex">
+        <CCol xs="6" sm="4" md="3" class="d-flex">
           <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e3f2fd;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
@@ -490,7 +487,7 @@ onMounted(fetchProject)
               </CCardBody>
           </CCard>
         </CCol>
-        <CCol xs="12" sm="6" md="3" class="d-flex">
+        <CCol xs="6" sm="4" md="3" class="d-flex">
           <CCard class="border-0 shadow-sm p-3 w-100 " style="background-color: #fff3e0;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
@@ -504,17 +501,17 @@ onMounted(fetchProject)
       </CRow>
 
       <CRow class="g-4 mb-4">
-        <CCol xs="12" md="6" class="d-flex">
+        <CCol xs="12" sm="6" class="d-flex">
           <CCard class="shadow-sm border-0 w-100">
-            <CCardBody class="p-2" style="max-height: 300px; max-width: 400px; overflow: hidden;">
+            <CCardBody class="p-2">
               <h5 class="mb-3">Distribusi Pengeluaran</h5>
               <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" />
             </CCardBody>
           </CCard>
         </CCol>
-        <CCol xs="12" md="6" class="d-flex">
+        <CCol xs="12" sm="6" class="d-flex">
           <CCard class="shadow-sm border-0 w-100">
-            <CCardBody class="p-2" style="max-height: 300px; max-width: 400px; overflow: hidden;">
+            <CCardBody class="p-2">
               <h5 class="mb-3">Arus Kas Keluar per Bulan</h5>
               <VueApexCharts type="bar" :options="barOptions" :series="barSeries" />
             </CCardBody>

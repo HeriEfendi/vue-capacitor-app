@@ -1,112 +1,52 @@
 <template>
-  <div class="container py-5" style="max-width:900px">
-
-    <!-- Header Card -->
-    <CCard class="mb-4 overflow-hidden">
-      <div class="profile-banner"></div>
+  <div class="container mt-3 p-0" style="max-width: 800px">
+    <CCard class="mb-4 overflow-hidden border-0 shadow-sm">
       <CCardBody class="position-relative pt-0">
-        <div class="d-flex flex-column flex-md-row align-items-md-end gap-4 mt-n4">
-          <!-- Avatar -->
-          <div class="profile-avatar-wrapper flex-shrink-0">
-            <img
-              src="https://i.pravatar.cc/160?img=33"
-              alt="Foto Profil"
-              class="profile-avatar rounded-circle border border-4 border-white shadow"
-              width="120"
-              height="120"
-            />
+        <div class="d-flex flex-column align-items-center text-center mt-n4">
+          <img
+            src="/profil.jpg"
+            alt="Foto Profil"
+            class="rounded-circle border border-4 border-white shadow-sm mb-3"
+            width="120" height="120"
+          />
+          <h3 class="fw-bold mb-1">Ahmad Heri Efendi</h3>
+          <p class="text-primary fw-medium mb-3">Full-Stack Web Developer</p>
+          
+          <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+            <span v-for="skill in skills.slice(0,4)" :key="skill.name" class="badge bg-light text-dark rounded-pill border">
+              {{ skill.name }}
+            </span>
           </div>
-          <!-- Bio -->
-          <div class="flex-grow-1 pb-1">
-            <h3 class="fw-black mb-1">Ahmad Heri Efendi</h3>
-            <p class="text-primary fw-semibold mb-2">Full-Stack Web Developer (IT Programmer)</p>
-            <div class="d-flex flex-wrap gap-2">
-              <span class="badge rounded-pill bg-indigo text-white">
-                <i class="fab fa-laravel me-1"></i>Laravel
-              </span>
-              <span class="badge rounded-pill bg-success">
-                <i class="fab fa-vuejs me-1"></i>Vue 3
-              </span>
-              <span class="badge rounded-pill bg-primary">
-                <i class="fas fa-database me-1"></i>MariaDB
-              </span>
-              <span class="badge rounded-pill" style="background:#7c3aed;color:white">
-                <i class="fas fa-server me-1"></i>Redis
-              </span>
-              <span class="badge rounded-pill bg-dark">
-                <i class="fab fa-linux me-1"></i>Linux
-              </span>
-              <span class="badge rounded-pill bg-warning text-dark">
-                <i class="fab fa-android me-1"></i>Capacitor
-              </span>
-            </div>
-          </div>
-          <!-- Contact buttons -->
-          <div class="d-flex gap-2 flex-shrink-0">
-            <a href="mailto:heri@example.com" class="btn btn-outline-primary btn-sm">
-              <i class="fas fa-envelope me-1"></i>Email
-            </a>
-            <a href="https://github.com" target="_blank" class="btn btn-dark btn-sm">
-              <i class="fab fa-github me-1"></i>GitHub
-            </a>
+
+          <div class="d-flex gap-2">
+            <a href="mailto:hheri58@gmail.com" class="btn btn-outline-primary btn-sm rounded-pill px-3">Email</a>
+            <a href="https://github.com/HeriEfendi" target="_blank" class="btn btn-dark btn-sm rounded-pill px-3">GitHub</a>
           </div>
         </div>
       </CCardBody>
     </CCard>
 
     <div class="row g-4">
-      <!-- Kolom Kiri -->
       <div class="col-12 col-md-7">
-        <!-- Tentang Saya -->
-        <CCard class="mb-4">
+        <CCard class="mb-4 border-0 shadow-sm">
           <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-user-circle me-2 text-primary"></i>Tentang Saya
-            </h6>
-            <p class="text-secondary mb-0" style="line-height:1.8">
-              Seorang <strong>IT Programmer</strong> dengan pengalaman lebih dari 5 tahun dalam
-              pengembangan aplikasi web, software ERP, dan sistem internal perusahaan. Mahir
-              dalam memanfaatkan <strong>Laravel</strong>, <strong>Vue.js</strong>,
-              <strong>MariaDB</strong>, dan <strong>Redis</strong> untuk membangun solusi
-              yang skalabel dan berkinerja tinggi. Saat ini mengembangkan aplikasi
-              mobile dengan <strong>Capacitor</strong> untuk Android.
+            <h5 class="fw-bold mb-3">Tentang Saya</h5>
+            <p class="text-secondary small" style="line-height:1.8">
+              IT Programmer dengan {{ years }}+ tahun pengalaman dalam pengembangan web, ERP, dan sistem korporat. Mahir menggunakan Laravel, Vue.js, MariaDB, dan Redis untuk membangun sistem bisnis yang skalabel dan efisien.
             </p>
           </CCardBody>
         </CCard>
 
-        <!-- Pendidikan -->
-        <CCard class="mb-4">
+        <CCard class="border-0 shadow-sm mb-4">
           <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-graduation-cap me-2 text-primary"></i>Pendidikan
-            </h6>
-            <div class="d-flex gap-3">
-              <div class="edu-icon">
-                <i class="fas fa-university text-primary fa-lg"></i>
-              </div>
-              <div>
-                <div class="fw-semibold">Teknik Informatika</div>
-                <div class="text-muted small">Universitas Contoh · 2016 – 2020</div>
-                <div class="text-secondary small mt-1">GPA 3.75 / 4.00</div>
-              </div>
-            </div>
-          </CCardBody>
-        </CCard>
-
-        <!-- Pengalaman Kerja -->
-        <CCard>
-          <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-briefcase me-2 text-primary"></i>Pengalaman Kerja
-            </h6>
-            <div class="timeline">
-              <div class="timeline-item" v-for="exp in experiences" :key="exp.company">
+            <h5 class="fw-bold mb-3">Pengalaman</h5>
+            <div class="timeline ps-2">
+              <div class="timeline-item mb-3" v-for="exp in experiences" :key="exp.company">
                 <div class="timeline-dot"></div>
-                <div class="timeline-content ms-3">
-                  <div class="fw-bold">{{ exp.role }}</div>
-                  <div class="text-primary small fw-semibold">{{ exp.company }}</div>
-                  <div class="text-muted small">{{ exp.period }}</div>
-                  <p class="text-secondary small mt-1 mb-0">{{ exp.desc }}</p>
+                <div class="ms-3">
+                  <div class="fw-bold small">{{ exp.role }}</div>
+                  <div class="text-primary x-small">{{ exp.company }}</div>
+                  <div class="text-muted x-small">{{ exp.period }}</div>
                 </div>
               </div>
             </div>
@@ -114,86 +54,32 @@
         </CCard>
       </div>
 
-      <!-- Kolom Kanan -->
       <div class="col-12 col-md-5">
-        <!-- Skills -->
-        <CCard class="mb-4">
+        <CCard class="border-0 shadow-sm mb-4">
           <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-code me-2 text-primary"></i>Technical Skills
-            </h6>
-            <div v-for="skill in skills" :key="skill.name" class="mb-3">
-              <div class="d-flex justify-content-between small fw-semibold mb-1">
-                <span>{{ skill.name }}</span>
-                <span class="text-muted">{{ skill.level }}%</span>
+            <h5 class="fw-bold mb-3">Skills</h5>
+            <div v-for="skill in skills" :key="skill.name" class="mb-2">
+              <div class="d-flex justify-content-between x-small fw-semibold mb-1">
+                <span class="d-flex align-items-center">
+                  <i :class="`${skill.icon} me-2 text-dark`"></i>
+                  {{ skill.name }}
+                </span>
               </div>
-              <div class="progress" style="height:8px;border-radius:10px">
-                <div
-                  class="progress-bar"
-                  :style="`width:${skill.level}%;background:${skill.color}`"
-                  style="border-radius:10px"
-                ></div>
+              <div class="progress" style="height:6px;">
+                <div class="progress-bar bg-dark" :style="`width:${skill.level}%`"></div>
               </div>
             </div>
           </CCardBody>
         </CCard>
 
-        <!-- Info Kontak -->
-        <CCard class="mb-4">
+        <CCard class="border-0 shadow-sm mb-4">
           <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-address-card me-2 text-primary"></i>Informasi
-            </h6>
-            <ul class="list-unstyled mb-0">
-              <li class="mb-2">
-                <i class="fas fa-map-marker-alt text-muted me-2 fa-fw"></i>
-                <span class="small">Indonesia</span>
-              </li>
-              <li class="mb-2">
-                <i class="fas fa-envelope text-muted me-2 fa-fw"></i>
-                <span class="small">heri@example.com</span>
-              </li>
-              <li class="mb-2">
-                <i class="fas fa-globe text-muted me-2 fa-fw"></i>
-                <span class="small">portfolio.example.com</span>
-              </li>
-              <li>
-                <i class="fab fa-github text-muted me-2 fa-fw"></i>
-                <span class="small">github.com/heri-efendi</span>
-              </li>
-            </ul>
-          </CCardBody>
-        </CCard>
-
-        <!-- Statistik -->
-        <CCard>
-          <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-chart-bar me-2 text-primary"></i>Statistik
-            </h6>
-            <div class="row g-3 text-center">
-              <div class="col-6">
-                <div class="stat-card p-3 rounded-3" style="background:#e8eaf6">
-                  <div class="fs-3 fw-black text-indigo">5+</div>
-                  <div class="small text-muted">Tahun Exp.</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="stat-card p-3 rounded-3" style="background:#e8f5e9">
-                  <div class="fs-3 fw-black text-success">20+</div>
-                  <div class="small text-muted">Projects</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="stat-card p-3 rounded-3" style="background:#fff3e0">
-                  <div class="fs-3 fw-black text-warning">10+</div>
-                  <div class="small text-muted">Clients</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="stat-card p-3 rounded-3" style="background:#fce4ec">
-                  <div class="fs-3 fw-black" style="color:#c2185b">3</div>
-                  <div class="small text-muted">Mobile Apps</div>
+            <h5 class="fw-bold mb-3">Statistik</h5>
+            <div class="row g-2 text-center">
+              <div class="col-6" v-for="stat in stats" :key="stat.label">
+                <div class="p-2 rounded-3 bg-light">
+                  <div class="fw-black text-primary">{{ stat.val }}</div>
+                  <div class="x-small text-muted">{{ stat.label }}</div>
                 </div>
               </div>
             </div>
@@ -213,36 +99,50 @@ export default {
   components: { CCard, CCardBody },
   setup() {
     const skills = ref([
-      { name: 'Laravel / PHP', level: 90, color: '#ff4500' },
-      { name: 'Vue.js / Nuxt', level: 88, color: '#42b883' },
-      { name: 'MariaDB / MySQL', level: 85, color: '#1a6faf' },
-      { name: 'Redis / Queue', level: 75, color: '#dc382d' },
-      { name: 'Capacitor / Android', level: 65, color: '#3ddc84' },
-      { name: 'Linux / DevOps', level: 72, color: '#fcc624' },
+      { name: 'Laravel / PHP', level: 90, icon: 'fab fa-laravel' },
+      { name: 'Vue.js / Nuxt', level: 88, icon: 'fab fa-vuejs' },
+      { name: 'MariaDB / MySQL', level: 85, icon: 'fas fa-database' },
+      { name: 'Redis / Queue', level: 75, icon: 'fas fa-server' },
+      { name: 'Capacitor / Android', level: 65, icon: 'fab fa-android' },
+      { name: 'Linux / DevOps', level: 72, icon: 'fab fa-linux' },
     ])
 
     const experiences = ref([
       {
-        role: 'Full-Stack Developer',
-        company: 'PT. Teknologi Maju',
-        period: '2022 – Sekarang',
-        desc: 'Membangun sistem ERP internal berbasis Laravel + Vue.js dengan Redis untuk caching.',
+        role: 'Information Technology Programmer',
+        company: 'Kotakin Group',
+        period: '2023 - Present',
+        desc: 'Maintenance & development ERP features, internal APIs, & system performance.',
       },
       {
-        role: 'Web Developer',
-        company: 'CV. Digital Kreatif',
-        period: '2020 – 2022',
-        desc: 'Mengembangkan aplikasi web UMKM dan marketplace lokal.',
+        role: 'Information Technology Programmer',
+        company: 'PT Lestari Mulia Sentosa',
+        period: '2022 - 2023',
+        desc: 'System migration (Delphi/PHP to Laravel) & database management.',
       },
       {
-        role: 'Junior Programmer',
-        company: 'Startup ABC',
-        period: '2019 – 2020',
-        desc: 'Internship pengembangan fitur backend PHP dan integrasi API.',
+        role: 'IT Programmer & IT Support',
+        company: 'PT Omega Mas',
+        period: '2019 - 2022',
+        desc: 'System migration (VB.Net to Web), network administration, & technical support.',
       },
     ])
 
-    return { skills, experiences }
+    const now = new Date();
+
+    const years =
+      now.getFullYear() -
+      2019 -
+      (now.getMonth() < 7 ? 1 : 0);
+
+    const stats = ref([
+      { label: 'Tahun Exp.', val: years + '+' },
+      { label: 'Projects', val: '20+' },
+      { label: 'Clients', val: '10+' },
+      { label: 'Mobile Apps', val: '3' },
+    ])
+
+    return { skills, experiences, stats, years }
   }
 }
 </script>

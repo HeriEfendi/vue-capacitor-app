@@ -1,7 +1,7 @@
 <template>
-  <div class="d-flex wrapper">
+  <div class="d-flex wrapper" >
     <AppSidebar />
-    <div class="wrapper d-flex flex-column min-vh-100 bg-light flex-grow-1">
+    <div class="wrapper d-flex flex-column min-vh-100 flex-grow-1" style="background: #ecf3fd !important;">
       <AppHeader />
       <div class="body flex-grow-1 px-3" router-view>
         <CContainer lg>
@@ -10,11 +10,7 @@
       </div>
       <AppFooter />
     </div>
-    <div
-      v-if="$store.state.sidebarVisible"
-      class="sidebar-overlay d-lg-none"
-      @click="$store.commit('updateSidebarVisible', false)"
-    ></div>
+
   </div>
 </template>
 

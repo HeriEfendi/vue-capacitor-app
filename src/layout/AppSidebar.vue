@@ -3,10 +3,13 @@
     :visible="$store.state.sidebarVisible"
     :unfoldable="false"
     responsive
+    placement="end"
     :color-scheme="isDark ? 'dark' : 'light'"
     class="border-end c-sidebar"
+    style="width: 100% !important; max-width: 100% !important;"
     @visible-change="(value) => $store.commit('updateSidebarVisible', value)"
   >
+  <div style="height: 70px;"></div>
     <CSidebarNav>
       <CNavItem>
         <RouterLink to="/dashboard" class="nav-link d-flex align-items-center gap-2" active-class="active">

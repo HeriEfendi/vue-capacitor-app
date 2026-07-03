@@ -174,7 +174,7 @@ onMounted(fetchProjects)
     </CCol>
 
     <!-- Summary Cards -->
-    <CCol xs="12" md="4" class="d-flex mb-4">
+    <CCol xs="6" sm="4" md="3" class="d-flex mb-4">
       <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e8f5e9;">
         <CCardBody class="d-flex flex-column">
             <div class="d-flex align-items-center mb-1">
@@ -186,7 +186,7 @@ onMounted(fetchProjects)
       </CCard>
     </CCol>
 
-    <CCol xs="12" md="4" class="d-flex mb-4">
+    <CCol xs="6" sm="4" md="3" class="d-flex mb-4">
       <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #ffebee;">
         <CCardBody class="d-flex flex-column">
             <div class="d-flex align-items-center mb-1">
@@ -198,7 +198,7 @@ onMounted(fetchProjects)
       </CCard>
     </CCol>
 
-    <CCol xs="12" md="4" class="d-flex mb-4">
+    <CCol xs="6" sm="4" md="3" class="d-flex mb-4">
       <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e3f2fd;">
         <CCardBody class="d-flex flex-column">
             <div class="d-flex align-items-center mb-1">

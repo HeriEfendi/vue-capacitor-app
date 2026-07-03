@@ -1,5 +1,5 @@
 <template>
-  <div class="container py-4">
+  <div class="container mt-3 p-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h4 class="fw-bold">My Personal Tasks</h4>
       <button class="btn btn-outline-primary status-select" @click="dialogVisible = true">
