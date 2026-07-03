@@ -9,70 +9,70 @@
   >
     <CSidebarNav>
       <CNavItem>
-        <RouterLink to="/dashboard" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/dashboard" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilSpeedometer" />
           <span>Dashboard</span>
         </RouterLink>
       </CNavItem>
       <CNavTitle>Pesonal</CNavTitle>
       <CNavItem>
-        <RouterLink to="/todo" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/todo-personal" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilTask" />
           <span>To Do</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/todo" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/todo" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilTask" />
           <span>To Do Team</span>
         </RouterLink>
       </CNavItem>
       <CNavTitle>Akuntansi</CNavTitle>
       <CNavItem>
-        <RouterLink to="/financial-records" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/catatan_proyek" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilDescription" />
           <span>Catatan Proyek</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/capital" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/capital" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilWallet" />
           <span>Tabungan</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/expenses" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/expenses" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilArrowBottom" />
           <span>Pengeluaran</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/incomes" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/incomes" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilArrowTop" />
           <span>Pendapatan</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/debts" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/debts" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilCreditCard" />
           <span>Utang</span>
         </RouterLink>
       </CNavItem>
       <CNavTitle>Supply Chain</CNavTitle>
       <CNavItem>
-        <RouterLink to="/products" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/products" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilBasket" />
           <span>Produk Jadi</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/raw-materials" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/raw-materials" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilList" />
           <span>Bahan Baku</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/categories" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/categories" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilList" />
           <span>Kategori</span>
         </RouterLink>
@@ -81,13 +81,13 @@
       <!-- ─── General Setting ──────────────────────────────── -->
       <CNavTitle>General Setting</CNavTitle>
       <CNavItem>
-        <RouterLink to="/users" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/users" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilPeople" />
           <span>Users</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/profile" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/profile" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilUser" />
           <span>Profile</span>
         </RouterLink>

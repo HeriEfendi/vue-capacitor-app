@@ -4,7 +4,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h4 class="mb-0 fw-bold">To Do List</h4>
-        <small class="text-muted">Kelola tugas tim layaknya Jira/Asana.</small>
+        <small class="text-muted">Kelola tugas tim anda.</small>
       </div>
       <router-link to="/todo/create" class="btn btn-primary d-flex align-items-center gap-2">
         <i class="fas fa-plus"></i>

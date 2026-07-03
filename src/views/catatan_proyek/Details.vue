@@ -19,12 +19,6 @@ import {
   CRow,
   CCol,
   CSpinner,
-  CTable,
-  CTableHead,
-  CTableRow,
-  CTableHeaderCell,
-  CTableBody,
-  CTableDataCell,
 } from '@coreui/vue'
 import VueApexCharts from 'vue3-apexcharts'
 import { CIcon } from '@coreui/icons-vue'
@@ -341,6 +335,11 @@ const donutOptions = computed(() => ({
     width: '100%' 
   },
   labels: Object.keys(categoryTotals.value),
+  tooltip: {
+    y: {
+      formatter: (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
+    }
+  },
   responsive: [{ breakpoint: 480, options: { chart: { width: '100%' }, legend: { position: 'bottom' } } }]
 }))
 
@@ -358,9 +357,12 @@ const barOptions = computed(() => {
   if (!project.value) return { chart: { type: 'bar', height: 250, width: '100%' }, xaxis: { categories: [] } }
   
   const monthlyData: Record<string, number> = {}
-  project.value.transactions.forEach(t => {
-    const month = new Date(t.date).toLocaleDateString('id-ID', { month: 'short' })
-    monthlyData[month] = (monthlyData[month] || 0) + (t.type === 'DEPOSIT' ? t.amount : -t.amount)
+  const sortedTxs = [...project.value.transactions].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  sortedTxs.forEach(t => {
+    if (t.type === 'EXPENSE') {
+      const month = new Date(t.date).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
+      monthlyData[month] = (monthlyData[month] || 0) + t.amount
+    }
   })
 
   return {
@@ -370,8 +372,15 @@ const barOptions = computed(() => {
       width: '100%',
       toolbar: { show: false } 
     },
+    states: {
+      hover: {
+        filter: { type: 'darken', value: 0.15 }
+      }
+    },
+    colors: ['#FFC0CB'],
     dataLabels: {
       enabled: true,
+      style: { colors: ['#000000'] },
       formatter: (val: number) => new Intl.NumberFormat('id-ID').format(val)
     },
     xaxis: { categories: Object.keys(monthlyData) },
@@ -392,13 +401,16 @@ const barSeries = computed(() => {
   if (!project.value) return [{ name: 'Arus Kas', data: [] }]
   
   const monthlyData: Record<string, number> = {}
-  project.value.transactions.forEach(t => {
-    const month = new Date(t.date).toLocaleDateString('id-ID', { month: 'short' })
-    monthlyData[month] = (monthlyData[month] || 0) + (t.type === 'DEPOSIT' ? t.amount : -t.amount)
+  const sortedTxs = [...project.value.transactions].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  sortedTxs.forEach(t => {
+    if (t.type === 'EXPENSE') {
+      const month = new Date(t.date).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
+      monthlyData[month] = (monthlyData[month] || 0) + t.amount
+    }
   })
 
   return [{ 
-    name: 'Arus Kas', 
+    name: 'Total Pengeluaran', 
     data: Object.values(monthlyData) 
   }]
 })
@@ -415,17 +427,15 @@ onMounted(fetchProject)
   </template>
 
   <template v-else-if="project">
-    <div class="px-0" >
-      <CRow>
+    <div class="mt-4" >
+      <CRow class="mb-4">
         <CCol xs="12">
-          <div class="d-flex align-items-center gap-2 mb-1">
-            <CButton color="secondary" size="lg" @click="router.back()">
-              <CIcon :icon="icons.cilArrowLeft" class="me-1" /> Semua Projek
-            </CButton>
-          </div>
           <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mt-2">
             <div>
               <div class="d-flex align-items-center gap-2 mb-1">
+                <CButton color="secondary" size="lg" @click="router.back()" class="text-nowrap me-2">
+                  <CIcon :icon="icons.cilArrowLeft" class="me-1" /> Back
+                </CButton>
                 <h2 class="text-h4 font-weight-bold">{{ project.name }}</h2>
                 <CBadge :color="project.status === 'Active' ? 'success' : 'secondary'">
                   {{ project.status === 'Active' ? 'Aktif' : 'Selesai' }}
@@ -446,12 +456,12 @@ onMounted(fetchProject)
         </CCol>
       </CRow>
 
-      <CRow class="g-4 mt-0">
+      <CRow class="g-4 mb-4">
         <CCol xs="12" sm="6" md="3" class="d-flex">
           <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e8f5e9;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
-                      <div class="p-1 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
+                      <div class="p-2 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
                       <div class="text-muted fw-medium small">Total Modal</div>
                   </div>
                   <div class="fs-6 fw-bold text-success">{{ formatCurrency(project.total_deposits) }}</div>
@@ -462,7 +472,7 @@ onMounted(fetchProject)
           <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #ffebee;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
-                      <div class="p-1 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
+                      <div class="p-2 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
                       <div class="text-muted fw-medium small">Total Pengeluaran</div>
                   </div>
                   <div class="fs-6 fw-bold text-danger">{{ formatCurrency(project.total_expenses) }}</div>
@@ -473,7 +483,7 @@ onMounted(fetchProject)
           <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e3f2fd;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
-                      <div class="p-1 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="lg" /></div>
+                      <div class="p-2 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="lg" /></div>
                       <div class="text-muted fw-medium small">Sisa Saldo</div>
                   </div>
                   <div class="fs-6 fw-bold text-primary">{{ formatCurrency(project.balance) }}</div>
@@ -484,7 +494,7 @@ onMounted(fetchProject)
           <CCard class="border-0 shadow-sm p-3 w-100 " style="background-color: #fff3e0;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
-                      <div class="p-1 me-2 rounded text-warning" style="background: rgba(255, 193, 7, 0.1);"><CIcon :icon="icons.cilNotes" size="lg" /></div>
+                      <div class="p-2 me-2 rounded text-warning" style="background: rgba(255, 193, 7, 0.1);"><CIcon :icon="icons.cilNotes" size="lg" /></div>
                       <div class="text-muted fw-medium small">Total Transaksi</div>
                   </div>
                   <div class="fs-6 fw-bold text-warning">{{ project.transactions.length }}</div>
@@ -493,9 +503,9 @@ onMounted(fetchProject)
         </CCol>
       </CRow>
 
-      <CRow class="g-4 mb-4 mt-0">
+      <CRow class="g-4 mb-4">
         <CCol xs="12" md="6" class="d-flex">
-          <CCard class="w-100 h-100 shadow-sm border-0">
+          <CCard class="shadow-sm border-0 w-100">
             <CCardBody class="p-2" style="max-height: 300px; max-width: 400px; overflow: hidden;">
               <h5 class="mb-3">Distribusi Pengeluaran</h5>
               <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" />
@@ -503,9 +513,9 @@ onMounted(fetchProject)
           </CCard>
         </CCol>
         <CCol xs="12" md="6" class="d-flex">
-          <CCard class="w-100 h-100 shadow-sm border-0">
+          <CCard class="shadow-sm border-0 w-100">
             <CCardBody class="p-2" style="max-height: 300px; max-width: 400px; overflow: hidden;">
-              <h5 class="mb-3">Arus Kas per Bulan</h5>
+              <h5 class="mb-3">Arus Kas Keluar per Bulan</h5>
               <VueApexCharts type="bar" :options="barOptions" :series="barSeries" />
             </CCardBody>
           </CCard>
@@ -526,46 +536,52 @@ onMounted(fetchProject)
                 <CButton :color="filterType === 'EXPENSE' ? 'primary' : 'light'" size="lg" @click="filterType = 'EXPENSE'">Pengeluaran</CButton>
               </div>
             </div>
-
-            <div class="overflow-auto" style="width: clamp(300px, calc(100vw - 110px), 83vw);">
-              <CTable v-if="filteredTransactions.length > 0" hover>
-                <CTableHead>
-                  <CTableRow>
-                    <CTableHeaderCell class="px-2">Tanggal</CTableHeaderCell>
-                    <CTableHeaderCell class="px-2">Tipe</CTableHeaderCell>
-                    <CTableHeaderCell class="px-2">Kategori</CTableHeaderCell>
-                    <CTableHeaderCell class="px-2">Deskripsi</CTableHeaderCell>
-                    <CTableHeaderCell class="px-2 text-right">Nominal</CTableHeaderCell>
-                    <CTableHeaderCell class="px-2 text-center">Aksi</CTableHeaderCell>
-                  </CTableRow>
-                </CTableHead>
-                <CTableBody>
-                  <CTableRow v-for="tx in filteredTransactions" :key="tx.id">
-                    <CTableDataCell class="px-2 text-nowrap">{{ formatDate(tx.date) }}</CTableDataCell>
-                    <CTableDataCell class="px-2 text-nowrap">
-                      <CBadge :color="tx.type === 'DEPOSIT' ? 'success' : 'danger'" variant="soft">
+          <div class="overflow-auto">
+            <div class="overflow-auto" style="width: clamp(300px, calc(100vw - 120px), 83vw);">
+              <table v-if="filteredTransactions.length > 0" class="table table-hover align-middle mb-0">
+                <thead class="table-light" >
+                  <tr>
+                    <th style="background-color: aqua;">Tipe</th>
+                    <th>Tanggal</th>
+                    <th>Kategori</th>
+                    <th>Deskripsi</th>
+                    <th class="text-end">Nominal</th>
+                    <th class="text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="tx in filteredTransactions" :key="tx.id">
+                    <td>
+                      <span class="badge" :class="tx.type === 'DEPOSIT' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
                         {{ tx.type === 'DEPOSIT' ? '▲ Modal' : '▼ Pengeluaran' }}
-                      </CBadge>
-                    </CTableDataCell>
-                    <CTableDataCell class="px-2 text-nowrap"><CBadge color="primary" variant="soft">{{ tx.category }}</CBadge></CTableDataCell>
-                    <CTableDataCell class="px-2 text-nowrap">{{ tx.description || '-' }}</CTableDataCell>
-                    <CTableDataCell class="px-2 text-nowrap text-right font-weight-bold" :class="tx.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
+                      </span>
+                    </td>
+                    <td class="text-nowrap">{{ formatDate(tx.date) }}</td>
+                    <td class="text-nowrap">{{ tx.category }}</td>
+                    <td class="text-nowrap">{{ tx.description || '-' }}</td>
+                    <td class="text-end fw-bold" :class="tx.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
                       {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
-                    </CTableDataCell>
-                    <CTableDataCell class="px-2 text-nowrap text-center">
-                      <CButton color="primary" size="lg" class="me-1" @click="openEditDialog(tx)">Edit</CButton>
-                      <CButton color="danger" size="lg" @click="dialogDeleteTxId = tx.id">Hapus</CButton>
-                    </CTableDataCell>
-                  </CTableRow>
-                </CTableBody>
-              </CTable>
-              <div v-else class="text-center text-disabled py-8">
+                    </td>
+                    <td class="text-center text-nowrap">
+                      <button class="btn btn-sm btn-outline-primary me-2" @click="openEditDialog(tx)">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" @click="dialogDeleteTxId = tx.id">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <!-- <div v-else class="text-center text-disabled py-8">
                 <p class="text-body-2">Belum ada transaksi</p>
                 <CButton color="primary" size="lg" class="mt-2" @click="openCreateDialog">
                   + Tambah Transaksi Pertama
                 </CButton>
-              </div>
+              </div> -->
             </div>
+          </div>
+           
           </CCardBody>
         </CCard>
       </CCol>

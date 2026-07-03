@@ -64,14 +64,14 @@ const routes = [
       { path: 'capital/create', name: 'CapitalCreate', component: () => import('../views/accounting/capital/CreateView.vue') },
       { path: 'capital/:id/edit', name: 'CapitalEdit', component: () => import('../views/accounting/capital/EditView.vue') },
       {
-        path: 'financial-records',
+        path: 'catatan_proyek',
         name: 'FinancialRecords',
-        component: () => import('../views/financial-records/Index.vue'),
+        component: () => import('../views/catatan_proyek/Index.vue'),
       },
       {
-        path: 'financial-records/:id',
+        path: 'catatan_proyek/:id',
         name: 'FinancialRecordsDetails',
-        component: () => import('../views/financial-records/Details.vue'),
+        component: () => import('../views/catatan_proyek/Details.vue'),
       },
 
       // ─── Users ──────────────────────────────────────────────────────
@@ -82,6 +82,11 @@ const routes = [
       },
 
       // ─── Todo List ──────────────────────────────────────────────────
+      {
+        path: 'todo-personal',
+        name: 'TodoPersonal',
+        component: () => import('../views/todo/PersonalTodoView.vue'),
+      },
       {
         path: 'todo',
         name: 'TodoList',

@@ -38,10 +38,13 @@ const router = useRouter()
 const projects = ref<Project[]>([])
 const loading = ref(false)
 const dialogCreate = ref(false)
+const dialogEdit = ref(false)
+const editingId = ref<number | null>(null)
 const dialogDeleteId = ref<number | null>(null)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const formNew = ref({ name: '', description: '', status: 'Active' })
+const formEdit = ref({ name: '', description: '', status: 'Active' })
 const submitting = ref(false)
 
 // Summary computed
@@ -124,27 +127,50 @@ function showSnackbar(text: string, color = 'success') {
 }
 
 function goToDetail(id: number) {
-  router.push(`/financial-records/${id}`)
+  router.push(`/catatan_proyek/${id}`)
+}
+
+function openEditProject(p: Project) {
+  editingId.value = p.id
+  formEdit.value = { name: p.name, description: p.description || '', status: p.status }
+  dialogEdit.value = true
+}
+
+async function updateProject() {
+  if (!editingId.value || !formEdit.value.name.trim()) return
+  submitting.value = true
+  try {
+    const pIndex = projects.value.findIndex(p => p.id === editingId.value)
+    if (pIndex !== -1) {
+      projects.value[pIndex] = { ...projects.value[pIndex], ...formEdit.value }
+      localStorage.setItem('financial_projects', JSON.stringify(projects.value))
+      dialogEdit.value = false
+      showSnackbar('Projek berhasil diupdate!', 'success')
+    }
+  } catch (e) {
+    showSnackbar('Gagal mengupdate projek', 'error')
+  } finally {
+    submitting.value = false
+  }
 }
 
 onMounted(fetchProjects)
 </script>
 
 <template>
-  <CRow>
+  <CRow class="mt-4">
     <!-- Header -->
     <CCol xs="12" class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h2 class="text-h4 font-weight-bold">Catatan Proyek</h2>
         <p class="text-subtitle-2 text-disabled mt-1 mb-0">Kelola keuangan semua projek Anda</p>
       </div>
-      <CButton
-        color="primary"
-        size="lg"
+      <button
+        class="btn btn-primary btn-lg d-flex align-items-center gap-2"
         @click="dialogCreate = true"
       >
-        Buat Projek Baru
-      </CButton>
+        <i class="fas fa-plus"></i> Buat Projek
+      </button>
     </CCol>
 
     <!-- Summary Cards -->
@@ -152,7 +178,7 @@ onMounted(fetchProjects)
       <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e8f5e9;">
         <CCardBody class="d-flex flex-column">
             <div class="d-flex align-items-center mb-1">
-                <div class="p-1 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
+                <div class="p-2 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
                 <div class="text-muted fw-medium small">Total Modal Semua Projek</div>
             </div>
             <div class="fs-6 fw-bold text-success">{{ formatCurrency(totalDepositsAll) }}</div>
@@ -164,7 +190,7 @@ onMounted(fetchProjects)
       <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #ffebee;">
         <CCardBody class="d-flex flex-column">
             <div class="d-flex align-items-center mb-1">
-                <div class="p-1 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
+                <div class="p-2 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
                 <div class="text-muted fw-medium small">Total Pengeluaran Semua Projek</div>
             </div>
             <div class="fs-6 fw-bold text-danger">{{ formatCurrency(totalExpensesAll) }}</div>
@@ -176,7 +202,7 @@ onMounted(fetchProjects)
       <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e3f2fd;">
         <CCardBody class="d-flex flex-column">
             <div class="d-flex align-items-center mb-1">
-                <div class="p-1 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="lg" /></div>
+                <div class="p-2 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="lg" /></div>
                 <div class="text-muted fw-medium small">Total Sisa Saldo Semua Projek</div>
             </div>
             <div class="fs-6 fw-bold text-primary">{{ formatCurrency(totalBalanceAll) }}</div>
@@ -215,13 +241,15 @@ onMounted(fetchProjects)
             <CBadge :color="getStatusColor(project.status)" size="small">
               {{ project.status === 'Active' ? 'Aktif' : 'Selesai' }}
             </CBadge>
-            <div>
-                <CButton
-                  color="danger"
-                  size="lg"
+            <div class="d-flex gap-2">
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  @click.stop="openEditProject(project)"
+                ><i class="fas fa-edit"></i></button>
+                <button
+                  class="btn btn-sm btn-outline-danger"
                   @click.stop="dialogDeleteId = project.id"
-                >Hapus</CButton>
-                
+                ><i class="fas fa-trash"></i></button>
             </div>
           </div>
 
@@ -255,13 +283,12 @@ onMounted(fetchProjects)
             <span class="text-body-2 font-weight-bold" :class="project.balance >= 0 ? 'text-success' : 'text-error'">
               {{ formatCurrency(project.balance) }}
             </span>
-            <CButton
-              color="primary"
-              size="lg"
+            <button
+              class="btn btn-primary btn-sm"
               @click.stop="goToDetail(project.id)"
             >
-              Detail
-            </CButton>
+              <i class="fas fa-arrow-right"></i>
+            </button>
           </div>
         </CCardBody>
       </CCard>
@@ -298,13 +325,13 @@ onMounted(fetchProjects)
       </CForm>
     </CModalBody>
     <CModalFooter>
-        <CButton color="secondary" size="lg" @click="dialogCreate = false">Batal</CButton>
-        <CButton color="primary" size="lg" :disabled="submitting" @click="createProject">Buat Projek</CButton>
+        <button class="btn btn-secondary btn-lg" @click="dialogCreate = false"><i class="fas fa-times me-2"></i>Batal</button>
+        <button class="btn btn-primary btn-lg" :disabled="submitting" @click="createProject"><i class="fas fa-plus me-2"></i>Buat Projek</button>
     </CModalFooter>
   </CModal>
 
-  <!-- Dialog: Konfirmasi Hapus -->
-    <CModal :visible="dialogDeleteId" @close="dialogDeleteId = null">
+    <!-- Dialog: Konfirmasi Hapus -->
+    <CModal :visible="dialogDeleteId !== null" @close="dialogDeleteId = null">
     <CModalHeader>
         Hapus Projek
     </CModalHeader>
@@ -314,6 +341,22 @@ onMounted(fetchProjects)
     <CModalFooter>
         <CButton color="secondary" size="lg" @click="dialogDeleteId = null">Batal</CButton>
         <CButton color="danger" size="lg" @click="deleteProject(dialogDeleteId!)">Ya, Hapus</CButton>
+    </CModalFooter>
+    </CModal>
+
+    <!-- Dialog: Edit Projek -->
+    <CModal :visible="dialogEdit" @close="dialogEdit = false">
+    <CModalHeader>Edit Projek</CModalHeader>
+    <CModalBody>
+      <CForm @submit.prevent="updateProject">
+        <CFormInput v-model="formEdit.name" label="Nama Projek" class="mb-3" size="lg" />
+        <CFormTextarea v-model="formEdit.description" label="Deskripsi" rows="3" class="mb-3" size="lg" />
+        <CFormSelect v-model="formEdit.status" label="Status" size="lg" :options="[{ label: 'Aktif', value: 'Active' }, { label: 'Selesai', value: 'Completed' }]" />
+      </CForm>
+    </CModalBody>
+    <CModalFooter>
+        <button class="btn btn-secondary btn-lg" @click="dialogEdit = false"><i class="fas fa-times me-2"></i>Batal</button>
+        <button class="btn btn-primary btn-lg" :disabled="submitting" @click="updateProject"><i class="fas fa-save me-2"></i>Simpan</button>
     </CModalFooter>
     </CModal>
 

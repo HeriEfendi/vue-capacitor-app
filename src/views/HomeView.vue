@@ -9,8 +9,8 @@
             <CCardBody class="d-flex flex-column justify-content-between p-4" style="flex:1">
               <div>
                 <div class="text-primary fw-bold small text-uppercase mb-1">Professional Summary</div>
-                <h4 class="fw-black text-dark mb-1">Ahmad Heri Efendi</h4>
-                <p class="text-muted fw-semibold mb-2">Full-Stack Web Developer (IT Programmer)</p>
+                <h4 class="fw-black mb-1">Ahmad Heri Efendi</h4>
+                <p class="text-secondary fw-semibold mb-2">Full-Stack Web Developer (IT Programmer)</p>
                 <p class="text-secondary small mb-3" style="line-height:1.7">
                   An <strong>IT Programmer</strong> with 5+ years experience in web application development, ERP software, and mobile apps with Capacitor/Android.
                 </p>
@@ -48,20 +48,20 @@
           <CCardBody class="p-4 d-flex flex-column justify-content-between">
             <div>
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fw-bold text-dark">Market Watch</span>
+                <span class="fw-bold">Market Watch</span>
                 <i class="fas fa-sync-alt text-primary spin-icon" :class="{spinning: loadingPrices}"></i>
               </div>
-              <p class="text-muted small mb-3">Live Binance prices · refresh 10s</p>
+              <p class="text-secondary small mb-3">Live market data · refresh 10s</p>
 
               <div v-if="loadingPrices && cryptoPrices[0].price === 0" class="text-center py-4">
                 <div class="spinner-border text-primary spinner-border-sm"></div>
-                <div class="small text-muted mt-2">Connecting to exchange...</div>
+                <div class="small text-secondary mt-2">Connecting to exchange...</div>
               </div>
               <div v-else class="d-flex flex-column gap-2">
                 <div
                   v-for="coin in cryptoPrices"
                   :key="coin.symbol"
-                  class="d-flex align-items-center justify-content-between p-2 rounded-3 bg-light border"
+                  class="d-flex align-items-center justify-content-between p-2 rounded-3 border-dark-subtle bg-body-tertiary border"
                 >
                   <div class="d-flex align-items-center gap-2">
                     <div
@@ -72,7 +72,7 @@
                     </div>
                     <div>
                       <div class="fw-bold small">{{ coin.name }}</div>
-                      <div class="text-muted" style="font-size:11px">{{ coin.symbol }}</div>
+                      <div class="text-secondary" style="font-size:11px">{{ coin.symbol }}</div>
                     </div>
                   </div>
                   <div class="text-end">
@@ -371,9 +371,13 @@ export default {
 
 <style scoped>
 /* Stat Cards */
-.stat-card-users { border-left: 4px solid #3949ab !important; background: #f8f9ff; }
-.stat-card-todo  { border-left: 4px solid #43a047 !important; background: #f9fff9; }
-.stat-card-product { border-left: 4px solid #fb8c00 !important; background: #fffdf5; }
+.stat-card-users { border-left: 4px solid #5c6bc0 !important; background: var(--bs-body-bg); }
+.stat-card-todo  { border-left: 4px solid #66bb6a !important; background: var(--bs-body-bg); }
+.stat-card-product { border-left: 4px solid #ffa726 !important; background: var(--bs-body-bg); }
+
+[data-theme="dark"] .table-light { --bs-table-bg: #1f2937; --bs-table-color: #e5e7eb; }
+[data-theme="dark"] .border-dark-subtle { border-color: #374151 !important; }
+[data-theme="dark"] .bg-body-tertiary { background: #1f2937 !important; }
 
 .text-indigo { color: #3949ab !important; }
 .bg-indigo-light { background: #e8eaf6 !important; }

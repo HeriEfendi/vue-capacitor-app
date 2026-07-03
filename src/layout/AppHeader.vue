@@ -1,11 +1,11 @@
 <template>
-  <CHeader position="sticky" class="mb-4" :class="[{ 'header-dark': isDark }]">
+  <CHeader position="sticky" :class="[{ 'header-dark': isDark }]">
     <CContainer fluid class="d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center">
         <CHeaderToggler class="ps-1" @click="toggleSidebar">
           <CIcon icon="cil-menu" size="lg" />
         </CHeaderToggler>
-        <CHeaderBrand class="ms-2" to="/">
+        <CHeaderBrand class="ms-2" to="/dashboard">
           <img src="/icon-192.png" alt="Logo" width="24" height="24" class="me-2" />
           H DEV
         </CHeaderBrand>
