@@ -415,11 +415,11 @@ onMounted(fetchProject)
   </template>
 
   <template v-else-if="project">
-    <div class="px-3">
+    <div class="px-0" >
       <CRow>
         <CCol xs="12">
           <div class="d-flex align-items-center gap-2 mb-1">
-            <CButton color="secondary" size="sm" @click="router.back()">
+            <CButton color="secondary" size="lg" @click="router.back()">
               <CIcon :icon="icons.cilArrowLeft" class="me-1" /> Semua Projek
             </CButton>
           </div>
@@ -434,11 +434,11 @@ onMounted(fetchProject)
               <p class="text-body-2 text-disabled mb-0">{{ project.description || 'Tidak ada deskripsi' }}</p>
             </div>
             <div class="d-flex flex-wrap gap-2">
-              <CButton color="warning" size="sm" class="text-white" @click="handleImport"><CIcon :icon="icons.cilCloudUpload" class="me-1" /> Import Excel</CButton>
+              <CButton color="warning" size="lg" class="text-white" @click="handleImport"><CIcon :icon="icons.cilCloudUpload" class="me-1" /> Import Excel</CButton>
               <input type="file" ref="fileInput" class="d-none" @change="onFileChange" accept=".xlsx, .xls" />
-              <CButton color="info" size="sm" class="text-white" @click="downloadTemplate"><CIcon :icon="icons.cilCloudDownload" class="me-1" /> Template</CButton>
-              <CButton color="success" size="sm" class="text-white" @click="exportToExcel"><CIcon :icon="icons.cilSpreadsheet" class="me-1" /> Export Excel</CButton>
-              <CButton color="primary" size="sm" @click="openCreateDialog">
+              <CButton color="info" size="lg" class="text-white" @click="downloadTemplate"><CIcon :icon="icons.cilCloudDownload" class="me-1" /> Template</CButton>
+              <CButton color="success" size="lg" class="text-white" @click="exportToExcel"><CIcon :icon="icons.cilSpreadsheet" class="me-1" /> Export Excel</CButton>
+              <CButton color="primary" size="lg" @click="openCreateDialog">
                 <CIcon :icon="icons.cilPlus" class="me-1" /> Tambah Transaksi
               </CButton>
             </div>
@@ -451,7 +451,7 @@ onMounted(fetchProject)
           <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e8f5e9;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
-                      <div class="p-1 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="sm" /></div>
+                      <div class="p-1 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
                       <div class="text-muted fw-medium small">Total Modal</div>
                   </div>
                   <div class="fs-6 fw-bold text-success">{{ formatCurrency(project.total_deposits) }}</div>
@@ -462,7 +462,7 @@ onMounted(fetchProject)
           <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #ffebee;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
-                      <div class="p-1 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="sm" /></div>
+                      <div class="p-1 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
                       <div class="text-muted fw-medium small">Total Pengeluaran</div>
                   </div>
                   <div class="fs-6 fw-bold text-danger">{{ formatCurrency(project.total_expenses) }}</div>
@@ -473,7 +473,7 @@ onMounted(fetchProject)
           <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e3f2fd;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
-                      <div class="p-1 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="sm" /></div>
+                      <div class="p-1 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="lg" /></div>
                       <div class="text-muted fw-medium small">Sisa Saldo</div>
                   </div>
                   <div class="fs-6 fw-bold text-primary">{{ formatCurrency(project.balance) }}</div>
@@ -484,7 +484,7 @@ onMounted(fetchProject)
           <CCard class="border-0 shadow-sm p-3 w-100 " style="background-color: #fff3e0;">
               <CCardBody class="d-flex flex-column">
                   <div class="d-flex align-items-center mb-1">
-                      <div class="p-1 me-2 rounded text-warning" style="background: rgba(255, 193, 7, 0.1);"><CIcon :icon="icons.cilNotes" size="sm" /></div>
+                      <div class="p-1 me-2 rounded text-warning" style="background: rgba(255, 193, 7, 0.1);"><CIcon :icon="icons.cilNotes" size="lg" /></div>
                       <div class="text-muted fw-medium small">Total Transaksi</div>
                   </div>
                   <div class="fs-6 fw-bold text-warning">{{ project.transactions.length }}</div>
@@ -496,16 +496,16 @@ onMounted(fetchProject)
       <CRow class="g-4 mb-4 mt-0">
         <CCol xs="12" md="6" class="d-flex">
           <CCard class="w-100 h-100 shadow-sm border-0">
-            <CCardBody style="max-height: 400px; max-width: 500px; overflow: hidden;">
-              <h6 class="mb-3">Distribusi Pengeluaran</h6>
+            <CCardBody class="p-2" style="max-height: 300px; max-width: 400px; overflow: hidden;">
+              <h5 class="mb-3">Distribusi Pengeluaran</h5>
               <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" />
             </CCardBody>
           </CCard>
         </CCol>
         <CCol xs="12" md="6" class="d-flex">
           <CCard class="w-100 h-100 shadow-sm border-0">
-            <CCardBody style="max-height: 400px; max-width: 500px; overflow: hidden;">
-              <h6 class="mb-3">Arus Kas per Bulan</h6>
+            <CCardBody class="p-2" style="max-height: 300px; max-width: 400px; overflow: hidden;">
+              <h5 class="mb-3">Arus Kas per Bulan</h5>
               <VueApexCharts type="bar" :options="barOptions" :series="barSeries" />
             </CCardBody>
           </CCard>
@@ -514,51 +514,54 @@ onMounted(fetchProject)
 
       <CCol xs="12" class="mb-4">
         <CCard>
-          <CCardBody class="p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="mb-0">Riwayat Transaksi ({{ filteredTransactions.length }})</h5>
+          <CCardBody class="p-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-end align-items-md-center mb-3">
+              <h5 class="mb-4 mb-md-0 align-self-start">
+                Riwayat Transaksi ({{ filteredTransactions.length }})
+              </h5>
+
               <div class="btn-group">
-                  <CButton :color="filterType === 'SEMUA' ? 'primary' : 'light'" size="sm" @click="filterType = 'SEMUA'">Semua</CButton>
-                  <CButton :color="filterType === 'DEPOSIT' ? 'primary' : 'light'" size="sm" @click="filterType = 'DEPOSIT'">Modal</CButton>
-                  <CButton :color="filterType === 'EXPENSE' ? 'primary' : 'light'" size="sm" @click="filterType = 'EXPENSE'">Pengeluaran</CButton>
+                <CButton :color="filterType === 'SEMUA' ? 'primary' : 'light'" size="lg" @click="filterType = 'SEMUA'">Semua</CButton>
+                <CButton :color="filterType === 'DEPOSIT' ? 'primary' : 'light'" size="lg" @click="filterType = 'DEPOSIT'">Modal</CButton>
+                <CButton :color="filterType === 'EXPENSE' ? 'primary' : 'light'" size="lg" @click="filterType = 'EXPENSE'">Pengeluaran</CButton>
               </div>
             </div>
 
-            <div class="table-responsive d-block w-100" style="overflow-x: auto; -webkit-overflow-scrolling: touch; min-width: 600px;">
-              <CTable v-if="filteredTransactions.length > 0" hover style="min-width: 700px;">
+            <div class="overflow-auto" style="width: clamp(300px, calc(100vw - 110px), 83vw);">
+              <CTable v-if="filteredTransactions.length > 0" hover>
                 <CTableHead>
                   <CTableRow>
-                    <CTableHeaderCell class="px-5">Tanggal</CTableHeaderCell>
-                    <CTableHeaderCell class="px-5">Tipe</CTableHeaderCell>
-                    <CTableHeaderCell class="px-5">Kategori</CTableHeaderCell>
-                    <CTableHeaderCell class="px-5">Deskripsi</CTableHeaderCell>
-                    <CTableHeaderCell class="px-5 text-right">Nominal</CTableHeaderCell>
-                    <CTableHeaderCell class="px-5 text-center">Aksi</CTableHeaderCell>
+                    <CTableHeaderCell class="px-2">Tanggal</CTableHeaderCell>
+                    <CTableHeaderCell class="px-2">Tipe</CTableHeaderCell>
+                    <CTableHeaderCell class="px-2">Kategori</CTableHeaderCell>
+                    <CTableHeaderCell class="px-2">Deskripsi</CTableHeaderCell>
+                    <CTableHeaderCell class="px-2 text-right">Nominal</CTableHeaderCell>
+                    <CTableHeaderCell class="px-2 text-center">Aksi</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
                 <CTableBody>
                   <CTableRow v-for="tx in filteredTransactions" :key="tx.id">
-                    <CTableDataCell class="px-5 text-nowrap">{{ formatDate(tx.date) }}</CTableDataCell>
-                    <CTableDataCell class="px-5 text-nowrap">
+                    <CTableDataCell class="px-2 text-nowrap">{{ formatDate(tx.date) }}</CTableDataCell>
+                    <CTableDataCell class="px-2 text-nowrap">
                       <CBadge :color="tx.type === 'DEPOSIT' ? 'success' : 'danger'" variant="soft">
                         {{ tx.type === 'DEPOSIT' ? '▲ Modal' : '▼ Pengeluaran' }}
                       </CBadge>
                     </CTableDataCell>
-                    <CTableDataCell class="px-5 text-nowrap"><CBadge color="primary" variant="soft">{{ tx.category }}</CBadge></CTableDataCell>
-                    <CTableDataCell class="px-5 text-nowrap">{{ tx.description || '-' }}</CTableDataCell>
-                    <CTableDataCell class="px-5 text-nowrap text-right font-weight-bold" :class="tx.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
+                    <CTableDataCell class="px-2 text-nowrap"><CBadge color="primary" variant="soft">{{ tx.category }}</CBadge></CTableDataCell>
+                    <CTableDataCell class="px-2 text-nowrap">{{ tx.description || '-' }}</CTableDataCell>
+                    <CTableDataCell class="px-2 text-nowrap text-right font-weight-bold" :class="tx.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
                       {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
                     </CTableDataCell>
-                    <CTableDataCell class="px-5 text-nowrap text-center">
-                      <CButton color="primary" size="sm" class="me-1" @click="openEditDialog(tx)">Edit</CButton>
-                      <CButton color="danger" size="sm" @click="dialogDeleteTxId = tx.id">Hapus</CButton>
+                    <CTableDataCell class="px-2 text-nowrap text-center">
+                      <CButton color="primary" size="lg" class="me-1" @click="openEditDialog(tx)">Edit</CButton>
+                      <CButton color="danger" size="lg" @click="dialogDeleteTxId = tx.id">Hapus</CButton>
                     </CTableDataCell>
                   </CTableRow>
                 </CTableBody>
               </CTable>
               <div v-else class="text-center text-disabled py-8">
                 <p class="text-body-2">Belum ada transaksi</p>
-                <CButton color="primary" size="sm" class="mt-2" @click="openCreateDialog">
+                <CButton color="primary" size="lg" class="mt-2" @click="openCreateDialog">
                   + Tambah Transaksi Pertama
                 </CButton>
               </div>
@@ -574,7 +577,7 @@ onMounted(fetchProject)
       <CCol>
         <h2>Projek tidak ditemukan</h2>
         <p>Projek yang Anda cari tidak ada atau telah dihapus.</p>
-        <CButton color="primary" size="sm" @click="router.back()">Kembali ke Semua Projek</CButton>
+        <CButton color="primary" size="lg" @click="router.back()">Kembali ke Semua Projek</CButton>
       </CCol>
     </CRow>
   </template>
@@ -586,32 +589,32 @@ onMounted(fetchProject)
         <CForm>
             <div class="mb-3">
                 <CFormLabel>Tipe Transaksi</CFormLabel>
-                <CFormSelect v-model="formTx.type" size="sm">
+                <CFormSelect v-model="formTx.type" size="lg">
                     <option value="DEPOSIT">Modal</option>
                     <option value="EXPENSE">Pengeluaran</option>
                 </CFormSelect>
             </div>
             <div class="mb-3">
                 <CFormLabel>Kategori</CFormLabel>
-                <CFormSelect v-model="formTx.category" size="sm" :options="availableCategories"></CFormSelect>
+                <CFormSelect v-model="formTx.category" size="lg" :options="availableCategories"></CFormSelect>
             </div>
             <div class="mb-3">
                 <CFormLabel>Nominal</CFormLabel>
-                <CFormInput type="number" v-model.number="formTx.amount" size="sm" placeholder="Contoh: 100000" />
+                <CFormInput type="number" v-model.number="formTx.amount" size="lg" placeholder="Contoh: 100000" />
             </div>
             <div class="mb-3">
                 <CFormLabel>Tanggal</CFormLabel>
-                <CFormInput type="date" v-model="formTx.date" size="sm" />
+                <CFormInput type="date" v-model="formTx.date" size="lg" />
             </div>
             <div class="mb-3">
                 <CFormLabel>Deskripsi</CFormLabel>
-                <CFormTextarea v-model="formTx.description" size="sm"></CFormTextarea>
+                <CFormTextarea v-model="formTx.description" size="lg"></CFormTextarea>
             </div>
         </CForm>
     </CModalBody>
     <CModalFooter>
-      <CButton color="secondary" size="sm" @click="closeDialog">Batal</CButton>
-      <CButton :color="formTx.type === 'DEPOSIT' ? 'success' : 'danger'" size="sm" :disabled="submitting" @click="saveTransaction">
+      <CButton color="secondary" size="lg" @click="closeDialog">Batal</CButton>
+      <CButton :color="formTx.type === 'DEPOSIT' ? 'success' : 'danger'" size="lg" :disabled="submitting" @click="saveTransaction">
         {{ editingTxId ? 'Simpan Perubahan' : 'Simpan Transaksi' }}
       </CButton>
     </CModalFooter>
@@ -624,8 +627,8 @@ onMounted(fetchProject)
         Apakah Anda yakin ingin menghapus transaksi ini? Saldo projek akan diperbarui secara otomatis.
       </CModalBody>
       <CModalFooter>
-        <CButton color="secondary" size="sm" @click="dialogDeleteTxId = null">Batal</CButton>
-        <CButton color="danger" size="sm" @click="deleteTransaction(dialogDeleteTxId!)">Hapus</CButton>
+        <CButton color="secondary" size="lg" @click="dialogDeleteTxId = null">Batal</CButton>
+        <CButton color="danger" size="lg" @click="deleteTransaction(dialogDeleteTxId!)">Hapus</CButton>
       </CModalFooter>
     </CModal>
 

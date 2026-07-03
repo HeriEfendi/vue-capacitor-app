@@ -17,7 +17,6 @@ db.version(1).stores({
 
 export async function seedDatabase() {
   if (databaseSeeded) {
-    console.log('Database already seeded.');
     return;
   }
 

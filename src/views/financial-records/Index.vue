@@ -133,14 +133,14 @@ onMounted(fetchProjects)
 <template>
   <CRow>
     <!-- Header -->
-    <CCol xs="12" class="d-flex justify-content-between align-items-center">
+    <CCol xs="12" class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h2 class="text-h4 font-weight-bold">Catatan Keuangan</h2>
-        <p class="text-subtitle-2 text-disabled mt-1 mb-0">Kelola dan pantau keuangan semua projek Anda</p>
+        <p class="text-subtitle-2 text-disabled mt-1 mb-0">Kelola keuangan semua projek Anda</p>
       </div>
       <CButton
         color="primary"
-        size="sm"
+        size="lg"
         @click="dialogCreate = true"
       >
         Buat Projek Baru
@@ -148,11 +148,11 @@ onMounted(fetchProjects)
     </CCol>
 
     <!-- Summary Cards -->
-    <CCol xs="12" md="4" class="d-flex mb-3">
+    <CCol xs="12" md="4" class="d-flex mb-4">
       <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e8f5e9;">
         <CCardBody class="d-flex flex-column">
             <div class="d-flex align-items-center mb-1">
-                <div class="p-1 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="sm" /></div>
+                <div class="p-1 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
                 <div class="text-muted fw-medium small">Total Modal Semua Projek</div>
             </div>
             <div class="fs-6 fw-bold text-success">{{ formatCurrency(totalDepositsAll) }}</div>
@@ -160,11 +160,11 @@ onMounted(fetchProjects)
       </CCard>
     </CCol>
 
-    <CCol xs="12" md="4" class="d-flex mb-3">
+    <CCol xs="12" md="4" class="d-flex mb-4">
       <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #ffebee;">
         <CCardBody class="d-flex flex-column">
             <div class="d-flex align-items-center mb-1">
-                <div class="p-1 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="sm" /></div>
+                <div class="p-1 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
                 <div class="text-muted fw-medium small">Total Pengeluaran Semua Projek</div>
             </div>
             <div class="fs-6 fw-bold text-danger">{{ formatCurrency(totalExpensesAll) }}</div>
@@ -172,11 +172,11 @@ onMounted(fetchProjects)
       </CCard>
     </CCol>
 
-    <CCol xs="12" md="4" class="d-flex mb-3">
+    <CCol xs="12" md="4" class="d-flex mb-4">
       <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e3f2fd;">
         <CCardBody class="d-flex flex-column">
             <div class="d-flex align-items-center mb-1">
-                <div class="p-1 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="sm" /></div>
+                <div class="p-1 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="lg" /></div>
                 <div class="text-muted fw-medium small">Total Sisa Saldo Semua Projek</div>
             </div>
             <div class="fs-6 fw-bold text-primary">{{ formatCurrency(totalBalanceAll) }}</div>
@@ -203,7 +203,7 @@ onMounted(fetchProjects)
       xs="12"
       sm="6"
       lg="4"
-      class="mb-3"
+      class="mb-4"
     >
       <CCard
         class="project-card h-100"
@@ -218,7 +218,7 @@ onMounted(fetchProjects)
             <div>
                 <CButton
                   color="danger"
-                  size="sm"
+                  size="lg"
                   @click.stop="dialogDeleteId = project.id"
                 >Hapus</CButton>
                 
@@ -257,7 +257,7 @@ onMounted(fetchProjects)
             </span>
             <CButton
               color="primary"
-              size="sm"
+              size="lg"
               @click.stop="goToDetail(project.id)"
             >
               Detail
@@ -278,7 +278,7 @@ onMounted(fetchProjects)
           label="Nama Projek"
           placeholder="cth: Bangun Rumah, Tambak Udang 2025..."
           class="mb-4"
-          size="sm"
+          size="lg"
           autofocus
         />
         <CFormTextarea
@@ -287,19 +287,19 @@ onMounted(fetchProjects)
           placeholder="Keterangan singkat tentang projek ini..."
           rows="3"
           class="mb-4"
-          size="sm"
+          size="lg"
         />
         <CFormSelect
           v-model="formNew.status"
           label="Status Projek"
-          size="sm"
+          size="lg"
           :options="[{ label: 'Aktif', value: 'Active' }, { label: 'Selesai', value: 'Completed' }]"
         />
       </CForm>
     </CModalBody>
     <CModalFooter>
-        <CButton color="secondary" size="sm" @click="dialogCreate = false">Batal</CButton>
-        <CButton color="primary" size="sm" :disabled="submitting" @click="createProject">Buat Projek</CButton>
+        <CButton color="secondary" size="lg" @click="dialogCreate = false">Batal</CButton>
+        <CButton color="primary" size="lg" :disabled="submitting" @click="createProject">Buat Projek</CButton>
     </CModalFooter>
   </CModal>
 
@@ -312,8 +312,8 @@ onMounted(fetchProjects)
         Apakah Anda yakin ingin menghapus projek ini beserta seluruh catatan transaksinya? Tindakan ini tidak dapat dibatalkan.
     </CModalBody>
     <CModalFooter>
-        <CButton color="secondary" size="sm" @click="dialogDeleteId = null">Batal</CButton>
-        <CButton color="danger" size="sm" @click="deleteProject(dialogDeleteId!)">Ya, Hapus</CButton>
+        <CButton color="secondary" size="lg" @click="dialogDeleteId = null">Batal</CButton>
+        <CButton color="danger" size="lg" @click="deleteProject(dialogDeleteId!)">Ya, Hapus</CButton>
     </CModalFooter>
     </CModal>
 

@@ -121,15 +121,9 @@ export default {
   },
   setup() {
     const store = useStore()
-    const isDark = computed(() => (typeof window !== 'undefined' ? window.localStorage.getItem('theme') === 'dark' : false))
-
-    onMounted(() => {
-      const saved = window.localStorage.getItem('theme') || 'light'
-      document.documentElement.setAttribute('data-theme', saved)
-    })
+    const isDark = computed(() => store.state.theme === 'dark')
 
     return {
-      store,
       isDark,
       cilSpeedometer,
       cilBasket,

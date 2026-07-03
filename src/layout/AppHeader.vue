@@ -21,7 +21,7 @@
 import { CContainer, CHeader, CHeaderBrand, CHeaderToggler, CFormSwitch } from '@coreui/vue'
 import CIcon from '@coreui/icons-vue'
 import { cilMenu } from '@coreui/icons'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watchEffect } from 'vue'
 import { useStore } from 'vuex'
 
 export default {
@@ -36,20 +36,19 @@ export default {
   },
   setup() {
     const store = useStore()
-    const isDark = computed(() => window?.localStorage?.getItem('theme') === 'dark')
+    const isDark = computed(() => store.state.theme === 'dark')
     const toggleSidebar = () => {
       store.commit('toggleSidebar')
     }
     const toggleTheme = () => {
-      const next = isDark.value ? 'light' : 'dark'
-      window.localStorage.setItem('theme', next)
-      document.documentElement.setAttribute('data-theme', next)
+      store.commit('toggleTheme')
     }
-    onMounted(() => {
-      const saved = window.localStorage.getItem('theme') || 'light'
-      document.documentElement.setAttribute('data-theme', saved)
-
+    
+    // Sync to document element
+    watchEffect(() => {
+      document.documentElement.setAttribute('data-theme', store.state.theme)
     })
+    
     return { cilMenu, isDark, toggleTheme, toggleSidebar }
   },
 }

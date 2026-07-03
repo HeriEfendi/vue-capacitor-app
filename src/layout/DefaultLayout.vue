@@ -3,7 +3,7 @@
     <AppSidebar />
     <div class="wrapper d-flex flex-column min-vh-100 bg-light flex-grow-1">
       <AppHeader />
-      <div class="body flex-grow-1 px-3">
+      <div class="body flex-grow-1 px-3" router-view>
         <CContainer lg>
           <router-view />
         </CContainer>

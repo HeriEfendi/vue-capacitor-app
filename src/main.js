@@ -22,7 +22,6 @@ async function initializeApp() {
   try {
     await seedDatabase();
     seedLocalStorage();
-    console.log('Database seeded successfully.');
   } catch (error) {
     console.error('Failed to seed database:', error);
   }
