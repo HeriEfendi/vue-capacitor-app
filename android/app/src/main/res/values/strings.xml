@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Vue Capacitor App</string>
-    <string name="title_activity_main">Vue Capacitor App</string>
+    <string name="app_name">H DEV</string>
+    <string name="title_activity_main">H DEV</string>
     <string name="package_name">com.example.vuecapacitorapp</string>
     <string name="custom_url_scheme">com.example.vuecapacitorapp</string>
 </resources>

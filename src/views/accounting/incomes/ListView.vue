@@ -6,29 +6,33 @@
     </div>
     <CCard>
       <CCardBody>
-        <CTable striped responsive>
-          <CTableHead>
-            <CTableRow>
-              <CTableHeaderCell>#</CTableHeaderCell>
-              <CTableHeaderCell>Deskripsi</CTableHeaderCell>
-              <CTableHeaderCell>Jumlah</CTableHeaderCell>
-              <CTableHeaderCell>Tanggal</CTableHeaderCell>
-              <CTableHeaderCell class="text-end">Aksi</CTableHeaderCell>
-            </CTableRow>
-          </CTableHead>
-          <CTableBody>
-            <CTableRow v-for="(income, index) in incomes" :key="income.id">
-              <CTableDataCell>{{ index + 1 }}</CTableDataCell>
-              <CTableDataCell>{{ income.description }}</CTableDataCell>
-              <CTableDataCell>{{ formatPrice(income.amount) }}</CTableDataCell>
-              <CTableDataCell>{{ formatDate(income.date) }}</CTableDataCell>
-              <CTableDataCell class="text-end">
-                <CButton color="warning" size="sm" @click="$router.push(`/incomes/${income.id}/edit`)">Edit</CButton>
-                <CButton color="danger" size="sm" class="ms-2" @click="onDelete(income.id)">Hapus</CButton>
-              </CTableDataCell>
-            </CTableRow>
-          </CTableBody>
-        </CTable>
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Deskripsi</th>
+              <th>Jumlah</th>
+              <th>Tanggal</th>
+              <th class="text-end">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(income, index) in incomes" :key="income.id">
+              <td>{{ index + 1 }}</td>
+              <td><span class="fw-semibold text-dark">{{ income.description }}</span></td>
+              <td><span class="badge bg-success-subtle text-success">{{ formatPrice(income.amount) }}</span></td>
+              <td class="text-secondary">{{ formatDate(income.date) }}</td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary me-2" @click="$router.push(`/incomes/${income.id}/edit`)">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" @click="onDelete(income.id)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </CCardBody>
     </CCard>
   </div>
@@ -37,11 +41,11 @@
 <script>
 import { onMounted, ref } from 'vue'
 import { incomesRepo } from '../../../db/repositories'
-import { CButton, CCard, CCardBody, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/vue'
+import { CButton, CCard, CCardBody } from '@coreui/vue'
 
 export default {
   name: 'AccountingIncomesListView',
-  components: { CButton, CCard, CCardBody, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow },
+  components: { CButton, CCard, CCardBody },
   setup() {
     const incomes = ref([])
     const fetchAll = async () => { incomes.value = await incomesRepo.getAll() }

@@ -9,6 +9,7 @@
   --bs-danger: #dc3545;
   --bs-light: #f8f9fa;
   --bs-dark: #343a40;
+  --text-secondary: #6b7280;
 
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.6;
@@ -26,17 +27,22 @@
   --bs-primary: #4da3ff;
   --bs-secondary: #9aa0a6;
   --bs-light: #1f2937;
-  --bs-dark: #0b0f17;
+  --bs-dark: #111827;
+  --text-secondary: #9ca3af;
   color-scheme: dark;
-  color: #e5e7eb;
-  background-color: #0b0f17;
+  color: #d1d5db;
+  background-color: #030712;
 }
 
-body {
+.body {
   margin: 0;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+[data-theme="dark"] .body {
+  background-color: #030712 !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -81,9 +87,23 @@ a {
 
 .btn {
   border-radius: 0.25rem;
-  padding: 0.75rem 1.5rem;
   font-weight: 500;
   transition: all 0.2s ease-in-out;
+}
+
+.btn-sm {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+.btn-md {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-lg {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
 }
 
 .d-flex-column {
@@ -101,25 +121,7 @@ a {
 
 /* Ensure the content is not overlapped by the sidebar */
 /* New shell to enforce two-column layout */
-.app-shell { display: grid; grid-template-columns: 256px 1fr; min-height: 100vh; transition: grid-template-columns 0.25s ease; position: relative; }
-.app-main { grid-column: 2 / 3; }
 
-/* Expand/Collapse responsive to store flag via body class toggle */
-body.sidebar-collapsed .app-shell { grid-template-columns: 0 1fr; }
-
-/* Ensure sidebar does not overlay clicks on content */
-.c-sidebar { position: sticky; top: 0; height: 100vh; z-index: 1041; pointer-events: auto; }
-
-.c-body { background-color: transparent; flex: 1; display: flex; flex-direction: column; }
-
-.c-main { flex: 1; background-color: transparent; }
-
-.c-sidebar { flex-basis: 256px; flex-shrink: 0; }
-
-/* When sidebar is minimized, adjust body margin */
-.c-sidebar-minimized .c-sidebar {
-  margin-left: -200px; /* Adjust this value as needed */
-}
 
 /* Optional: Adjust container to fill remaining space */
 .c-container {
@@ -141,20 +143,20 @@ body.sidebar-collapsed .app-shell { grid-template-columns: 0 1fr; }
 .c-sidebar-nav .nav-title {
   font-size: 0.75rem;
   text-transform: uppercase;
-  color: #6c757d;
+  color: var(--text-secondary);
   margin-top: 0.75rem;
 }
 
 /* Active state + hover */
 .c-sidebar-nav .nav-link {
-  color: #4b5563;
+  color: var(--text-secondary);
   border-left: 2px solid transparent;
   border-radius: 0 6px 6px 0;
 }
 .c-sidebar-nav .nav-link:hover {
   background: rgba(0, 0, 0, 0.03);
 }
-.c-sidebar-nav .nav-link.router-link-active {
+.c-sidebar-nav .nav-link.active {
   color: var(--bs-primary);
   background: rgba(0, 123, 255, 0.08);
   border-left-color: var(--bs-primary);
@@ -164,19 +166,24 @@ body.sidebar-collapsed .app-shell { grid-template-columns: 0 1fr; }
 [data-theme="dark"] .c-sidebar {
   background: #111827;
   color: #9aa0a6;
+  border-right: 1px solid #1f2937 !important;
 }
 [data-theme="dark"] .c-sidebar-brand { color: #e5e7eb; }
 [data-theme="dark"] .c-sidebar-nav .nav-title { color: #6b7280; }
 [data-theme="dark"] .c-sidebar-nav .nav-link { color: #9aa0a6; }
 [data-theme="dark"] .c-sidebar-nav .nav-link:hover { background: rgba(255,255,255,0.04); }
-[data-theme="dark"] .c-sidebar-nav .nav-link.router-link-active {
+[data-theme="dark"] .c-sidebar-nav .nav-link.active {
   color: #e5e7eb;
   background: #1f2937;
   border-left-color: var(--bs-primary);
 }
-[data-theme="dark"] .header-dark .c-header { background: #111827; }
-[data-theme="dark"] .header-dark .c-header-toggler { color: #e5e7eb; }
-[data-theme="dark"] .header-dark .c-header-brand { color: #e5e7eb; }
+[data-theme="dark"] .header-dark {
+  background: #111827 !important;
+  color: #e5e7eb !important;
+}
+[data-theme="dark"] .header-dark * {
+  color: #e5e7eb !important;
+}
 
 /* Cards and containers in dark */
 [data-theme="dark"] .card, [data-theme="dark"] .c-card {
@@ -185,6 +192,10 @@ body.sidebar-collapsed .app-shell { grid-template-columns: 0 1fr; }
   border-color: #1f2937;
 }
 [data-theme="dark"] .table { color: #e5e7eb; }
+[data-theme="dark"] .text-dark { color: #f9fafb !important; }
+[data-theme="dark"] .text-muted { color: #9ca3af !important; }
+[data-theme="dark"] .table tbody { color: #d1d5db; }
+[data-theme="dark"] .table tbody tr { background-color: #111827 !important; }
 
 /* Header dark background to align with theme */
 .header-dark {
@@ -192,3 +203,95 @@ body.sidebar-collapsed .app-shell { grid-template-columns: 0 1fr; }
   color: #e5e7eb;
 }
 
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+/* Header */
+[data-theme="dark"] table thead tr th {
+    background-color: #0b1220 !important;
+    color: #f8fafc !important;
+    border-color: #1f2937 !important;
+}
+
+/* Body */
+[data-theme="dark"] table tbody tr td {
+    background-color: #111827 !important;
+    color: #e5e7eb !important;
+    border-color: #1f2937 !important;
+}
+
+/* Zebra stripe */
+[data-theme="dark"] table tbody tr:nth-child(even) td {
+    background-color: #0f172a !important;
+}
+
+/* Hover */
+[data-theme="dark"] table tbody tr:hover td {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+
+
+/* Common Component Styles */
+.status-select {
+  border-radius: 8px;
+  padding: 6px 10px;
+  height: auto;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background-position: right 0.5rem center;
+}
+
+.btn-outline-primary.status-select {
+  border-color: #b8daff;
+  background-color: #cce5ff;
+  color: #004085;
+}
+.btn-outline-primary.status-select:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-outline-danger.status-select {
+  border-color: #f5c6cb;
+}
+.btn-outline-danger.status-select:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.status-todo {
+  background-color: #e8eaf6;
+  color: #3949ab;
+  border-color: #c5cae9;
+}
+.status-inprogress {
+  background-color: #fff3e0;
+  color: #e65100;
+  border-color: #ffe0b2;
+}
+.status-done {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-color: #c8e6c9;
+}
+
+.btn-outline-secondary.status-select {
+  border-color: #dee2e6;
+  background-color: #e9ecef;
+  color: #495057;
+}
+.btn-outline-secondary.status-select:hover {
+  background-color: #adb5bd;
+  color: white;
+}

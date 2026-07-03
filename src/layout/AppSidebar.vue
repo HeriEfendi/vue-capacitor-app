@@ -1,61 +1,98 @@
 <template>
   <CSidebar
     :visible="$store.state.sidebarVisible"
+    :unfoldable="false"
+    responsive
     :color-scheme="isDark ? 'dark' : 'light'"
     class="border-end c-sidebar"
     @visible-change="(value) => $store.commit('updateSidebarVisible', value)"
   >
     <CSidebarNav>
       <CNavItem>
-        <RouterLink to="/dashboard" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/dashboard" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilSpeedometer" />
           <span>Dashboard</span>
         </RouterLink>
       </CNavItem>
+      <CNavTitle>Pesonal</CNavTitle>
+      <CNavItem>
+        <RouterLink to="/todo-personal" class="nav-link d-flex align-items-center gap-2" active-class="active">
+          <CIcon custom-class-name="nav-icon" :icon="cilTask" />
+          <span>To Do</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/todo" class="nav-link d-flex align-items-center gap-2" active-class="active">
+          <CIcon custom-class-name="nav-icon" :icon="cilTask" />
+          <span>To Do Team</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavTitle>Akuntansi</CNavTitle>
+      <CNavItem>
+        <RouterLink to="/catatan_proyek" class="nav-link d-flex align-items-center gap-2" active-class="active">
+          <CIcon custom-class-name="nav-icon" :icon="cilDescription" />
+          <span>Catatan Proyek</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/capital" class="nav-link d-flex align-items-center gap-2" active-class="active">
+          <CIcon custom-class-name="nav-icon" :icon="cilWallet" />
+          <span>Tabungan</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/expenses" class="nav-link d-flex align-items-center gap-2" active-class="active">
+          <CIcon custom-class-name="nav-icon" :icon="cilArrowBottom" />
+          <span>Pengeluaran</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/incomes" class="nav-link d-flex align-items-center gap-2" active-class="active">
+          <CIcon custom-class-name="nav-icon" :icon="cilArrowTop" />
+          <span>Pendapatan</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/debts" class="nav-link d-flex align-items-center gap-2" active-class="active">
+          <CIcon custom-class-name="nav-icon" :icon="cilCreditCard" />
+          <span>Utang</span>
+        </RouterLink>
+      </CNavItem>
       <CNavTitle>Supply Chain</CNavTitle>
       <CNavItem>
-        <RouterLink to="/products" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/products" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilBasket" />
           <span>Produk Jadi</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/raw-materials" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/raw-materials" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilList" />
           <span>Bahan Baku</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/categories" class="nav-link d-flex align-items-center gap-2">
+        <RouterLink to="/categories" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilList" />
           <span>Kategori</span>
         </RouterLink>
       </CNavItem>
-      <CNavTitle>Akuntansi</CNavTitle>
+
+      <!-- ─── General Setting ──────────────────────────────── -->
+      <CNavTitle>General Setting</CNavTitle>
       <CNavItem>
-        <RouterLink to="/expenses" class="nav-link d-flex align-items-center gap-2">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Pengeluaran</span>
+        <RouterLink to="/users" class="nav-link d-flex align-items-center gap-2" active-class="active">
+          <CIcon custom-class-name="nav-icon" :icon="cilPeople" />
+          <span>Users</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
-        <RouterLink to="/incomes" class="nav-link d-flex align-items-center gap-2">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Pendapatan</span>
+        <RouterLink to="/profile" class="nav-link d-flex align-items-center gap-2" active-class="active">
+          <CIcon custom-class-name="nav-icon" :icon="cilUser" />
+          <span>Profile</span>
         </RouterLink>
       </CNavItem>
-      <CNavItem>
-        <RouterLink to="/debts" class="nav-link d-flex align-items-center gap-2">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Utang</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/capital" class="nav-link d-flex align-items-center gap-2">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Modal</span>
-        </RouterLink>
-      </CNavItem>
+
       <!-- Add other nav items here based on README -->
     </CSidebarNav>
     <CSidebarToggler class="d-none d-lg-flex" @click="$store.commit('toggleSidebar')" />
@@ -72,7 +109,7 @@ import {
   CSidebarToggler,
 } from '@coreui/vue'
 import CIcon from '@coreui/icons-vue'
-import { cilSpeedometer, cilBasket, cilList } from '@coreui/icons'
+import { cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser, cilDescription, cilWallet, cilArrowBottom, cilArrowTop, cilCreditCard } from '@coreui/icons'
 import { useStore } from 'vuex'
 import { computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -91,19 +128,11 @@ export default {
   },
   setup() {
     const store = useStore()
-    const isDark = computed(() => (typeof window !== 'undefined' ? window.localStorage.getItem('theme') === 'dark' : false))
-
-    onMounted(() => {
-      const saved = window.localStorage.getItem('theme') || 'light'
-      document.documentElement.setAttribute('data-theme', saved)
-    })
+    const isDark = computed(() => store.state.theme === 'dark')
 
     return {
-      store,
       isDark,
-      cilSpeedometer,
-      cilBasket,
-      cilList
+      cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser, cilDescription, cilWallet, cilArrowBottom, cilArrowTop, cilCreditCard
     }
   },
 }

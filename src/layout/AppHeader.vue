@@ -1,12 +1,13 @@
 <template>
-  <CHeader position="sticky" class="mb-4" :class="[{ 'header-dark': isDark }]">
+  <CHeader position="sticky" :class="[{ 'header-dark': isDark }]">
     <CContainer fluid class="d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center">
         <CHeaderToggler class="ps-1" @click="toggleSidebar">
           <CIcon icon="cil-menu" size="lg" />
         </CHeaderToggler>
-        <CHeaderBrand class="ms-2 d-none d-lg-block" to="/">
-          UMKM App
+        <CHeaderBrand class="ms-2" to="/dashboard">
+          <img src="/icon-192.png" alt="Logo" width="24" height="24" class="me-2" />
+          H DEV
         </CHeaderBrand>
       </div>
       <div class="d-flex align-items-center gap-2">
@@ -21,7 +22,7 @@
 import { CContainer, CHeader, CHeaderBrand, CHeaderToggler, CFormSwitch } from '@coreui/vue'
 import CIcon from '@coreui/icons-vue'
 import { cilMenu } from '@coreui/icons'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watchEffect } from 'vue'
 import { useStore } from 'vuex'
 
 export default {
@@ -36,29 +37,19 @@ export default {
   },
   setup() {
     const store = useStore()
-    const isDark = computed(() => window?.localStorage?.getItem('theme') === 'dark')
+    const isDark = computed(() => store.state.theme === 'dark')
     const toggleSidebar = () => {
       store.commit('toggleSidebar')
-      if (store.state.sidebarVisible) {
-        document.body.classList.remove('sidebar-collapsed')
-      } else {
-        document.body.classList.add('sidebar-collapsed')
-      }
     }
     const toggleTheme = () => {
-      const next = isDark.value ? 'light' : 'dark'
-      window.localStorage.setItem('theme', next)
-      document.documentElement.setAttribute('data-theme', next)
+      store.commit('toggleTheme')
     }
-    onMounted(() => {
-      const saved = window.localStorage.getItem('theme') || 'light'
-      document.documentElement.setAttribute('data-theme', saved)
-      if (store.state.sidebarVisible) {
-        document.body.classList.remove('sidebar-collapsed')
-      } else {
-        document.body.classList.add('sidebar-collapsed')
-      }
+    
+    // Sync to document element
+    watchEffect(() => {
+      document.documentElement.setAttribute('data-theme', store.state.theme)
     })
+    
     return { cilMenu, isDark, toggleTheme, toggleSidebar }
   },
 }
