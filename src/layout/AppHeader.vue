@@ -6,6 +6,7 @@
           <CIcon icon="cil-menu" size="lg" />
         </CHeaderToggler>
         <CHeaderBrand class="ms-2" to="/">
+          <img src="/icon-192.png" alt="Logo" width="24" height="24" class="me-2" />
           H DEV
         </CHeaderBrand>
       </div>

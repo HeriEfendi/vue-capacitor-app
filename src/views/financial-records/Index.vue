@@ -135,7 +135,7 @@ onMounted(fetchProjects)
     <!-- Header -->
     <CCol xs="12" class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 class="text-h4 font-weight-bold">Catatan Keuangan</h2>
+        <h2 class="text-h4 font-weight-bold">Catatan Proyek</h2>
         <p class="text-subtitle-2 text-disabled mt-1 mb-0">Kelola keuangan semua projek Anda</p>
       </div>
       <CButton

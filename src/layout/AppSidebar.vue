@@ -14,6 +14,50 @@
           <span>Dashboard</span>
         </RouterLink>
       </CNavItem>
+      <CNavTitle>Pesonal</CNavTitle>
+      <CNavItem>
+        <RouterLink to="/todo" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilTask" />
+          <span>To Do</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/todo" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilTask" />
+          <span>To Do Team</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavTitle>Akuntansi</CNavTitle>
+      <CNavItem>
+        <RouterLink to="/financial-records" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilDescription" />
+          <span>Catatan Proyek</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/capital" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilWallet" />
+          <span>Tabungan</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/expenses" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilArrowBottom" />
+          <span>Pengeluaran</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/incomes" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilArrowTop" />
+          <span>Pendapatan</span>
+        </RouterLink>
+      </CNavItem>
+      <CNavItem>
+        <RouterLink to="/debts" class="nav-link d-flex align-items-center gap-2">
+          <CIcon custom-class-name="nav-icon" :icon="cilCreditCard" />
+          <span>Utang</span>
+        </RouterLink>
+      </CNavItem>
       <CNavTitle>Supply Chain</CNavTitle>
       <CNavItem>
         <RouterLink to="/products" class="nav-link d-flex align-items-center gap-2">
@@ -33,37 +77,6 @@
           <span>Kategori</span>
         </RouterLink>
       </CNavItem>
-      <CNavTitle>Akuntansi</CNavTitle>
-      <CNavItem>
-        <RouterLink to="/expenses" class="nav-link d-flex align-items-center gap-2">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Pengeluaran</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/incomes" class="nav-link d-flex align-items-center gap-2">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Pendapatan</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/debts" class="nav-link d-flex align-items-center gap-2">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Utang</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/capital" class="nav-link d-flex align-items-center gap-2">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Modal</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/financial-records" class="nav-link d-flex align-items-center gap-2">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Catatan Keuangan</span>
-        </RouterLink>
-      </CNavItem>
 
       <!-- ─── General Setting ──────────────────────────────── -->
       <CNavTitle>General Setting</CNavTitle>
@@ -71,12 +84,6 @@
         <RouterLink to="/users" class="nav-link d-flex align-items-center gap-2">
           <CIcon custom-class-name="nav-icon" :icon="cilPeople" />
           <span>Users</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/todo" class="nav-link d-flex align-items-center gap-2">
-          <CIcon custom-class-name="nav-icon" :icon="cilTask" />
-          <span>To Do List</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
@@ -102,7 +109,7 @@ import {
   CSidebarToggler,
 } from '@coreui/vue'
 import CIcon from '@coreui/icons-vue'
-import { cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser } from '@coreui/icons'
+import { cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser, cilDescription, cilWallet, cilArrowBottom, cilArrowTop, cilCreditCard } from '@coreui/icons'
 import { useStore } from 'vuex'
 import { computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -125,12 +132,7 @@ export default {
 
     return {
       isDark,
-      cilSpeedometer,
-      cilBasket,
-      cilList,
-      cilPeople,
-      cilTask,
-      cilUser,
+      cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser, cilDescription, cilWallet, cilArrowBottom, cilArrowTop, cilCreditCard
     }
   },
 }

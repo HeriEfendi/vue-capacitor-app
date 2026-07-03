@@ -77,7 +77,7 @@
                   </div>
                   <div class="text-end">
                     <div class="fw-bold small">
-                      ${{ coin.price ? coin.price.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0.00' }}
+                      Rp{{ coin.price ? coin.price.toLocaleString('id-ID', {minimumFractionDigits:0, maximumFractionDigits:0}) : '0' }}
                     </div>
                     <div
                       class="small fw-semibold d-flex align-items-center justify-content-end gap-1"
@@ -280,9 +280,11 @@ export default {
   setup() {
     // ── Crypto Prices ────────────────────────────────────────────
     const cryptoPrices = ref([
-      { symbol: 'BTCUSDT', name: 'Bitcoin', price: 0, change: 0, icon: 'fab fa-bitcoin', color: '#f7931a' },
-      { symbol: 'ETHUSDT', name: 'Ethereum', price: 0, change: 0, icon: 'fas fa-gem', color: '#627eea' },
-      { symbol: 'SOLUSDT', name: 'Solana', price: 0, change: 0, icon: 'fas fa-sun', color: '#9945ff' },
+      { symbol: 'USDIDR', name: 'USD/IDR', price: 16000, change: 0, icon: 'fas fa-dollar-sign', color: '#2ecc71' },
+      { symbol: 'BBCA', name: 'Bank BCA', price: 9500, change: 1.2, icon: 'fas fa-university', color: '#3498db' },
+      { symbol: 'BBRI', name: 'Bank BRI', price: 4800, change: -0.5, icon: 'fas fa-university', color: '#e67e22' },
+      { symbol: 'BTC', name: 'Bitcoin', price: 0, change: 0, icon: 'fab fa-bitcoin', color: '#f7931a' },
+      { symbol: 'ETH', name: 'Ethereum', price: 0, change: 0, icon: 'fas fa-gem', color: '#627eea' },
     ])
     const loadingPrices = ref(false)
     let priceInterval = null
@@ -290,19 +292,22 @@ export default {
     const fetchPrices = async () => {
       loadingPrices.value = true
       try {
-        const res = await fetch(
-          `https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent(JSON.stringify(['BTCUSDT','ETHUSDT','SOLUSDT']))}`
-        )
+        // Use CoinGecko for crypto, mock others due to stock/forex API restrictions in free tier
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true')
         const data = await res.json()
+        
+        const conversionRate = 16000 // Approximate IDR/USD
         cryptoPrices.value.forEach(coin => {
-          const ticker = data.find(t => t.symbol === coin.symbol)
-          if (ticker) {
-            coin.price = parseFloat(ticker.lastPrice)
-            coin.change = parseFloat(ticker.priceChangePercent)
+          if (coin.symbol === 'BTC') {
+            coin.price = data.bitcoin.usd * conversionRate
+            coin.change = data.bitcoin.usd_24h_change
+          } else if (coin.symbol === 'ETH') {
+            coin.price = data.ethereum.usd * conversionRate
+            coin.change = data.ethereum.usd_24h_change
           }
         })
       } catch (e) {
-        console.error('Crypto price fetch failed:', e)
+        console.error('Price fetch failed:', e)
       } finally {
         loadingPrices.value = false
       }
@@ -348,7 +353,7 @@ export default {
     onMounted(() => {
       loadStats()
       fetchPrices()
-      priceInterval = setInterval(fetchPrices, 10000)
+      priceInterval = setInterval(fetchPrices, 60000)
     })
 
     onUnmounted(() => {
