@@ -57,7 +57,7 @@ const submitting = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 const editingTxId = ref<number | null>(null)
 const filterType = ref<'SEMUA' | 'DEPOSIT' | 'EXPENSE'>('SEMUA')
-const maxWidth = window.innerWidth < 768 ? '75vw' : '100%'
+const maxWidth = '100%'
 
 const categories = {
   DEPOSIT: ['Modal Awal', 'Pinjaman', 'Investor', 'Keuntungan', 'Transfer', 'Lainnya'],
@@ -428,7 +428,7 @@ onMounted(fetchProject)
   </template>
 
   <template v-else-if="project">
-    <div class="mt-4" >
+    <div>
       <CRow class="mb-4">
         <CCol xs="12">
           <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mt-2">
@@ -548,8 +548,7 @@ onMounted(fetchProject)
             </div>
 
             <div class="overflow-x-auto pb-2">
-              <div class="d-flex flex-column gap-1"
-              :style="{ maxWidth }">
+              <div class="d-flex flex-column gap-1">
                 <CCard
                   v-for="tx in filteredTransactions"
                   :key="tx.id"

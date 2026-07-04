@@ -1,6 +1,6 @@
 <template>
-  <CHeader position="sticky" class="border-0 w-100 bg-transparent pt-3" style="top: 0; left: 0; z-index: 1050; min-height: 50px;">
-    <CContainer fluid class="d-flex align-items-center justify-content-between p-2">
+  <CHeader position="fixed" class="border-0 w-100 bg-transparent pt-3" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 1050 !important; min-height: 50px;">
+    <CContainer fluid class="d-flex align-items-center justify-content-between p-2" style="max-width: 100%;">
       <div class="d-flex align-items-center">
         <CHeaderToggler 
           v-if="!isDashboard" 
@@ -12,9 +12,9 @@
         </CHeaderToggler>
       </div>
       <div class="flex-grow-1 d-flex justify-content-center">
-        <div class="rounded-pill d-flex align-items-center justify-content-center px-4" style="height: 40px; width: 90%; font-weight: 700; font-size: 0.9rem; color: #333; background: rgba(255, 255, 255, 0.8); box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+        <router-link to="/" class="rounded-pill d-flex align-items-center justify-content-center px-4" style="height: 40px; width: 90%; font-weight: 700; font-size: 0.9rem; color: #333; background: rgba(255, 255, 255, 0.8); box-shadow: 0 1px 2px rgba(0,0,0,0.05); text-decoration: none;">
           HDEV MOBILE
-        </div>
+        </router-link>
       </div>
       <div class="d-flex align-items-center">
         <CHeaderToggler 

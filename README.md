@@ -15,42 +15,46 @@ Aplikasi ini adalah sistem manajemen bisnis terpadu yang dirancang khusus untuk 
 ## Rencana Pengembangan & Fitur Utama
 
 ### Phase 1: Fondasi Aplikasi & UI (Selesai)
+
 - [x] Instalasi dan konfigurasi CoreUI for Vue.
 - [x] Membuat tata letak utama aplikasi (Sidebar, Header, Footer).
 - [x] Membuat sistem navigasi dinamis.
 
 ### Phase 2: Manajemen Rantai Pasok (Supply Chain)
+
 - [x] **Modul Bahan Baku (CRUD):**
-    - [x] Melihat daftar semua bahan baku.
-    - [x] Menambah bahan baku baru (Nama, Satuan, Stok).
-    - [x] Memperbarui informasi dan stok bahan baku.
-    - [x] Menghapus bahan baku.
+  - [x] Melihat daftar semua bahan baku.
+  - [x] Menambah bahan baku baru (Nama, Satuan, Stok).
+  - [x] Memperbarui informasi dan stok bahan baku.
+  - [x] Menghapus bahan baku.
 - [x] **Modul Produk Jadi (CRUD):**
-    - [x] Melihat daftar semua produk jadi.
-    - [x] Menambah produk baru (Nama, Harga, Stok, Deskripsi, Gambar).
-    - [x] Memperbarui informasi dan stok produk.
-    - [x] Menghapus produk.
+  - [x] Melihat daftar semua produk jadi.
+  - [x] Menambah produk baru (Nama, Harga, Stok, Deskripsi, Gambar).
+  - [x] Memperbarui informasi dan stok produk.
+  - [x] Menghapus produk.
 
 ### Phase 3: Modul Akuntansi (Accounting)
+
 - [x] **Modul Pengeluaran (CRUD):**
-    - [x] Mencatat semua pengeluaran (Deskripsi, Jumlah, Tanggal, Kategori).
-    - [x] Melihat riwayat pengeluaran.
-    - [x] Mengedit dan menghapus catatan pengeluaran.
+  - [x] Mencatat semua pengeluaran (Deskripsi, Jumlah, Tanggal, Kategori).
+  - [x] Melihat riwayat pengeluaran.
+  - [x] Mengedit dan menghapus catatan pengeluaran.
 - [x] **Modul Pendapatan (CRUD):**
-    - [x] Mencatat semua pendapatan/penjualan (Deskripsi, Jumlah, Tanggal).
-    - [x] Melihat riwayat pendapatan.
-    - [x] Mengedit dan menghapus catatan pendapatan.
+  - [x] Mencatat semua pendapatan/penjualan (Deskripsi, Jumlah, Tanggal).
+  - [x] Melihat riwayat pendapatan.
+  - [x] Mengedit dan menghapus catatan pendapatan.
 - [x] **Modul Utang (CRUD):**
-    - [x] Mencatat utang (Pemberi utang, Jumlah, Tanggal, Status).
-    - [x] Melihat daftar utang.
-    - [x] Memperbarui status pembayaran dan jumlah.
-    - [x] Menghapus catatan utang yang sudah lunas.
+  - [x] Mencatat utang (Pemberi utang, Jumlah, Tanggal, Status).
+  - [x] Melihat daftar utang.
+  - [x] Memperbarui status pembayaran dan jumlah.
+  - [x] Menghapus catatan utang yang sudah lunas.
 - [x] **Modul Modal (CRUD):**
-    - [x] Mencatat setoran modal (Sumber, Jumlah, Tanggal).
-    - [x] Melihat riwayat modal.
-    - [x] Mengedit dan menghapus catatan modal.
+  - [x] Mencatat setoran modal (Sumber, Jumlah, Tanggal).
+  - [x] Melihat riwayat modal.
+  - [x] Mengedit dan menghapus catatan modal.
 
 ### Phase 4: Dasbor & Laporan
+
 - [ ] Membuat dasbor utama yang menampilkan ringkasan (misalnya, total pendapatan bulan ini, stok kritis, dll.).
 - [ ] Membuat halaman laporan sederhana (laporan laba/rugi, laporan utang).
 
@@ -113,18 +117,17 @@ Berikut adalah struktur data dasar yang akan digunakan:
   date: 'Date'
 }
 ```
-*Setiap pembaruan atau penambahan fitur pada proyek ini harus diperbarui juga di dalam file README.md ini.*
 
-
+_Setiap pembaruan atau penambahan fitur pada proyek ini harus diperbarui juga di dalam file README.md ini._
 
 npm run build
 npx cap sync android
 cd android
 ./gradlew assembleDebug
 
+/home/lenovo/www/vue-capacitor-app/android/app/build/outputs/apk/debug
 
 unutk build debug masuk ke folder android lalu gunakan : `./gradlew assembleDebug`
 unutk merilis apk masuk ke folder android lalu gunakan: `./gradlew assembleRelease`
 
 maka apk akan tersimpan di folder `android/app/build/outputs/apk/release`
-

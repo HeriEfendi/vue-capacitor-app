@@ -11,12 +11,12 @@
   >
   <div style="height: 70px;"></div>
     <CSidebarNav>
-      <CNavItem>
+      <!-- <CNavItem>
         <RouterLink to="/dashboard" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilSpeedometer" />
           <span>Dashboard</span>
         </RouterLink>
-      </CNavItem>
+      </CNavItem> -->
       <CNavTitle>Pesonal</CNavTitle>
       <CNavItem>
         <RouterLink to="/todo-personal" class="nav-link d-flex align-items-center gap-2" active-class="active">
