@@ -57,6 +57,7 @@ const submitting = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 const editingTxId = ref<number | null>(null)
 const filterType = ref<'SEMUA' | 'DEPOSIT' | 'EXPENSE'>('SEMUA')
+const maxWidth = window.innerWidth < 768 ? '75vw' : '100%'
 
 const categories = {
   DEPOSIT: ['Modal Awal', 'Pinjaman', 'Investor', 'Keuntungan', 'Transfer', 'Lainnya'],
@@ -527,58 +528,86 @@ onMounted(fetchProject)
                 Riwayat Transaksi ({{ filteredTransactions.length }})
               </h5>
 
-              <div class="btn-group">
-                <button :class="['btn', filterType === 'SEMUA' ? 'btn-outline-primary status-select' : 'btn-outline-secondary status-select']" @click="filterType = 'SEMUA'">Semua</button>
-                <button :class="['btn', filterType === 'DEPOSIT' ? 'btn-outline-primary status-select' : 'btn-outline-secondary status-select']" @click="filterType = 'DEPOSIT'">Modal</button>
-                <button :class="['btn', filterType === 'EXPENSE' ? 'btn-outline-primary status-select' : 'btn-outline-secondary status-select']" @click="filterType = 'EXPENSE'">Pengeluaran</button>
+              <div class="btn-group border rounded overflow-hidden">
+                <button 
+                  class="btn filter-btn" 
+                  :class="filterType === 'SEMUA' ? 'bg-primary-subtle text-primary fw-bold' : 'btn-light text-muted'" 
+                  @click="filterType = 'SEMUA'"
+                >Semua</button>
+                <button 
+                  class="btn filter-btn" 
+                  :class="filterType === 'DEPOSIT' ? 'bg-primary-subtle text-primary fw-bold' : 'btn-light text-muted'" 
+                  @click="filterType = 'DEPOSIT'"
+                >Modal</button>
+                <button 
+                  class="btn filter-btn" 
+                  :class="filterType === 'EXPENSE' ? 'bg-primary-subtle text-primary fw-bold' : 'btn-light text-muted'" 
+                  @click="filterType = 'EXPENSE'"
+                >Pengeluaran</button>
               </div>
             </div>
-          <div class="overflow-auto">
-            <div class="overflow-auto" style="width: clamp(300px, calc(100vw - 120px), 83vw);">
-              <table v-if="filteredTransactions.length > 0" class="table table-hover align-middle mb-0">
-                <thead class="table-light" >
-                  <tr>
-                    <th>Tipe</th>
-                    <th>Tanggal</th>
-                    <th>Kategori</th>
-                    <th>Deskripsi</th>
-                    <th class="text-end">Nominal</th>
-                    <th class="text-center">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="tx in filteredTransactions" :key="tx.id">
-                    <td>
-                      <span class="badge" :class="tx.type === 'DEPOSIT' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
-                        {{ tx.type === 'DEPOSIT' ? '▲ Modal' : '▼ Pengeluaran' }}
+
+            <div class="overflow-x-auto pb-2">
+              <div class="d-flex flex-column gap-1"
+              :style="{ maxWidth }">
+                <CCard
+                  v-for="tx in filteredTransactions"
+                  :key="tx.id"
+                  class="shadow-none border border-light-subtle p-0 border-0 "
+                >
+                  <CCardBody class="p-0 d-flex align-items-center">
+                    <div
+                      class="d-flex align-items-center px-3 py-2 rounded-3"
+                      style="min-width: max-content; width: 100%"
+                      :class="tx.type === 'DEPOSIT'
+                        ? 'bg-success bg-opacity-10'
+                        : 'bg-danger bg-opacity-10'"
+                    >
+                    <!-- Tipe -->
+                    <div class="flex-shrink-0" style="width: 80px;">
+                      <span class="extra-small fw-bold" :class="tx.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
+                        {{ tx.type === 'DEPOSIT' ? '▲ In' : '▼ Out' }}
                       </span>
-                    </td>
-                    <td class="text-nowrap">{{ formatDate(tx.date) }}</td>
-                    <td class="text-nowrap">{{ tx.category }}</td>
-                    <td class="text-nowrap">{{ tx.description || '-' }}</td>
-                    <td class="text-end fw-bold" :class="tx.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
+                    </div>
+
+                    <!-- Tanggal -->
+                    <div class="flex-shrink-0" style="width: 100px;">
+                      <span class="text-muted extra-small">{{ formatDate(tx.date) }}</span>
+                    </div>
+
+                    <!-- Kategori -->
+                    <div class="flex-shrink-0 text-truncate px-2" style="width: 180px;">
+                      <span class="fw-bold extra-small">{{ tx.category }}</span>
+                    </div>
+
+                    <!-- Deskripsi -->
+                    <div class="flex-grow-1 text-truncate px-2" style="min-width: 180px;">
+                      <span class="text-muted extra-small">{{ tx.description || '-' }}</span>
+                    </div>
+
+                    <!-- Nominal -->
+                    <div class="flex-shrink-0 text-end fw-bold" style="width: 120px;" :class="tx.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
                       {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
-                    </td>
-                    <td class="text-center text-nowrap">
-                      <button class="btn btn-sm btn-outline-primary status-select me-2" @click="openEditDialog(tx)">
-                        <i class="fas fa-edit"></i>
-                      </button>
-                      <button class="btn btn-sm btn-outline-danger status-select" @click="dialogDeleteTxId = tx.id">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <div v-else class="text-center text-disabled py-8">
-                <p class="text-body-2">Belum ada transaksi</p>
-                <button class="btn btn-primary status-select mt-2" @click="openCreateDialog">
-                  + Tambah Transaksi Pertama
-                </button>
+                    </div>
+
+                    <!-- Aksi -->
+                    <div class="flex-shrink-0 d-flex justify-content-end" style="width: 100px;">
+                      <button class="btn btn-outline-primary status-select me-2" @click="openEditDialog(tx)"><i class="fas fa-edit fa-xs"></i></button>
+                      <button class="btn btn-outline-danger status-select bg-danger bg-opacity-10" @click="dialogDeleteTxId = tx.id"><i class="fas fa-trash fa-xs"></i></button>
+                    </div>
+
+                    </div>
+                  </CCardBody>
+                </CCard>
               </div>
             </div>
+          
+          <div v-if="filteredTransactions.length === 0" class="text-center text-disabled py-8">
+            <p class="text-body-2">Belum ada transaksi</p>
+            <button class="btn btn-primary status-select mt-2" @click="openCreateDialog">
+              + Tambah Transaksi Pertama
+            </button>
           </div>
-           
           </CCardBody>
         </CCard>
       </CCol>
@@ -654,4 +683,4 @@ onMounted(fetchProject)
         <div class="toast-body">{{ snackbar.text }}</div>
       </div>
     </div>
-  </template>
+</template>

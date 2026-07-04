@@ -174,38 +174,54 @@ onMounted(fetchProjects)
     </CCol>
 
     <!-- Summary Cards -->
+
     <CCol xs="6" sm="4" md="3" class="d-flex mb-4">
-      <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e8f5e9;">
+      <CCard class="border-0 shadow-sm p-0 w-100" style="background-color: #e8f5e9;">
         <CCardBody class="d-flex flex-column">
-            <div class="d-flex align-items-center mb-1">
-                <div class="p-2 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
-                <div class="text-muted fw-medium small">Total Modal Semua Projek</div>
-            </div>
-            <div class="fs-6 fw-bold text-success">{{ formatCurrency(totalDepositsAll) }}</div>
+          <div class="d-flex align-items-center mb-1">
+            <div
+              class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-2 flex-shrink-0"
+              style="width: 45px; height: 45px;"
+            >
+              <CIcon :icon="icons.cilMoney" size="lg" class="text-success" />
+            </div>              
+            <div class="text-muted fw-medium small">Total Modal Semua Projek</div>
+          </div>
+          <div class="mt-auto text-center fs-5 fw-bold text-success">{{ formatCurrency(totalDepositsAll) }}</div>
         </CCardBody>
       </CCard>
     </CCol>
 
     <CCol xs="6" sm="4" md="3" class="d-flex mb-4">
-      <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #ffebee;">
+      <CCard class="border-0 shadow-sm p-0 w-100" style="background-color: #ffebee;">
         <CCardBody class="d-flex flex-column">
-            <div class="d-flex align-items-center mb-1">
-                <div class="p-2 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
-                <div class="text-muted fw-medium small">Total Pengeluaran Semua Projek</div>
-            </div>
-            <div class="fs-6 fw-bold text-danger">{{ formatCurrency(totalExpensesAll) }}</div>
+          <div class="d-flex align-items-center mb-1">
+            <div
+              class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center me-2 flex-shrink-0"
+              style="width: 45px; height: 45px;"
+            >
+              <CIcon :icon="icons.cilMoney" size="lg" class="text-danger" />
+            </div>              
+            <div class="text-muted fw-medium small">Total Pengeluaran Semua Projek</div>
+          </div>
+          <div class="mt-auto text-center fs-5 fw-bold text-danger">{{ formatCurrency(totalExpensesAll) }}</div>
         </CCardBody>
       </CCard>
     </CCol>
 
-    <CCol xs="6" sm="4" md="3" class="d-flex mb-4">
-      <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e3f2fd;">
+    <CCol xs="12" sm="4" md="3" class="d-flex mb-4">
+      <CCard class="border-0 shadow-sm p-0 w-100" style="background-color: #e3f2fd;">
         <CCardBody class="d-flex flex-column">
-            <div class="d-flex align-items-center mb-1">
-                <div class="p-2 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="lg" /></div>
-                <div class="text-muted fw-medium small">Total Sisa Saldo Semua Projek</div>
-            </div>
-            <div class="fs-6 fw-bold text-primary">{{ formatCurrency(totalBalanceAll) }}</div>
+          <div class="d-flex justify-content-center align-items-center mb-1">
+            <div
+              class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-2 flex-shrink-0"
+              style="width: 45px; height: 45px;"
+            >
+              <CIcon :icon="icons.cilWallet" size="lg" class="text-primary" />
+            </div>              
+            <div class="text-muted fw-medium small">Total Sisa Saldo Semua Projek</div>
+          </div>
+          <div class="mt-auto text-center fs-5 fw-bold text-primary">{{ formatCurrency(totalBalanceAll) }}</div>
         </CCardBody>
       </CCard>
     </CCol>

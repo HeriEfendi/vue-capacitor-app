@@ -1,15 +1,15 @@
 <template>
-  <div class="container-fluid py-4">
+  <div class="container-fluid p-0 mt-3">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h4 class="mb-0 fw-bold">To Do List</h4>
-        <small class="text-muted">Kelola tugas tim anda.</small>
+        <h4 class="mb-0 fw-bold">To Do Team</h4>
+        <small class="text-muted">Kelola tugas team anda.</small>
       </div>
-      <router-link to="/todo/create" class="btn btn-primary d-flex align-items-center gap-2">
+      <button class="btn btn-primary d-flex align-items-center gap-2" @click="openModal()">
         <i class="fas fa-plus"></i>
         Create Task
-      </router-link>
+      </button>
     </div>
 
     <!-- Filter chips -->
@@ -17,7 +17,7 @@
       <button
         v-for="f in filters"
         :key="f.value"
-        class="btn btn-sm"
+        class="btn btn-sm px-3 py-2"
         :class="activeFilter === f.value ? 'btn-primary' : 'btn-outline-secondary'"
         @click="activeFilter = f.value"
       >
@@ -34,155 +34,99 @@
     </div>
 
     <!-- Table -->
-    <CCard v-else>
-      <CCardBody class="p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0 task-table">
-            <thead class="table-light">
-              <tr>
-                <th style="width:40px"></th>
-                <th>Work</th>
-                <th>Assignee</th>
-                <th>Reporter</th>
-                <th>Priority</th>
-                <th style="width:130px">Status</th>
-                <th>Due Date</th>
-                <th class="text-center">SP</th>
-                <th>Labels</th>
-                <th class="text-center" style="width:80px">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="task in filteredTasks" :key="task.id" class="align-middle">
-                <!-- Checkbox -->
-                <td>
-                  <input
+    <CRow v-if="filteredTasks.length > 0">
+      <CCol xs="12" md="6" lg="4" v-for="task in filteredTasks" :key="task.id" class="mb-3">
+        <CCard class="h-100 shadow-sm border-0">
+          <CCardBody>
+            <div class="d-flex align-items-center mb-2">
+               <input
                     type="checkbox"
-                    class="form-check-input"
+                    class="form-check-input me-2"
                     :checked="task.status === 'DONE'"
                     @change="toggleDone(task)"
                   />
-                </td>
+                <a
+                   href="#"
+                   class="text-decoration-none text-primary fw-bold"
+                   :class="{'text-decoration-line-through text-muted': task.status === 'DONE'}"
+                   @click.prevent="openModal(task)"
+                >
+                  {{ task.work_id }} {{ task.title }}
+                </a>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2 text-muted small">
+                <span title="Assignee"><i class="fas fa-user-circle"></i> {{ task.assignee?.name || 'Unassigned' }}</span>
+                <span title="Priority"><i :class="getPriorityIcon(task.priority)" :style="`color:${getPriorityColor(task.priority)}`"></i> {{ task.priority }}</span>
+                <span title="Due Date"><i class="fas fa-calendar-alt"></i> {{ task.due_date || 'None' }}</span>
+                <span v-if="task.label" title="Label" class="badge bg-light text-secondary border">
+                  <i class="fas fa-tag"></i> {{ task.label }}
+                </span>
+            </div>
+            <div v-if="task.description" class="mt-2 small text-muted fst-italic">
+                {{ task.description.length > 200 ? task.description.substring(0, 200) + '...' : task.description }}
+            </div>
+          </CCardBody>
+          <CCardFooter class="border-0 d-flex justify-content-between align-items-center bg-white">
+            <select
+                v-model="task.status"
+                class="form-select form-select-sm w-auto"
+                :class="getStatusClass(task.status)"
+                @change="updateStatus(task)"
+            >
+                <option value="TO DO">TO DO</option>
+                <option value="IN PROGRESS">IN PROGRESS</option>
+                <option value="DONE">DONE</option>
+            </select>
+            <button class="btn btn-sm btn-outline-danger" @click="deleteTask(task.id)">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+          </CCardFooter>
+        </CCard>
+      </CCol>
+    </CRow>
+    <div v-else class="text-center py-5 text-muted">
+        Belum ada task.
+    </div>
 
-                <!-- Work -->
-                <td style="max-width:220px">
-                  <div class="d-flex align-items-center gap-2">
-                    <i class="fas fa-clipboard-list text-primary" style="font-size:14px;flex-shrink:0"></i>
-                    <router-link
-                      :to="`/todo/${task.id}/edit`"
-                      class="text-decoration-none text-primary fw-semibold text-truncate"
-                      :class="{'text-decoration-line-through text-muted': task.status === 'DONE'}"
-                      :title="`${task.work_id} ${task.title}`"
-                    >
-                      {{ task.work_id }} {{ task.title }}
-                    </router-link>
-                  </div>
-                </td>
-
-                <!-- Assignee -->
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <img
-                      :src="task.assignee?.avatar || 'https://i.pravatar.cc/150?img=99'"
-                      class="rounded-circle"
-                      width="24" height="24"
-                      style="object-fit:cover"
-                    />
-                    <span class="small">{{ task.assignee?.name || 'Unassigned' }}</span>
-                  </div>
-                </td>
-
-                <!-- Reporter -->
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <img
-                      :src="task.reporter?.avatar || 'https://i.pravatar.cc/150?img=98'"
-                      class="rounded-circle"
-                      width="24" height="24"
-                      style="object-fit:cover"
-                    />
-                    <span class="small">{{ task.reporter?.name || 'System' }}</span>
-                  </div>
-                </td>
-
-                <!-- Priority -->
-                <td>
-                  <span class="d-flex align-items-center gap-1 small">
-                    <i :class="getPriorityIcon(task.priority)" :style="`color:${getPriorityColor(task.priority)}`"></i>
-                    {{ task.priority }}
-                  </span>
-                </td>
-
-                <!-- Status Dropdown -->
-                <td>
-                  <select
-                    v-model="task.status"
-                    class="form-select form-select-sm status-select"
-                    :class="getStatusClass(task.status)"
-                    @change="updateStatus(task)"
-                    style="font-size:11px; font-weight:600; min-width:110px"
-                  >
-                    <option value="TO DO">TO DO</option>
-                    <option value="IN PROGRESS">IN PROGRESS</option>
-                    <option value="DONE">DONE</option>
-                  </select>
-                </td>
-
-                <!-- Due Date -->
-                <td class="small text-muted">{{ task.due_date || 'None' }}</td>
-
-                <!-- Story Points -->
-                <td class="text-center">
-                  <span class="badge bg-light text-dark border fw-bold">{{ task.story_points }}</span>
-                </td>
-
-                <!-- Labels -->
-                <td>
-                  <span
-                    v-if="task.label"
-                    class="badge bg-light text-secondary border small"
-                  >{{ task.label }}</span>
-                </td>
-
-                <!-- Actions -->
-                <td class="text-center">
-                  <router-link :to="`/todo/${task.id}/edit`" class="btn btn-sm btn-outline-primary me-1" title="Edit">
-                    <i class="fas fa-edit"></i>
-                  </router-link>
-                  <button class="btn btn-sm btn-outline-danger" @click="deleteTask(task.id)" title="Hapus">
-                    <i class="fas fa-trash-alt"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr v-if="filteredTasks.length === 0">
-                <td colspan="10" class="text-center py-5 text-muted">
-                  <i class="fas fa-tasks fa-2x mb-2 d-block"></i>
-                  Tidak ada task dengan filter ini.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="px-3 py-2 text-muted small border-top">
-          Menampilkan {{ filteredTasks.length }} dari {{ tasks.length }} task
-        </div>
-      </CCardBody>
-    </CCard>
+    <!-- Modal Form -->
+    <CModal :visible="modalVisible" @close="modalVisible = false" size="lg">
+      <CModalHeader>{{ isEdit ? 'Edit Task' : 'Create Task' }}</CModalHeader>
+      <CModalBody>
+        <FormView :task="form" @save="saveTask" @cancel="modalVisible = false" />
+      </CModalBody>
+    </CModal>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { CCard, CCardBody } from '@coreui/vue'
-import { TodoRepository } from '../../db/localStorage'
+import { ref, computed, onMounted, reactive } from 'vue'
+import { CCard, CCardBody, CCardFooter, CRow, CCol, CModal, CModalHeader, CModalBody, CModalFooter } from '@coreui/vue'
+import { TodoRepository, UsersRepository } from '../../db/localStorage'
+import FormView from './FormView.vue'
 
 export default {
   name: 'TodoListView',
-  components: { CCard, CCardBody },
+  components: { CCard, CCardBody, CCardFooter, CRow, CCol, CModal, CModalHeader, CModalBody, CModalFooter, FormView },
   setup() {
     const tasks = ref([])
     const loading = ref(false)
     const activeFilter = ref('ALL')
+    const modalVisible = ref(false)
+    const isEdit = ref(false)
+    const users = ref(UsersRepository.getAll())
+
+    const form = reactive({
+      id: null,
+      title: '',
+      assignee_id: null,
+      reporter_id: null,
+      story_points: 1,
+      priority: 'Medium',
+      status: 'TO DO',
+      due_date: '',
+      label: '',
+      description: '',
+    })
 
     const filters = [
       { label: 'All', value: 'ALL' },
@@ -190,6 +134,24 @@ export default {
       { label: 'In Progress', value: 'IN PROGRESS' },
       { label: 'Done', value: 'DONE' },
     ]
+
+    const openModal = (task = null) => {
+        isEdit.value = !!task
+        if(task) {
+            Object.assign(form, task)
+        } else {
+            Object.assign(form, { id: null, title: '', assignee_id: null, reporter_id: null, story_points: 1, priority: 'Medium', status: 'TO DO', due_date: '', label: '', description: '' })
+        }
+        modalVisible.value = true
+    }
+
+    const saveTask = () => {
+        if (!form.title.trim()) return
+        if (isEdit.value) TodoRepository.update(form.id, { ...form })
+        else TodoRepository.add({ ...form })
+        modalVisible.value = false
+        fetchTasks()
+    }
 
     const filteredTasks = computed(() => {
       if (activeFilter.value === 'ALL') return tasks.value
@@ -261,6 +223,7 @@ export default {
       tasks, loading, activeFilter, filters, filteredTasks, filterCount,
       fetchTasks, updateStatus, toggleDone, deleteTask,
       getPriorityIcon, getPriorityColor, getStatusClass,
+      openModal, saveTask, isEdit, modalVisible, form
     }
   }
 }

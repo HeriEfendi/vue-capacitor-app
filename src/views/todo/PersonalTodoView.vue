@@ -7,29 +7,31 @@
       </button>
     </div>
 
-    <CCard>
-      <CCardBody class="p-0">
-        <div v-for="task in tasks" :key="task.id" class="d-flex align-items-center p-3 border-bottom">
-          <div class="flex-grow-1">
-            <div :class="{'text-decoration-line-through text-muted': task.status === 'DONE'}">{{ task.title }}</div>
-            <small class="text-muted d-block">Target: {{ task.target_time }} {{ task.due_date ? '| Done: ' + task.due_date : '' }}</small>
-          </div>
-          <select 
-            class="form-select form-select-sm w-auto me-3 status-select" 
-            :class="getStatusClass(task.status)"
-            v-model="task.status" 
-            @change="updateStatus(task)"
-          >
-            <option value="TO DO">TO DO</option>
-            <option value="IN PROGRESS">IN PROGRESS</option>
-            <option value="DONE">DONE</option>
-          </select>
-          <button class="btn btn-sm btn-outline-danger status-select" @click="removeTask(task.id)">
-            <i class="fas fa-trash-alt"></i>
-          </button>
-        </div>
-      </CCardBody>
-    </CCard>
+    <CRow>
+      <CCol xs="12" md="6" lg="4" v-for="task in tasks" :key="task.id" class="mb-3">
+        <CCard class="h-100 shadow-sm border-0">
+          <CCardBody>
+            <div :class="{'text-decoration-line-through text-muted': task.status === 'DONE'}" class="fw-bold mb-2">{{ task.title }}</div>
+            <small class="text-muted d-block"><i class="fas fa-clock me-1"></i> {{ task.target_time }} {{ task.due_date ? '| Done: ' + task.due_date : '' }}</small>
+          </CCardBody>
+          <CCardFooter class="d-flex justify-content-between align-items-center bg-light border-0">
+            <select 
+              class="form-select form-select-sm w-auto status-select" 
+              :class="getStatusClass(task.status)"
+              v-model="task.status" 
+              @change="updateStatus(task)"
+            >
+              <option value="TO DO">TO DO</option>
+              <option value="IN PROGRESS">IN PROGRESS</option>
+              <option value="DONE">DONE</option>
+            </select>
+            <button class="btn btn-sm btn-outline-danger" @click="removeTask(task.id)">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </CCardFooter>
+        </CCard>
+      </CCol>
+    </CRow>
 
     <CModal :visible="dialogVisible" @close="dialogVisible = false">
       <CModalHeader>Add New Task</CModalHeader>
@@ -53,7 +55,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { CCard, CCardBody, CModal, CModalHeader, CModalBody, CModalFooter } from '@coreui/vue'
+import { CCard, CCardBody, CCardFooter, CRow, CCol, CModal, CModalHeader, CModalBody, CModalFooter } from '@coreui/vue'
 import { TodoRepository } from '../../db/localStorage'
 
 const tasks = ref([])
