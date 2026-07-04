@@ -29,7 +29,7 @@ export default {
     const menuItems = ref([
       { name: 'To Do', path: '/todo-personal', icon: cilTask, repo: TodoRepository, count: 0, filter: (d) => d.filter(t => t.type === 'personal' || !t.type).length },
       { name: 'To Do Team', path: '/todo', icon: cilTask, repo: TodoRepository, count: 0, filter: (d) => d.filter(t => t.type === 'team').length },
-      { name: 'Catatan Proyek', path: '/catatan_proyek', icon: cilDescription, repo: CategoryRepository, count: 0 },
+      { name: 'Manajemen Proyek', path: '/catatan_proyek', icon: cilDescription, repo: CategoryRepository, count: 0 },
       { name: 'Tabungan', path: '/capital', icon: cilWallet, repo: capitalCostsRepo, count: 0 },
       { name: 'Produk Jadi', path: '/products', icon: cilBasket, repo: ProductRepository, count: 0 },
       { name: 'Profile', path: '/profile', icon: cilUser, repo: null, count: 0 },

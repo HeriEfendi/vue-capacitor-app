@@ -9,14 +9,8 @@
     style="width: 100% !important; max-width: 100% !important;"
     @visible-change="(value) => $store.commit('updateSidebarVisible', value)"
   >
-  <div style="height: 70px;"></div>
+  <div style="height: 30px;"></div>
     <CSidebarNav>
-      <!-- <CNavItem>
-        <RouterLink to="/dashboard" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilSpeedometer" />
-          <span>Dashboard</span>
-        </RouterLink>
-      </CNavItem> -->
       <CNavTitle>Pesonal</CNavTitle>
       <CNavItem>
         <RouterLink to="/todo-personal" class="nav-link d-flex align-items-center gap-2" active-class="active">
@@ -30,11 +24,11 @@
           <span>To Do Team</span>
         </RouterLink>
       </CNavItem>
-      <CNavTitle>Akuntansi</CNavTitle>
+      <CNavTitle>Manajemen Proyek</CNavTitle>
       <CNavItem>
         <RouterLink to="/catatan_proyek" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilDescription" />
-          <span>Catatan Proyek</span>
+          <span>Manajemen Proyek</span>
         </RouterLink>
       </CNavItem>
       <CNavItem>
@@ -96,7 +90,12 @@
         </RouterLink>
       </CNavItem>
 
-      <!-- Add other nav items here based on README -->
+      <CNavItem class="mt-auto">
+        <a href="#" @click.prevent="exitApp" class="nav-link d-flex align-items-center gap-2 text-danger">
+          <CIcon custom-class-name="nav-icon" icon="cil-account-logout" />
+          <span>Tutup Aplikasi</span>
+        </a>
+      </CNavItem>
     </CSidebarNav>
     <CSidebarToggler class="d-none d-lg-flex" @click="$store.commit('toggleSidebar')" />
   </CSidebar>
@@ -112,7 +111,7 @@ import {
   CSidebarToggler,
 } from '@coreui/vue'
 import CIcon from '@coreui/icons-vue'
-import { cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser, cilDescription, cilWallet, cilArrowBottom, cilArrowTop, cilCreditCard } from '@coreui/icons'
+import { cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser, cilDescription, cilWallet, cilArrowBottom, cilArrowTop, cilCreditCard, cilAccountLogout } from '@coreui/icons'
 import { useStore } from 'vuex'
 import { computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -135,7 +134,14 @@ export default {
 
     return {
       isDark,
-      cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser, cilDescription, cilWallet, cilArrowBottom, cilArrowTop, cilCreditCard
+      exitApp: () => {
+        if (navigator.app && navigator.app.exitApp) {
+          navigator.app.exitApp();
+        } else {
+          window.close();
+        }
+      },
+      cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser, cilDescription, cilWallet, cilArrowBottom, cilArrowTop, cilCreditCard, cilAccountLogout
     }
   },
 }

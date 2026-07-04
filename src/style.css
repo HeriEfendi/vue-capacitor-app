@@ -51,7 +51,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: #ecf3fd !important;
-  padding-top: 80px;
+  padding-top: 60px;
 }
 
 [data-theme="dark"] .body {

@@ -162,7 +162,7 @@ onMounted(fetchProjects)
     <!-- Header -->
     <CCol xs="12" class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 class="text-h4 font-weight-bold">Catatan Proyek</h2>
+        <h2 class="text-h4 font-weight-bold">Manajemen Proyek</h2>
         <p class="text-subtitle-2 text-disabled mt-1 mb-0">Kelola keuangan semua projek Anda</p>
       </div>
       <button
@@ -313,12 +313,12 @@ onMounted(fetchProjects)
 
   <!-- Dialog: Buat Projek Baru -->
   <CModal :visible="dialogCreate" @close="dialogCreate = false">
-    <CModalHeader>Buat Projek Keuangan Baru</CModalHeader>
+      <CModalHeader>Buat Manajemen Proyek Keuangan Baru</CModalHeader>
     <CModalBody>
       <CForm @submit.prevent="createProject">
         <CFormInput
           v-model="formNew.name"
-          label="Nama Projek"
+          label="Nama Manajemen Proyek"
           placeholder="cth: Bangun Rumah, Tambak Udang 2025..."
           class="mb-4"
           size="lg"
@@ -327,14 +327,14 @@ onMounted(fetchProjects)
         <CFormTextarea
           v-model="formNew.description"
           label="Deskripsi (Opsional)"
-          placeholder="Keterangan singkat tentang projek ini..."
+          placeholder="Keterangan singkat tentang manajemen proyek ini..."
           rows="3"
           class="mb-4"
           size="lg"
         />
         <CFormSelect
           v-model="formNew.status"
-          label="Status Projek"
+          label="Status Manajemen Proyek"
           size="lg"
           :options="[{ label: 'Aktif', value: 'Active' }, { label: 'Selesai', value: 'Completed' }]"
         />
@@ -342,17 +342,17 @@ onMounted(fetchProjects)
     </CModalBody>
     <CModalFooter>
         <button class="btn btn-secondary status-select" @click="dialogCreate = false"><i class="fas fa-times me-2"></i>Batal</button>
-        <button class="btn btn-primary status-select" :disabled="submitting" @click="createProject"><i class="fas fa-plus me-2"></i>Buat Projek</button>
+        <button class="btn btn-primary status-select" :disabled="submitting" @click="createProject"><i class="fas fa-plus me-2"></i>Buat Manajemen Proyek</button>
     </CModalFooter>
   </CModal>
 
     <!-- Dialog: Konfirmasi Hapus -->
     <CModal :visible="dialogDeleteId !== null" @close="dialogDeleteId = null">
     <CModalHeader>
-        Hapus Projek
+        Hapus Manajemen Proyek
     </CModalHeader>
     <CModalBody>
-        Apakah Anda yakin ingin menghapus projek ini beserta seluruh catatan transaksinya? Tindakan ini tidak dapat dibatalkan.
+        Apakah Anda yakin ingin menghapus manajemen proyek ini beserta seluruh catatan transaksinya? Tindakan ini tidak dapat dibatalkan.
     </CModalBody>
     <CModalFooter>
         <button class="btn btn-secondary status-select" @click="dialogDeleteId = null">Batal</button>
@@ -360,12 +360,12 @@ onMounted(fetchProjects)
     </CModalFooter>
     </CModal>
 
-    <!-- Dialog: Edit Projek -->
+    <!-- Dialog: Edit Manajemen Proyek -->
     <CModal :visible="dialogEdit" @close="dialogEdit = false">
-    <CModalHeader>Edit Projek</CModalHeader>
+    <CModalHeader>Edit Manajemen Proyek</CModalHeader>
     <CModalBody>
       <CForm @submit.prevent="updateProject">
-        <CFormInput v-model="formEdit.name" label="Nama Projek" class="mb-3" size="lg" />
+        <CFormInput v-model="formEdit.name" label="Nama Manajemen Proyek" class="mb-3" size="lg" />
         <CFormTextarea v-model="formEdit.description" label="Deskripsi" rows="3" class="mb-3" size="lg" />
         <CFormSelect v-model="formEdit.status" label="Status" size="lg" :options="[{ label: 'Aktif', value: 'Active' }, { label: 'Selesai', value: 'Completed' }]" />
       </CForm>

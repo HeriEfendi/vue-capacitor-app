@@ -60,8 +60,9 @@ const filterType = ref<'SEMUA' | 'DEPOSIT' | 'EXPENSE'>('SEMUA')
 const maxWidth = '100%'
 
 const categories = {
-  DEPOSIT: ['Modal Awal', 'Pinjaman', 'Investor', 'Keuntungan', 'Transfer', 'Lainnya'],
-  EXPENSE: ['Material / Bahan', 'Upah / Tenaga Kerja', 'Peralatan', 'Transportasi', 'Operasional', 'Administrasi', 'Tak Terduga', 'Lainnya'],
+  DEPOSIT_MODAL: ['Modal Awal', 'Pinjaman', 'Investor', 'Lainnya'],
+  DEPOSIT_PENDAPATAN: ['Penjualan Panen', 'Keuntungan', 'Transfer'],
+  EXPENSE: ['Material / Bahan', 'Bibit / Benih', 'Upah / Tenaga Kerja', 'Peralatan', 'Transportasi', 'Operasional', 'Administrasi', 'Tak Terduga', 'Lainnya'],
 }
 
 const formTx = ref({
@@ -75,13 +76,18 @@ const formTx = ref({
 const filteredTransactions = computed(() => {
   if (!project.value) return []
   let txs = [...(project.value.transactions || [])]
-  if (filterType.value === 'DEPOSIT') txs = txs.filter(t => t.type === 'DEPOSIT')
-  if (filterType.value === 'EXPENSE') txs = txs.filter(t => t.type === 'EXPENSE')
+  
+  if (filterType.value === 'MODAL') {
+    txs = txs.filter(t => t.type === 'DEPOSIT' && categories.DEPOSIT_MODAL.includes(t.category))
+  } else if (filterType.value === 'PENDAPATAN') {
+    txs = txs.filter(t => t.type === 'DEPOSIT' && categories.DEPOSIT_PENDAPATAN.includes(t.category))
+  } else if (filterType.value === 'EXPENSE') {
+    txs = txs.filter(t => t.type === 'EXPENSE')
+  }
   
   return txs.sort((a, b) => {
     const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime()
     if (dateDiff !== 0) return dateDiff
-    // Same date: EXPENSE (-1) before DEPOSIT (1)
     const typeA = a.type === 'EXPENSE' ? -1 : 1
     const typeB = b.type === 'EXPENSE' ? -1 : 1
     return typeA - typeB
@@ -93,7 +99,7 @@ function formatCurrency(val: number) {
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
+  return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 async function fetchProject() {
@@ -146,8 +152,16 @@ async function saveTransaction() {
         
         // Recalculate totals
         const p = projects[projectIndex];
-        p.total_deposits = p.transactions.filter(t => t.type === 'DEPOSIT').reduce((acc, t) => acc + t.amount, 0);
+        const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
+        p.total_deposits = deposits.reduce((acc, t) => acc + t.amount, 0);
         p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
+        
+        // Split Modal vs Panen
+        const modal = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+        const panen = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+        
+        (p as any).modal_total = modal;
+        (p as any).panen_total = panen;
         p.balance = p.total_deposits - p.total_expenses;
 
         localStorage.setItem('financial_projects', JSON.stringify(projects))
@@ -176,8 +190,15 @@ async function deleteTransaction(id: number) {
                 
                 // Recalculate totals
                 const p = projects[projectIndex];
-                p.total_deposits = p.transactions.filter(t => t.type === 'DEPOSIT').reduce((acc, t) => acc + t.amount, 0);
+                const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
+                p.total_deposits = deposits.reduce((acc, t) => acc + t.amount, 0);
                 p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
+                
+                const modal = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+                const panen = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+                (p as any).modal_total = modal;
+                (p as any).panen_total = panen;
+                
                 p.balance = p.total_deposits - p.total_expenses;
 
                 localStorage.setItem('financial_projects', JSON.stringify(projects));
@@ -325,7 +346,8 @@ function parseDate(d: any): string {
 }
 
 const availableCategories = computed(() => {
-  return formTx.value.type === 'DEPOSIT' ? categories.DEPOSIT : categories.EXPENSE
+  if (formTx.value.type === 'DEPOSIT') return [...categories.DEPOSIT_MODAL, ...categories.DEPOSIT_PENDAPATAN]
+  return categories.EXPENSE
 })
 
 // Chart Options & Logic
@@ -455,74 +477,75 @@ onMounted(fetchProject)
       </CRow>
 
       <CRow class="g-4 mb-4">
-        <CCol xs="6" sm="4" md="3" class="d-flex">
-          <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e8f5e9;">
+        <CCol xs="6" sm="3" class="d-flex">
+          <CCard class="border-0 shadow-sm p-1 w-100" style="background-color: #e8f5e9;">
               <CCardBody class="d-flex flex-column">
-                  <div class="d-flex align-items-center mb-1">
-                      <div class="p-2 me-2 rounded text-success" style="background: rgba(40, 167, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
-                      <div class="text-muted fw-medium small">Total Modal</div>
-                  </div>
-                  <div class="fs-6 fw-bold text-success">{{ formatCurrency(project.total_deposits) }}</div>
+                  <div class="text-muted fw-medium small">Modal</div>
+                  <div class="fs-6 fw-bold text-success">{{ formatCurrency((project as any).modal_total || 0) }}</div>
               </CCardBody>
           </CCard>
         </CCol>
-        <CCol xs="6" sm="4" md="3" class="d-flex">
-          <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #ffebee;">
+        <CCol v-if="(project as any).panen_total > 0" xs="6" sm="3" class="d-flex">
+          <CCard class="border-0 shadow-sm p-1 w-100" style="background-color: #e8f5e9;">
               <CCardBody class="d-flex flex-column">
-                  <div class="d-flex align-items-center mb-1">
-                      <div class="p-2 me-2 rounded text-danger" style="background: rgba(220, 53, 69, 0.1);"><CIcon :icon="icons.cilMoney" size="lg" /></div>
-                      <div class="text-muted fw-medium small">Total Pengeluaran</div>
-                  </div>
+                  <div class="text-muted fw-medium small">Pendapatan</div>
+                  <div class="fs-6 fw-bold text-success">{{ formatCurrency((project as any).panen_total || 0) }}</div>
+              </CCardBody>
+          </CCard>
+        </CCol>
+        <CCol xs="6" sm="3" class="d-flex">
+          <CCard class="border-0 shadow-sm p-1 w-100" style="background-color: #ffebee;">
+              <CCardBody class="d-flex flex-column">
+                  <div class="text-muted fw-medium small">Pengeluaran</div>
                   <div class="fs-6 fw-bold text-danger">{{ formatCurrency(project.total_expenses) }}</div>
               </CCardBody>
           </CCard>
         </CCol>
-        <CCol xs="6" sm="4" md="3" class="d-flex">
-          <CCard class="border-0 shadow-sm p-3 w-100" style="background-color: #e3f2fd;">
+        <CCol xs="6" sm="3" class="d-flex">
+          <CCard class="border-0 shadow-sm p-1 w-100" :style="(project.panen_total - project.total_expenses) >= 0 ? 'background-color: #e3f2fd;' : 'background-color: #fff3e0;'">
               <CCardBody class="d-flex flex-column">
-                  <div class="d-flex align-items-center mb-1">
-                      <div class="p-2 me-2 rounded text-primary" style="background: rgba(13, 110, 253, 0.1);"><CIcon :icon="icons.cilWallet" size="lg" /></div>
-                      <div class="text-muted fw-medium small">Sisa Saldo</div>
-                  </div>
-                  <div class="fs-6 fw-bold text-primary">{{ formatCurrency(project.balance) }}</div>
+                  <template v-if="(project as any).panen_total > 0">
+                    <div class="d-flex justify-content-between">
+                        <div class="text-muted fw-medium small">Bersih</div>
+                        <div class="text-muted fw-bold small">{{ ((( (project.panen_total - project.total_expenses) / (project as any).panen_total) * 100).toFixed(0) + '%') }}</div>
+                    </div>
+                    <div class="fs-6 fw-bold mb-2" :class="(project.panen_total - project.total_expenses) >= 0 ? 'text-primary' : 'text-danger'">{{ formatCurrency(project.panen_total - project.total_expenses) }}</div>
+                    <div class="pt-2 border-top"></div>
+                  </template>
+                  
+                  <div class="text-muted fw-medium small">Sisa Modal</div>
+                  <div class="fs-6 fw-bold" :class="(project.modal_total - project.total_expenses) >= 0 ? 'text-info' : 'text-warning'">{{ formatCurrency(project.modal_total - project.total_expenses) }}</div>
               </CCardBody>
           </CCard>
         </CCol>
-        <CCol xs="6" sm="4" md="3" class="d-flex">
-          <CCard class="border-0 shadow-sm p-3 w-100 " style="background-color: #fff3e0;">
+        <CCol v-if="((1 + ((project as any).panen_total > 0 ? 1 : 0) + 1 + 1) % 2 !== 0)" xs="6" sm="3" class="d-flex">
+          <CCard class="border-0 shadow-sm p-1 w-100" style="background-color: #fff8e1;">
               <CCardBody class="d-flex flex-column">
-                  <div class="d-flex align-items-center mb-1">
-                      <div class="p-2 me-2 rounded text-warning" style="background: rgba(255, 193, 7, 0.1);"><CIcon :icon="icons.cilNotes" size="lg" /></div>
-                      <div class="text-muted fw-medium small">Total Transaksi</div>
-                  </div>
+                  <div class="text-muted fw-medium small text-warning">Total Transaksi</div>
                   <div class="fs-6 fw-bold text-warning">{{ project.transactions.length }}</div>
               </CCardBody>
           </CCard>
         </CCol>
       </CRow>
 
-      <CRow class="g-4 mb-4">
-        <CCol xs="12" sm="6" class="d-flex">
-          <CCard class="shadow-sm border-0 w-100">
+      <div class="d-flex flex-row overflow-x-auto flex-nowrap gap-3 pb-3">
+        <CCard class="shadow-sm border-0 flex-shrink-0 w-100" style="min-width: 100%; width: 100%;">
             <CCardBody class="p-2">
               <h5 class="mb-3">Distribusi Pengeluaran</h5>
               <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" />
             </CCardBody>
-          </CCard>
-        </CCol>
-        <CCol xs="12" sm="6" class="d-flex">
-          <CCard class="shadow-sm border-0 w-100">
+        </CCard>
+        <CCard class="shadow-sm border-0 flex-shrink-0 w-100" style="min-width: 100%; width: 100%;">
             <CCardBody class="p-2">
               <h5 class="mb-3">Arus Kas Keluar per Bulan</h5>
               <VueApexCharts type="bar" :options="barOptions" :series="barSeries" />
             </CCardBody>
-          </CCard>
-        </CCol>
-      </CRow>
-
+        </CCard>
+      </div>
+      
       <CCol xs="12" class="mb-4">
         <CCard>
-          <CCardBody class="p-2">
+          <CCardBody class="p-0">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-end align-items-md-center mb-3">
               <h5 class="mb-4 mb-md-0 align-self-start">
                 Riwayat Transaksi ({{ filteredTransactions.length }})
@@ -530,20 +553,25 @@ onMounted(fetchProject)
 
               <div class="btn-group border rounded overflow-hidden">
                 <button 
-                  class="btn filter-btn" 
-                  :class="filterType === 'SEMUA' ? 'bg-primary-subtle text-primary fw-bold' : 'btn-light text-muted'" 
+                  class="btn filter-btn border-0" 
+                  :class="filterType === 'SEMUA' ? 'bg-primary bg-opacity-75 text-white fw-bold' : 'bg-primary bg-opacity-10 text-primary'" 
                   @click="filterType = 'SEMUA'"
                 >Semua</button>
                 <button 
-                  class="btn filter-btn" 
-                  :class="filterType === 'DEPOSIT' ? 'bg-primary-subtle text-primary fw-bold' : 'btn-light text-muted'" 
-                  @click="filterType = 'DEPOSIT'"
+                  class="btn filter-btn border-0" 
+                  :class="filterType === 'MODAL' ? 'bg-primary bg-opacity-75 text-white fw-bold' : 'bg-primary bg-opacity-10 text-primary'" 
+                  @click="filterType = 'MODAL'"
                 >Modal</button>
                 <button 
-                  class="btn filter-btn" 
-                  :class="filterType === 'EXPENSE' ? 'bg-primary-subtle text-primary fw-bold' : 'btn-light text-muted'" 
+                  class="btn filter-btn border-0" 
+                  :class="filterType === 'EXPENSE' ? 'bg-primary bg-opacity-75 text-white fw-bold' : 'bg-primary bg-opacity-10 text-primary'" 
                   @click="filterType = 'EXPENSE'"
                 >Pengeluaran</button>
+                <button 
+                  class="btn filter-btn border-0" 
+                  :class="filterType === 'PENDAPATAN' ? 'bg-primary bg-opacity-75 text-white fw-bold' : 'bg-primary bg-opacity-10 text-primary'" 
+                  @click="filterType = 'PENDAPATAN'"
+                >Pendapatan</button>
               </div>
             </div>
 
@@ -563,7 +591,7 @@ onMounted(fetchProject)
                         : 'bg-danger bg-opacity-10'"
                     >
                     <!-- Tipe -->
-                    <div class="flex-shrink-0" style="width: 80px;">
+                    <div class="flex-shrink-0" style="width: 60px;">
                       <span class="extra-small fw-bold" :class="tx.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
                         {{ tx.type === 'DEPOSIT' ? '▲ In' : '▼ Out' }}
                       </span>
@@ -618,7 +646,7 @@ onMounted(fetchProject)
       <CCol>
         <h2>Projek tidak ditemukan</h2>
         <p>Projek yang Anda cari tidak ada atau telah dihapus.</p>
-        <button class="btn btn-primary status-select" @click="router.back()">Kembali ke Semua Projek</button>
+        <button class="btn btn-primary status-select" @click="router.back()">Kembali ke Semua Manajemen Proyek</button>
       </CCol>
     </CRow>
   </template>
@@ -630,10 +658,10 @@ onMounted(fetchProject)
         <CForm>
             <div class="mb-3">
                 <CFormLabel>Tipe Transaksi</CFormLabel>
-                <CFormSelect v-model="formTx.type" size="lg">
-                    <option value="DEPOSIT">Modal</option>
-                    <option value="EXPENSE">Pengeluaran</option>
-                </CFormSelect>
+                    <CFormSelect v-model="formTx.type" size="lg">
+                        <option value="DEPOSIT">Modal / Pendapatan</option>
+                        <option value="EXPENSE">Pengeluaran</option>
+                    </CFormSelect>
             </div>
             <div class="mb-3">
                 <CFormLabel>Kategori</CFormLabel>
@@ -683,3 +711,12 @@ onMounted(fetchProject)
       </div>
     </div>
 </template>
+
+<style scoped>
+  @media (min-width: 576px) {
+      .flex-row .flex-shrink-0 {
+          width: calc((100% - 1rem) / 2) !important;
+          min-width: calc((100% - 1rem) / 2) !important;
+      }
+  }
+</style>

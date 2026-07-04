@@ -1,5 +1,5 @@
 <template>
-  <CHeader position="fixed" class="border-0 w-100 bg-transparent pt-3" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 1050 !important; min-height: 50px;">
+  <CHeader position="fixed" class="border-0 w-100 bg-transparent pt-0" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 1050 !important; min-height: 50px;">
     <CContainer fluid class="d-flex align-items-center justify-content-between p-2" style="max-width: 100%;">
       <div class="d-flex align-items-center">
         <CHeaderToggler 
@@ -53,7 +53,7 @@ export default {
     const goBack = () => window.history.back()
 
     const toggleSidebar = () => {
-      store.commit('toggleSidebar')
+      store.commit('updateSidebarVisible', !store.state.sidebarVisible)
     }
     
     return { cilMenu, cilArrowLeft, isDashboard, goBack, toggleSidebar }
