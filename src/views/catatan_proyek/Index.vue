@@ -105,7 +105,7 @@ async function createProject() {
     formNew.value = { name: '', description: '', status: 'Active' }
     showSnackbar('Projek berhasil dibuat!', 'success')
   } catch (e) {
-    showSnackbar('Gagal membuat projek', 'error')
+    showSnackbar('Gagal memAdd Project', 'error')
   } finally {
     submitting.value = false
   }
@@ -169,7 +169,7 @@ onMounted(fetchProjects)
         class="btn btn-outline-primary status-select"
         @click="dialogCreate = true"
       >
-        <i class="fas fa-plus"></i> Buat Projek
+        <i class="fas fa-plus"></i> Add Project
       </button>
     </CCol>
 
@@ -235,8 +235,8 @@ onMounted(fetchProjects)
     <!-- Project Cards Grid -->
     <CCol v-if="!loading && projects.length === 0" xs="12" class="text-center py-12">
       <p class="text-h6 text-disabled">Belum ada projek keuangan</p>
-      <p class="text-body-2 text-disabled mb-4">Klik tombol "Buat Projek Baru" untuk memulai mencatat keuangan projek Anda</p>
-      <button class="btn btn-outline-primary status-select" @click="dialogCreate = true">Buat Projek Pertama</button>
+      <p class="text-body-2 text-disabled mb-4">Klik tombol "Add Project" untuk memulai mencatat projek Anda</p>
+      <button class="btn btn-outline-primary status-select" @click="dialogCreate = true">Add First Project</button>
     </CCol>
 
     <CCol
@@ -311,7 +311,7 @@ onMounted(fetchProjects)
     </CCol>
   </CRow>
 
-  <!-- Dialog: Buat Projek Baru -->
+  <!-- Dialog: Add Project Baru -->
   <CModal :visible="dialogCreate" @close="dialogCreate = false">
       <CModalHeader>Buat Manajemen Proyek Keuangan Baru</CModalHeader>
     <CModalBody>

@@ -24,7 +24,7 @@
           <span>To Do Team</span>
         </RouterLink>
       </CNavItem>
-      <CNavTitle>Manajemen Proyek</CNavTitle>
+      <CNavTitle>Keuangan</CNavTitle>
       <CNavItem>
         <RouterLink to="/catatan_proyek" class="nav-link d-flex align-items-center gap-2" active-class="active">
           <CIcon custom-class-name="nav-icon" :icon="cilDescription" />
