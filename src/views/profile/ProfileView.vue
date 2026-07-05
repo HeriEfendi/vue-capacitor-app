@@ -1,110 +1,86 @@
 <template>
-  <div class="container mt-3 p-0" style="max-width: 800px">
-    <CCard class="mb-4 overflow-hidden border-0 shadow-sm">
-      <CCardBody class="position-relative pt-0">
-        <div class="d-flex flex-column align-items-center text-center mt-n4">
-          <img
-            src="/profil.jpg"
-            alt="Foto Profil"
-            class="rounded-circle border border-4 border-white shadow-sm mb-3"
-            width="120" height="120"
-          />
-          <h3 class="fw-bold mb-1">Ahmad Heri Efendi</h3>
-          <p class="text-primary fw-medium mb-3">Full-Stack Web Developer</p>
-          
-          <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
-            <span v-for="skill in skills.slice(0,4)" :key="skill.name" class="badge bg-light text-dark rounded-pill border">
-              {{ skill.name }}
-            </span>
-          </div>
+  <ion-page>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Profil</ion-title>
+      </ion-toolbar>
+    </ion-header>
 
-          <div class="d-flex gap-2">
-            <a href="mailto:hheri58@gmail.com" class="btn btn-outline-primary btn-sm rounded-pill px-3">Email</a>
-            <a href="https://github.com/HeriEfendi" target="_blank" class="btn btn-dark btn-sm rounded-pill px-3">GitHub</a>
-          </div>
-        </div>
-      </CCardBody>
-    </CCard>
-
-    <div class="row g-4">
-      <div class="col-12 col-md-7">
-        <CCard class="mb-4 border-0 shadow-sm">
-          <CCardBody>
-            <h5 class="fw-bold mb-3">Tentang Saya</h5>
-            <p class="text-secondary small" style="line-height:1.8">
-              IT Programmer dengan {{ years }}+ tahun pengalaman dalam pengembangan web, ERP, dan sistem korporat. Mahir menggunakan Laravel, Vue.js, MariaDB, dan Redis untuk membangun sistem bisnis yang skalabel dan efisien.
-            </p>
-          </CCardBody>
-        </CCard>
-
-        <CCard class="border-0 shadow-sm mb-4">
-          <CCardBody>
-            <h5 class="fw-bold mb-3">Pengalaman</h5>
-            <div class="timeline ps-2">
-              <div class="timeline-item mb-3" v-for="exp in experiences" :key="exp.company">
-                <div class="timeline-dot"></div>
-                <div class="ms-3">
-                  <div class="fw-bold small">{{ exp.role }}</div>
-                  <div class="text-primary x-small">{{ exp.company }}</div>
-                  <div class="text-muted x-small">{{ exp.period }}</div>
+    <ion-content class="ion-padding">
+        <ion-card class="ion-padding">
+            <div class="d-flex flex-column align-items-center">
+                <img src="/profil.jpg" alt="Foto Profil" class="rounded-circle border border-4 border-light shadow-sm mb-3" width="120" height="120" />
+                <h3 class="fw-bold mb-1">Ahmad Heri Efendi</h3>
+                <p class="text-primary fw-medium mb-3">Full-Stack Web Developer</p>
+                <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
+                    <ion-badge color="light" v-for="skill in skills.slice(0,4)" :key="skill.name">{{ skill.name }}</ion-badge>
                 </div>
-              </div>
-            </div>
-          </CCardBody>
-        </CCard>
-      </div>
-
-      <div class="col-12 col-md-5">
-        <CCard class="border-0 shadow-sm mb-4">
-          <CCardBody>
-            <h5 class="fw-bold mb-3">Skills</h5>
-            <div v-for="skill in skills" :key="skill.name" class="mb-2">
-              <div class="d-flex justify-content-between x-small fw-semibold mb-1">
-                <span class="d-flex align-items-center">
-                  <i :class="`${skill.icon} me-2 text-dark`"></i>
-                  {{ skill.name }}
-                </span>
-              </div>
-              <div class="progress" style="height:6px;">
-                <div class="progress-bar bg-dark" :style="`width:${skill.level}%`"></div>
-              </div>
-            </div>
-          </CCardBody>
-        </CCard>
-
-        <CCard class="border-0 shadow-sm mb-4">
-          <CCardBody>
-            <h5 class="fw-bold mb-3">Statistik</h5>
-            <div class="row g-2 text-center">
-              <div class="col-6" v-for="stat in stats" :key="stat.label">
-                <div class="p-2 rounded-3 bg-light">
-                  <div class="fw-black text-primary">{{ stat.val }}</div>
-                  <div class="x-small text-muted">{{ stat.label }}</div>
+                <div class="d-flex gap-2">
+                    <ion-button fill="outline" href="mailto:hheri58@gmail.com"><ion-icon slot="start" :icon="mailOutline" />Email</ion-button>
+                    <ion-button fill="solid" color="dark" href="https://github.com/HeriEfendi" target="_blank"><ion-icon slot="start" :icon="logoGithub" />GitHub</ion-button>
                 </div>
-              </div>
             </div>
-          </CCardBody>
-        </CCard>
-      </div>
-    </div>
-  </div>
+        </ion-card>
+
+        <ion-grid>
+            <ion-row>
+                <ion-col size="12" size-md="7">
+                    <ion-card>
+                        <ion-card-header><ion-card-title>Tentang Saya</ion-card-title></ion-card-header>
+                        <ion-card-content>
+                            <p class="text-secondary small" style="line-height:1.8">IT Programmer dengan {{ years }}+ tahun pengalaman dalam pengembangan web, ERP, dan sistem korporat. Mahir menggunakan Laravel, Vue.js, MariaDB, dan Redis.</p>
+                        </ion-card-content>
+                    </ion-card>
+                    <ion-card>
+                        <ion-card-header><ion-card-title>Pengalaman</ion-card-title></ion-card-header>
+                        <ion-list>
+                            <ion-item v-for="exp in experiences" :key="exp.company">
+                                <ion-label>
+                                    <h3>{{ exp.role }}</h3>
+                                    <p>{{ exp.company }}</p>
+                                    <p class="text-muted">{{ exp.period }}</p>
+                                </ion-label>
+                            </ion-item>
+                        </ion-list>
+                    </ion-card>
+                </ion-col>
+                <ion-col size="12" size-md="5">
+                    <ion-card>
+                        <ion-card-header><ion-card-title>Skills</ion-card-title></ion-card-header>
+                        <ion-card-content>
+                            <div v-for="skill in skills" :key="skill.name" class="mb-3">
+                                <div class="d-flex justify-content-between x-small fw-semibold mb-1">
+                                    <span class="d-flex align-items-center">
+                                        <ion-icon :icon="skill.icon" class="me-2" /> {{ skill.name }}
+                                    </span>
+                                </div>
+                                <ion-progress-bar :value="skill.level / 100" />
+                            </div>
+                        </ion-card-content>
+                    </ion-card>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
 import { ref } from 'vue'
-import { CCard, CCardBody } from '@coreui/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonList, IonItem, IonLabel, IonBadge, IonGrid, IonRow, IonCol, IonProgressBar, IonText } from '@ionic/vue';
+import { mailOutline, logoGithub, logoLaravel, logoVue, serverOutline, logoAndroid, terminalOutline } from 'ionicons/icons';
 
 export default {
   name: 'ProfileView',
-  components: { CCard, CCardBody },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonList, IonItem, IonLabel, IonBadge, IonGrid, IonRow, IonCol, IonProgressBar, IonText },
   setup() {
     const skills = ref([
-      { name: 'Laravel / PHP', level: 90, icon: 'fab fa-laravel' },
-      { name: 'Vue.js / Nuxt', level: 88, icon: 'fab fa-vuejs' },
-      { name: 'MariaDB / MySQL', level: 85, icon: 'fas fa-database' },
-      { name: 'Redis / Queue', level: 75, icon: 'fas fa-server' },
-      { name: 'Capacitor / Android', level: 65, icon: 'fab fa-android' },
-      { name: 'Linux / DevOps', level: 72, icon: 'fab fa-linux' },
+      { name: 'Laravel / PHP', level: 90, icon: logoLaravel },
+      { name: 'Vue.js / Nuxt', level: 88, icon: logoVue },
+      { name: 'MariaDB / MySQL', level: 85, icon: serverOutline },
+      { name: 'Redis / Queue', level: 75, icon: serverOutline },
+      { name: 'Capacitor / Android', level: 65, icon: logoAndroid },
+      { name: 'Linux / DevOps', level: 72, icon: terminalOutline },
     ])
 
     const experiences = ref([
@@ -142,7 +118,7 @@ export default {
       { label: 'Mobile Apps', val: '3' },
     ])
 
-    return { skills, experiences, stats, years }
+    return { skills, experiences, stats, years, mailOutline, logoGithub, logoLaravel, logoVue, serverOutline, logoAndroid, terminalOutline }
   }
 }
 </script>

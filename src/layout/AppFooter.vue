@@ -1,19 +1,13 @@
 <template>
-  <!-- <CFooter>
-    <div>
-      <span>&copy; {{ new Date().getFullYear() }} H DEV.</span>
+  <footer>
+    <div class="ion-text-center ion-padding">
+      <p>&copy; {{ new Date().getFullYear() }} H DEV.</p>
     </div>
-    <div>
-      <span>Powered by</span>
-      <a href="https://coreui.io/vue/" target="_blank">CoreUI for Vue</a>
-    </div>
-  </CFooter> -->
+  </footer>
 </template>
 
 <script>
-import { CFooter } from '@coreui/vue'
 export default {
   name: 'AppFooter',
-  components: { CFooter },
 }
 </script>

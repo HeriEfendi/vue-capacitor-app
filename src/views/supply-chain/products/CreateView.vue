@@ -1,48 +1,36 @@
 <template>
-  <div class="container py-4">
-    <h3 class="mb-3">Tambah Produk</h3>
-    <CCard>
-      <CCardBody>
-        <CForm @submit.prevent="addProduct">
-          <div class="mb-3">
-            <CFormLabel for="name">Nama Produk</CFormLabel>
-            <CFormInput id="name" v-model="newProduct.name" required />
-          </div>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <CFormLabel for="price">Harga</CFormLabel>
-              <CFormInput type="number" id="price" v-model.number="newProduct.price" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <CFormLabel for="stock">Stok</CFormLabel>
-              <CFormInput type="number" id="stock" v-model.number="newProduct.stock" required />
-            </div>
-          </div>
-          <div class="mb-3">
-            <CFormLabel for="description">Deskripsi</CFormLabel>
-            <CFormTextarea id="description" rows="3" v-model="newProduct.description" />
-          </div>
-          <div class="mb-3">
-            <CFormLabel for="image">Gambar</CFormLabel>
-            <CFormInput type="file" id="image" @change="handleImageUpload" />
-          </div>
-          <CButton type="submit" color="primary">Simpan</CButton>
-          <router-link to="/products" class="btn btn-secondary ms-2">Batal</router-link>
-        </CForm>
-      </CCardBody>
-    </CCard>
-  </div>
+  <ion-page>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start"><ion-back-button default-href="/products" /></ion-buttons>
+        <ion-title>Tambah Produk</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+        <ion-list>
+            <ion-item><ion-label position="stacked">Nama Produk</ion-label><ion-input v-model="newProduct.name" /></ion-item>
+            <ion-item><ion-label position="stacked">Harga</ion-label><ion-input type="number" v-model.number="newProduct.price" /></ion-item>
+            <ion-item><ion-label position="stacked">Stok</ion-label><ion-input type="number" v-model.number="newProduct.stock" /></ion-item>
+            <ion-item><ion-label position="stacked">Deskripsi</ion-label><ion-textarea v-model="newProduct.description" /></ion-item>
+            <ion-item>
+                <ion-label position="stacked">Gambar</ion-label>
+                <input type="file" @change="handleImageUpload" />
+            </ion-item>
+        </ion-list>
+        <ion-button expand="block" class="ion-margin-top" @click="addProduct">Simpan</ion-button>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ProductRepository } from '../../../db/repositories'
-import { CCard, CCardBody, CForm, CFormInput, CFormLabel, CFormTextarea, CButton } from '@coreui/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, IonItem, IonLabel, IonInput, IonList, IonTextarea } from '@ionic/vue';
 
 export default {
   name: 'ProductCreateView',
-  components: { CCard, CCardBody, CForm, CFormInput, CFormLabel, CFormTextarea, CButton },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, IonItem, IonLabel, IonInput, IonList, IonTextarea },
   setup() {
     const router = useRouter()
     const newProduct = ref({ name: '', price: 0, stock: 0, description: '', image: null })

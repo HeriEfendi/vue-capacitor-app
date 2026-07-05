@@ -1,42 +1,56 @@
 <template>
-  <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="mb-0">Daftar Produk</h3>
-      <router-link to="/products/create" class="btn btn-primary">Tambah Produk</router-link>
-    </div>
+  <ion-page>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-back-button default-href="/dashboard" />
+        </ion-buttons>
+        <ion-title>Daftar Produk</ion-title>
+        <ion-buttons slot="end">
+          <ion-button router-link="/products/create">
+            <ion-icon slot="icon-only" :icon="addOutline" />
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
 
-    <CCard>
-      <CCardBody>
-        <div class="row">
-          <div v-for="product in products" :key="product.id" class="col-md-4 mb-4">
-            <CCard class="h-100">
-              <CImage class="card-img-top" :src="product.imageURL" :alt="product.name" />
-              <CCardBody>
-                <CCardTitle>{{ product.name }}</CCardTitle>
-                <CCardText><strong>{{ formatPrice(product.price) }}</strong></CCardText>
-              </CCardBody>
-              <CCardFooter>
-                <div class="d-flex justify-content-between">
-                  <router-link :to="`/products/${product.id}/edit`" class="btn btn-warning btn-sm">Edit</router-link>
-                  <CButton color="danger" size="sm" @click="deleteProduct(product.id)">Hapus</CButton>
+    <ion-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col v-for="product in products" :key="product.id" size="12" size-sm="6" size-md="4">
+            <ion-card>
+              <ion-img :src="product.imageURL" :alt="product.name" />
+              <ion-card-header>
+                <ion-card-title>{{ product.name }}</ion-card-title>
+                <ion-card-subtitle>{{ formatPrice(product.price) }}</ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                <div class="d-flex justify-content-end">
+                  <ion-button fill="clear" color="medium" router-link="`/products/${product.id}/edit`">
+                    <ion-icon :icon="pencilOutline" />
+                  </ion-button>
+                  <ion-button fill="clear" color="danger" @click="deleteProduct(product.id)">
+                    <ion-icon :icon="trashOutline" />
+                  </ion-button>
                 </div>
-              </CCardFooter>
-            </CCard>
-          </div>
-        </div>
-      </CCardBody>
-    </CCard>
-  </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue'
 import { ProductRepository } from '../../../db/repositories'
-import { CCard, CCardBody, CCardFooter, CCardTitle, CCardText, CButton, CImage } from '@coreui/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonButtons, IonBackButton, IonImg } from '@ionic/vue';
+import { addOutline, trashOutline, pencilOutline } from 'ionicons/icons';
 
 export default {
   name: 'ProductsListView',
-  components: { CCard, CCardBody, CCardFooter, CCardTitle, CCardText, CButton, CImage },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonButtons, IonBackButton, IonImg },
   setup() {
     const products = ref([])
     const formatPrice = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(price)
@@ -52,7 +66,7 @@ export default {
     }
     const deleteProduct = async (id) => { await ProductRepository.delete(id); fetchData() }
     onMounted(fetchData)
-    return { products, formatPrice, deleteProduct }
+    return { products, formatPrice, deleteProduct, addOutline, trashOutline, pencilOutline }
   }
 }
 </script>

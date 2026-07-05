@@ -1,132 +1,82 @@
 <template>
-  <CSidebar
-    :visible="$store.state.sidebarVisible"
-    :unfoldable="false"
-    responsive
-    placement="end"
-    :color-scheme="isDark ? 'dark' : 'light'"
-    class="border-end c-sidebar"
-    style="width: 100% !important; max-width: 100% !important;"
-    @visible-change="(value) => $store.commit('updateSidebarVisible', value)"
-  >
-  <div style="height: 30px;"></div>
-    <CSidebarNav>
-      <CNavTitle>Pesonal</CNavTitle>
-      <CNavItem>
-        <RouterLink to="/todo-personal" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilTask" />
-          <span>To Do</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/todo" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilTask" />
-          <span>To Do Team</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavTitle>Keuangan</CNavTitle>
-      <CNavItem>
-        <RouterLink to="/catatan_proyek" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilDescription" />
-          <span>Manajemen Proyek</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/capital" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilWallet" />
-          <span>Tabungan</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/expenses" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilArrowBottom" />
-          <span>Pengeluaran</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/incomes" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilArrowTop" />
-          <span>Pendapatan</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/debts" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilCreditCard" />
-          <span>Utang</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavTitle>Supply Chain</CNavTitle>
-      <CNavItem>
-        <RouterLink to="/products" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilBasket" />
-          <span>Produk Jadi</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/raw-materials" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Bahan Baku</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/categories" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilList" />
-          <span>Kategori</span>
-        </RouterLink>
-      </CNavItem>
+  <ion-menu content-id="main-content" side="end">
+    <ion-content>
+      <ion-list>
+        <ion-list-header>Personal</ion-list-header>
+        <ion-item router-link="/todo-personal" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="checkmarkCircleOutline" />
+          <ion-label>To Do</ion-label>
+        </ion-item>
+        <ion-item router-link="/todo" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="checkmarkCircleOutline" />
+          <ion-label>To Do Team</ion-label>
+        </ion-item>
 
-      <!-- ─── General Setting ──────────────────────────────── -->
-      <CNavTitle>General Setting</CNavTitle>
-      <CNavItem>
-        <RouterLink to="/users" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilPeople" />
-          <span>Users</span>
-        </RouterLink>
-      </CNavItem>
-      <CNavItem>
-        <RouterLink to="/profile" class="nav-link d-flex align-items-center gap-2" active-class="active">
-          <CIcon custom-class-name="nav-icon" :icon="cilUser" />
-          <span>Profile</span>
-        </RouterLink>
-      </CNavItem>
+        <ion-list-header>Keuangan</ion-list-header>
+        <ion-item router-link="/catatan_proyek" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="documentTextOutline" />
+          <ion-label>Manajemen Proyek</ion-label>
+        </ion-item>
+        <ion-item router-link="/capital" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="walletOutline" />
+          <ion-label>Tabungan</ion-label>
+        </ion-item>
+        <ion-item router-link="/expenses" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="arrowDownCircleOutline" />
+          <ion-label>Pengeluaran</ion-label>
+        </ion-item>
+        <ion-item router-link="/incomes" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="arrowUpCircleOutline" />
+          <ion-label>Pendapatan</ion-label>
+        </ion-item>
+        <ion-item router-link="/debts" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="cardOutline" />
+          <ion-label>Utang</ion-label>
+        </ion-item>
 
-      <CNavItem class="mt-auto">
-        <a href="#" @click.prevent="exitApp" class="nav-link d-flex align-items-center gap-2 text-danger">
-          <CIcon custom-class-name="nav-icon" icon="cil-account-logout" />
-          <span>Tutup Aplikasi</span>
-        </a>
-      </CNavItem>
-    </CSidebarNav>
-    <CSidebarToggler class="d-none d-lg-flex" @click="$store.commit('toggleSidebar')" />
-  </CSidebar>
+        <ion-list-header>Supply Chain</ion-list-header>
+        <ion-item router-link="/products" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="basketOutline" />
+          <ion-label>Produk Jadi</ion-label>
+        </ion-item>
+        <ion-item router-link="/raw-materials" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="listOutline" />
+          <ion-label>Bahan Baku</ion-label>
+        </ion-item>
+        <ion-item router-link="/categories" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="listOutline" />
+          <ion-label>Kategori</ion-label>
+        </ion-item>
+
+        <ion-list-header>General Setting</ion-list-header>
+        <ion-item router-link="/users" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="peopleOutline" />
+          <ion-label>Users</ion-label>
+        </ion-item>
+        <ion-item router-link="/profile" router-direction="root" lines="none">
+          <ion-icon slot="start" :icon="personOutline" />
+          <ion-label>Profile</ion-label>
+        </ion-item>
+
+        <ion-item button @click="exitApp" lines="none" class="text-danger">
+          <ion-icon slot="start" :icon="logOutOutline" />
+          <ion-label>Tutup Aplikasi</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
 </template>
 
 <script>
-import {
-  CSidebar,
-  CSidebarBrand,
-  CSidebarNav,
-  CNavItem,
-  CNavTitle,
-  CSidebarToggler,
-} from '@coreui/vue'
-import CIcon from '@coreui/icons-vue'
-import { cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser, cilDescription, cilWallet, cilArrowBottom, cilArrowTop, cilCreditCard, cilAccountLogout } from '@coreui/icons'
+import { IonMenu, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonIcon } from '@ionic/vue';
+import { checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline } from 'ionicons/icons';
 import { useStore } from 'vuex'
-import { computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed } from 'vue'
 
 export default {
   name: 'AppSidebar',
   components: {
-    CSidebar,
-    CSidebarBrand,
-    CSidebarNav,
-    CNavItem,
-    CNavTitle,
-    CSidebarToggler,
-    CIcon,
-    RouterLink,
+    IonMenu, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonIcon
   },
   setup() {
     const store = useStore()
@@ -141,7 +91,7 @@ export default {
           window.close();
         }
       },
-      cilSpeedometer, cilBasket, cilList, cilPeople, cilTask, cilUser, cilDescription, cilWallet, cilArrowBottom, cilArrowTop, cilCreditCard, cilAccountLogout
+      checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline
     }
   },
 }

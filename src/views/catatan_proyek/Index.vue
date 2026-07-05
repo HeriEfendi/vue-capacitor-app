@@ -2,26 +2,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { initDB } from '@/db'
-import {
-  CButton,
-  CCard,
-  CCardBody,
-  CBadge,
-  CProgress,
-  CModal,
-  CModalHeader,
-  CModalBody,
-  CModalFooter,
-  CForm,
-  CFormInput,
-  CFormTextarea,
-  CFormSelect,
-  CRow,
-  CCol,
-  CSpinner
-} from '@coreui/vue'
-import { CIcon } from '@coreui/icons-vue'
-import * as icons from '@coreui/icons'
+import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner } from '@ionic/vue';
+import { addOutline, trashOutline, pencilOutline, arrowForwardOutline, walletOutline, cashOutline, closeOutline, saveOutline } from 'ionicons/icons';
 
 interface Project {
   id: number
@@ -162,224 +144,98 @@ onMounted(fetchProjects)
 </script>
 
 <template>
-  <CRow>
-    <!-- Header -->
-    <CCol xs="12" class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="text-h4 font-weight-bold">Manajemen Proyek</h2>
-        <p class="text-subtitle-2 text-disabled mt-1 mb-0">Kelola keuangan semua projek Anda</p>
-      </div>
-      <button
-        class="btn btn-outline-primary status-select"
-        @click="dialogCreate = true"
-      >
-        <i class="fas fa-plus"></i> Add Project
-      </button>
-    </CCol>
+  <ion-page>
+    <ion-header>
+        <ion-toolbar>
+            <ion-title>Manajemen Proyek</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <p class="text-muted mb-0">Kelola keuangan semua projek Anda</p>
+            <ion-button fill="outline" @click="dialogCreate = true">
+                <ion-icon slot="start" :icon="addOutline" /> Add Project
+            </ion-button>
+        </div>
 
-    <!-- Summary Cards -->
+        <ion-grid>
+            <ion-row>
+                <ion-col size="6" sm="4" md="3">
+                    <ion-card color="success" class="ion-padding">
+                        <ion-card-subtitle>Modal</ion-card-subtitle>
+                        <ion-card-title>{{ formatCurrency(totalDepositsAll) }}</ion-card-title>
+                    </ion-card>
+                </ion-col>
+                <ion-col size="6" sm="4" md="3">
+                    <ion-card color="danger" class="ion-padding">
+                        <ion-card-subtitle>Pengeluaran</ion-card-subtitle>
+                        <ion-card-title>{{ formatCurrency(totalExpensesAll) }}</ion-card-title>
+                    </ion-card>
+                </ion-col>
+                <ion-col size="12" sm="4" md="3">
+                    <ion-card color="primary" class="ion-padding">
+                        <ion-card-subtitle>Sisa Saldo</ion-card-subtitle>
+                        <ion-card-title>{{ formatCurrency(totalBalanceAll) }}</ion-card-title>
+                    </ion-card>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
 
-    <CCol xs="6" sm="4" md="3" class="d-flex mb-4">
-      <CCard class="border-0 shadow-sm p-0 w-100" style="background-color: #e8f5e9;">
-        <CCardBody class="d-flex flex-column">
-          <div class="d-flex align-items-center mb-1">
-            <div
-              class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-2 flex-shrink-0"
-              style="width: 45px; height: 45px;"
-            >
-              <CIcon :icon="icons.cilMoney" size="lg" class="text-success" />
-            </div>              
-            <div class="text-muted fw-medium small">Total Modal Semua Projek</div>
-          </div>
-          <div class="mt-auto text-center fs-5 fw-bold text-success">{{ formatCurrency(totalDepositsAll) }}</div>
-        </CCardBody>
-      </CCard>
-    </CCol>
+        <div v-if="loading" class="ion-text-center ion-padding">
+            <ion-spinner />
+        </div>
 
-    <CCol xs="6" sm="4" md="3" class="d-flex mb-4">
-      <CCard class="border-0 shadow-sm p-0 w-100" style="background-color: #ffebee;">
-        <CCardBody class="d-flex flex-column">
-          <div class="d-flex align-items-center mb-1">
-            <div
-              class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center me-2 flex-shrink-0"
-              style="width: 45px; height: 45px;"
-            >
-              <CIcon :icon="icons.cilMoney" size="lg" class="text-danger" />
-            </div>              
-            <div class="text-muted fw-medium small">Total Pengeluaran Semua Projek</div>
-          </div>
-          <div class="mt-auto text-center fs-5 fw-bold text-danger">{{ formatCurrency(totalExpensesAll) }}</div>
-        </CCardBody>
-      </CCard>
-    </CCol>
+        <ion-grid v-else>
+            <ion-row>
+                <ion-col v-for="project in projects" :key="project.id" size="12" size-sm="6" size-lg="4">
+                    <ion-card button @click="goToDetail(project.id)">
+                        <ion-card-header>
+                            <ion-card-subtitle>
+                                <ion-badge :color="getStatusColor(project.status)">{{ project.status }}</ion-badge>
+                            </ion-card-subtitle>
+                            <ion-card-title>{{ project.name }}</ion-card-title>
+                        </ion-card-header>
+                        <ion-card-content>
+                            <p>{{ project.description }}</p>
+                            <ion-progress-bar :value="getBalancePercent(project)/100" />
+                            <div class="d-flex justify-content-end ion-margin-top">
+                                <ion-button fill="clear" @click.stop="openEditProject(project)">
+                                    <ion-icon :icon="pencilOutline" />
+                                </ion-button>
+                                <ion-button fill="clear" color="danger" @click.stop="dialogDeleteId = project.id">
+                                    <ion-icon :icon="trashOutline" />
+                                </ion-button>
+                            </div>
+                        </ion-card-content>
+                    </ion-card>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+    </ion-content>
 
-    <CCol xs="12" sm="4" md="3" class="d-flex mb-4">
-      <CCard class="border-0 shadow-sm p-0 w-100" style="background-color: #e3f2fd;">
-        <CCardBody class="d-flex flex-column">
-          <div class="d-flex justify-content-center align-items-center mb-1">
-            <div
-              class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-2 flex-shrink-0"
-              style="width: 45px; height: 45px;"
-            >
-              <CIcon :icon="icons.cilWallet" size="lg" class="text-primary" />
-            </div>              
-            <div class="text-muted fw-medium small">Total Sisa Saldo Semua Projek</div>
-          </div>
-          <div class="mt-auto text-center fs-5 fw-bold text-primary">{{ formatCurrency(totalBalanceAll) }}</div>
-        </CCardBody>
-      </CCard>
-    </CCol>
-
-    <!-- Loading -->
-    <CCol v-if="loading" xs="12" class="text-center py-8">
-      <CSpinner color="primary" />
-      <p class="text-body-2 text-disabled mt-3">Memuat data projek...</p>
-    </CCol>
-
-    <!-- Project Cards Grid -->
-    <CCol v-if="!loading && projects.length === 0" xs="12" class="text-center py-12">
-      <p class="text-h6 text-disabled">Belum ada projek keuangan</p>
-      <p class="text-body-2 text-disabled mb-4">Klik tombol "Add Project" untuk memulai mencatat projek Anda</p>
-      <button class="btn btn-outline-primary status-select" @click="dialogCreate = true">Add First Project</button>
-    </CCol>
-
-    <CCol
-      v-for="project in projects"
-      :key="project.id"
-      xs="12"
-      sm="6"
-      lg="4"
-      class="mb-4"
-    >
-      <CCard
-        class="project-card h-100"
-        @click="goToDetail(project.id)"
-        style="cursor: pointer;"
-      >
-        <CCardBody class="p-2">
-          <div class="d-flex justify-content-between align-items-start mb-3">
-            <CBadge :color="getStatusColor(project.status)" size="small">
-              {{ project.status === 'Active' ? 'Aktif' : 'Selesai' }}
-            </CBadge>
-            <div class="d-flex gap-2">
-                <button
-                  class="btn btn-sm btn-outline-primary status-select"
-                  @click.stop="openEditProject(project)"
-                ><i class="fas fa-edit"></i></button>
-                <button
-                  class="btn btn-sm btn-outline-danger status-select"
-                  @click.stop="dialogDeleteId = project.id"
-                ><i class="fas fa-trash"></i></button>
-            </div>
-          </div>
-
-          <h3 class="text-h6 font-weight-bold mb-1 text-truncate">{{ project.name }}</h3>
-          <p class="text-caption text-disabled mb-4 text-truncate">{{ project.description || 'Tidak ada deskripsi' }}</p>
-
-          <div class="d-flex justify-content-between mb-2">
-            <span class="text-caption text-disabled">Modal</span>
-            <span class="text-caption font-weight-bold text-success">{{ formatCurrency(project.total_deposits) }}</span>
-          </div>
-          <div class="d-flex justify-content-between mb-3">
-            <span class="text-caption text-disabled">Pengeluaran</span>
-            <span class="text-caption font-weight-bold text-error">{{ formatCurrency(project.total_expenses) }}</span>
-          </div>
-
-          <div class="mb-2">
-            <div class="d-flex justify-content-between mb-1">
-              <span class="text-caption text-disabled">Sisa Dana</span>
-              <span class="text-caption font-weight-bold" :class="`text-${getBalanceColor(project)}`">
-                {{ getBalancePercent(project) }}%
-              </span>
-            </div>
-            <CProgress
-              :value="getBalancePercent(project)"
-              :color="getBalanceColor(project)"
-              
-            />
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="text-body-2 font-weight-bold" :class="project.balance >= 0 ? 'text-success' : 'text-error'">
-              {{ formatCurrency(project.balance) }}
-            </span>
-            <button
-              class="btn btn-sm btn-outline-primary status-select"
-              @click.stop="goToDetail(project.id)"
-            >
-              <i class="fas fa-arrow-right"></i>
-            </button>
-          </div>
-        </CCardBody>
-      </CCard>
-    </CCol>
-  </CRow>
-
-  <!-- Dialog: Add Project Baru -->
-  <CModal :visible="dialogCreate" @close="dialogCreate = false">
-      <CModalHeader>Buat Manajemen Proyek Baru</CModalHeader>
-    <CModalBody>
-      <CForm @submit.prevent="createProject">
-        <CFormInput
-          v-model="formNew.name"
-          label="Nama Manajemen Proyek"
-          placeholder="cth: Bangun Rumah, Tambak Udang 2025..."
-          class="mb-4"
-          size="lg"
-          autofocus
-        />
-        <CFormTextarea
-          v-model="formNew.description"
-          label="Deskripsi (Opsional)"
-          placeholder="Keterangan singkat tentang manajemen proyek ini..."
-          rows="3"
-          class="mb-4"
-          size="lg"
-        />
-        <CFormSelect
-          v-model="formNew.status"
-          label="Status Manajemen Proyek"
-          size="lg"
-          :options="[{ label: 'Aktif', value: 'Active' }, { label: 'Selesai', value: 'Completed' }]"
-        />
-      </CForm>
-    </CModalBody>
-    <CModalFooter>
-        <button class="btn btn-secondary status-select" @click="dialogCreate = false"><i class="fas fa-times me-2"></i>Batal</button>
-        <button class="btn btn-primary status-select" :disabled="submitting" @click="createProject"><i class="fas fa-plus me-2"></i>Buat Proyek</button>
-    </CModalFooter>
-  </CModal>
-
-    <!-- Dialog: Konfirmasi Hapus -->
-    <CModal :visible="dialogDeleteId !== null" @close="dialogDeleteId = null">
-    <CModalHeader>
-        Hapus Manajemen Proyek
-    </CModalHeader>
-    <CModalBody>
-        Apakah Anda yakin ingin menghapus manajemen proyek ini beserta seluruh catatan transaksinya? Tindakan ini tidak dapat dibatalkan.
-    </CModalBody>
-    <CModalFooter>
-        <button class="btn btn-secondary status-select" @click="dialogDeleteId = null">Batal</button>
-        <button class="btn btn-danger status-select" @click="deleteProject(dialogDeleteId!)">Ya, Hapus</button>
-    </CModalFooter>
-    </CModal>
-
-    <!-- Dialog: Edit Manajemen Proyek -->
-    <CModal :visible="dialogEdit" @close="dialogEdit = false">
-    <CModalHeader>Edit Manajemen Proyek</CModalHeader>
-    <CModalBody>
-      <CForm @submit.prevent="updateProject">
-        <CFormInput v-model="formEdit.name" label="Nama Manajemen Proyek" class="mb-3" size="lg" />
-        <CFormTextarea v-model="formEdit.description" label="Deskripsi" rows="3" class="mb-3" size="lg" />
-        <CFormSelect v-model="formEdit.status" label="Status" size="lg" :options="[{ label: 'Aktif', value: 'Active' }, { label: 'Selesai', value: 'Completed' }]" />
-      </CForm>
-    </CModalBody>
-    <CModalFooter>
-        <button class="btn btn-secondary status-select" @click="dialogEdit = false"><i class="fas fa-times me-2"></i>Batal</button>
-        <button class="btn btn-primary status-select" :disabled="submitting" @click="updateProject"><i class="fas fa-save me-2"></i>Simpan</button>
-    </CModalFooter>
-    </CModal>
-
+    <!-- Modals -->
+    <ion-modal :is-open="dialogCreate" @didDismiss="dialogCreate = false">
+        <ion-header>
+            <ion-toolbar>
+                <ion-title>Add Project</ion-title>
+                <ion-buttons slot="end">
+                    <ion-button @click="dialogCreate = false"><ion-icon :icon="closeOutline" /></ion-button>
+                </ion-buttons>
+            </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+            <ion-item>
+                <ion-label position="stacked">Nama</ion-label>
+                <ion-input v-model="formNew.name" />
+            </ion-item>
+            <ion-item>
+                <ion-label position="stacked">Deskripsi</ion-label>
+                <ion-textarea v-model="formNew.description" />
+            </ion-item>
+            <ion-button expand="block" @click="createProject" class="ion-margin-top">Simpan</ion-button>
+        </ion-content>
+    </ion-modal>
+  </ion-page>
 </template>
 
 <style scoped>

@@ -1,14 +1,18 @@
 import { createApp } from 'vue'
+import { IonicVue } from '@ionic/vue';
+import '@ionic/vue/css/core.css';
+import '@ionic/vue/css/normalize.css';
+import '@ionic/vue/css/structure.css';
+import '@ionic/vue/css/typography.css';
+import { defineCustomElements } from '@ionic/pwa-elements/loader';
+
 import App from './App.vue'
 import router from './router'
 import store from './store'
 import { seedDatabase } from './db/schema'
 
 
-// Import CoreUI CSS
-import '@coreui/coreui/dist/css/coreui.min.css'
-import CIcon from '@coreui/icons-vue';
-import * as icons from '@coreui/icons';
+
 
 // Styles
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -28,14 +32,14 @@ async function initializeApp() {
   }
   const app = createApp(App);
 
+  app.use(IonicVue);
   app.use(store);
   app.use(router);
-  app.provide('icons', icons); // Provide icons globally
-  app.component('CIcon', CIcon); // Register CIcon globally
 
   const vm = app.mount('#app');
   // expose app for header toggle interop
   window.__app__ = vm;
+  defineCustomElements(window);
 }
 
 initializeApp();

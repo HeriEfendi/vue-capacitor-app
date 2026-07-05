@@ -1,30 +1,29 @@
 <template>
-  <div class="container py-4">
-    <h3 class="mb-3">Tambah Kategori</h3>
-    <CCard>
-      <CCardBody>
-        <CForm @submit.prevent="save">
-          <div class="mb-3">
-            <CFormLabel>Nama</CFormLabel>
-            <CFormInput v-model="name" required />
-          </div>
-          <CButton type="submit" color="primary">Simpan</CButton>
-          <router-link to="/categories" class="btn btn-secondary ms-2">Batal</router-link>
-        </CForm>
-      </CCardBody>
-    </CCard>
-  </div>
+  <ion-page>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start"><ion-back-button default-href="/categories" /></ion-buttons>
+        <ion-title>Tambah Kategori</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+        <ion-list>
+            <ion-item><ion-label position="stacked">Nama</ion-label><ion-input v-model="name" /></ion-item>
+        </ion-list>
+        <ion-button expand="block" class="ion-margin-top" @click="save">Simpan</ion-button>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { CategoryRepository } from '../../../db/repositories'
-import { CCard, CCardBody, CForm, CFormInput, CFormLabel, CButton } from '@coreui/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, IonItem, IonLabel, IonInput, IonList } from '@ionic/vue';
 
 export default {
   name: 'CategoryCreateView',
-  components: { CCard, CCardBody, CForm, CFormInput, CFormLabel, CButton },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, IonItem, IonLabel, IonInput, IonList },
   setup() {
     const router = useRouter()
     const name = ref('')

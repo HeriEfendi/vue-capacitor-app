@@ -1,57 +1,58 @@
 <template>
-  <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="m-0">Daftar Utang</h5>
-      <CButton color="primary" @click="$router.push('/debts/create')">Tambah Utang</CButton>
-    </div>
-    <CCard>
-      <CCardBody>
-        <CTable striped responsive>
-          <CTableHead>
-            <CTableRow>
-              <CTableHeaderCell>#</CTableHeaderCell>
-              <CTableHeaderCell>Pemberi</CTableHeaderCell>
-              <CTableHeaderCell>Jumlah</CTableHeaderCell>
-              <CTableHeaderCell>Jatuh Tempo</CTableHeaderCell>
-              <CTableHeaderCell>Status</CTableHeaderCell>
-              <CTableHeaderCell class="text-end">Aksi</CTableHeaderCell>
-            </CTableRow>
-          </CTableHead>
-          <CTableBody>
-            <CTableRow v-for="(row, index) in debts" :key="row.id">
-              <CTableDataCell>{{ index + 1 }}</CTableDataCell>
-              <CTableDataCell>{{ row.lender }}</CTableDataCell>
-              <CTableDataCell>{{ formatPrice(row.amount) }}</CTableDataCell>
-              <CTableDataCell>{{ formatDate(row.dueDate) }}</CTableDataCell>
-              <CTableDataCell>{{ row.status }}</CTableDataCell>
-              <CTableDataCell class="text-end">
-                <CButton color="warning" size="sm" @click="$router.push(`/debts/${row.id}/edit`)">Edit</CButton>
-                <CButton color="danger" size="sm" class="ms-2" @click="onDelete(row.id)">Hapus</CButton>
-              </CTableDataCell>
-            </CTableRow>
-          </CTableBody>
-        </CTable>
-      </CCardBody>
-    </CCard>
-  </div>
-  </template>
+  <ion-page>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-back-button default-href="/dashboard" />
+        </ion-buttons>
+        <ion-title>Daftar Utang</ion-title>
+        <ion-buttons slot="end">
+          <ion-button router-link="/debts/create">
+            <ion-icon slot="icon-only" :icon="addOutline" />
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-list>
+        <ion-item v-for="debt in debts" :key="debt.id">
+          <ion-label>
+            <h2>{{ debt.lender }}</h2>
+            <p>{{ formatDate(debt.dueDate) }}</p>
+          </ion-label>
+          <div slot="end" class="d-flex flex-column align-items-end">
+            <ion-note color="danger">{{ formatPrice(debt.amount) }}</ion-note>
+            <ion-badge :color="debt.status === 'Paid' ? 'success' : 'warning'">{{ debt.status }}</ion-badge>
+          </div>
+          <ion-button fill="clear" color="medium" @click="$router.push(`/debts/${debt.id}/edit`)">
+            <ion-icon :icon="pencilOutline" />
+          </ion-button>
+          <ion-button fill="clear" color="danger" @click="onDelete(debt.id)">
+            <ion-icon :icon="trashOutline" />
+          </ion-button>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ion-page>
+</template>
 
 <script>
 import { onMounted, ref } from 'vue'
 import { debtsRepo } from '../../../db/repositories'
-import { CButton, CCard, CCardBody, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonList, IonItem, IonLabel, IonNote, IonButtons, IonBackButton, IonBadge } from '@ionic/vue';
+import { addOutline, trashOutline, pencilOutline } from 'ionicons/icons';
 
 export default {
   name: 'AccountingDebtsListView',
-  components: { CButton, CCard, CCardBody, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonList, IonItem, IonLabel, IonNote, IonButtons, IonBackButton, IonBadge },
   setup() {
     const debts = ref([])
     const fetchAll = async () => { debts.value = await debtsRepo.getAll() }
     const onDelete = async (id) => { await debtsRepo.delete(id); fetchAll() }
     const formatPrice = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(price)
     const formatDate = (d) => new Date(d).toLocaleDateString('id-ID')
-    onMounted(fetchAll)
-    return { debts, onDelete, formatPrice, formatDate }
+    return { debts, onDelete, formatPrice, formatDate, addOutline, trashOutline, pencilOutline }
   }
 }
 </script>

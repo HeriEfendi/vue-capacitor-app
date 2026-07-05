@@ -1,61 +1,74 @@
 <template>
-  <div class="container mt-3 p-0">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h4 class="fw-bold">My Personal Tasks</h4>
-      <button class="btn btn-outline-primary status-select" @click="dialogVisible = true">
-        <i class="fas fa-plus me-1"></i> Add Task
-      </button>
-    </div>
+  <ion-page>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Personal Tasks</ion-title>
+        <ion-buttons slot="end">
+            <ion-button @click="dialogVisible = true">
+                <ion-icon slot="icon-only" :icon="addOutline" />
+            </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
 
-    <CRow>
-      <CCol xs="12" md="6" lg="4" v-for="task in tasks" :key="task.id" class="mb-3">
-        <CCard class="h-100 shadow-sm border-0">
-          <CCardBody>
-            <div :class="{'text-decoration-line-through text-muted': task.status === 'DONE'}" class="fw-bold mb-2">{{ task.title }}</div>
-            <small class="text-muted d-block"><i class="fas fa-clock me-1"></i> {{ task.target_time }} {{ task.due_date ? '| Done: ' + task.due_date : '' }}</small>
-          </CCardBody>
-          <CCardFooter class="d-flex justify-content-between align-items-center bg-light border-0">
-            <select 
-              class="form-select form-select-sm w-auto status-select" 
-              :class="getStatusClass(task.status)"
-              v-model="task.status" 
-              @change="updateStatus(task)"
-            >
-              <option value="TO DO">TO DO</option>
-              <option value="IN PROGRESS">IN PROGRESS</option>
-              <option value="DONE">DONE</option>
-            </select>
-            <button class="btn btn-sm btn-outline-danger" @click="removeTask(task.id)">
-              <i class="fas fa-trash-alt"></i>
-            </button>
-          </CCardFooter>
-        </CCard>
-      </CCol>
-    </CRow>
+    <ion-content class="ion-padding">
+        <ion-grid>
+            <ion-row>
+                <ion-col size="12" size-md="6" size-lg="4" v-for="task in tasks" :key="task.id">
+                    <ion-card>
+                        <ion-card-header>
+                            <ion-card-title :class="{'text-decoration-line-through': task.status === 'DONE'}">{{ task.title }}</ion-card-title>
+                        </ion-card-header>
+                        <ion-card-content>
+                            <div class="d-flex align-items-center gap-2 text-muted">
+                                <ion-icon :icon="timeOutline" />
+                                <span>{{ task.target_time }} {{ task.due_date ? '| Done: ' + task.due_date : '' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between ion-margin-top">
+                                <ion-select v-model="task.status" @ionChange="updateStatus(task)">
+                                    <ion-select-option value="TO DO">TO DO</ion-select-option>
+                                    <ion-select-option value="IN PROGRESS">IN PROGRESS</ion-select-option>
+                                    <ion-select-option value="DONE">DONE</ion-select-option>
+                                </ion-select>
+                                <ion-button fill="clear" color="danger" @click="removeTask(task.id)">
+                                    <ion-icon :icon="trashOutline" />
+                                </ion-button>
+                            </div>
+                        </ion-card-content>
+                    </ion-card>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+    </ion-content>
 
-    <CModal :visible="dialogVisible" @close="dialogVisible = false">
-      <CModalHeader>Add New Todo</CModalHeader>
-      <CModalBody>
-        <div class="mb-3">
-          <label>Title</label>
-          <input v-model="newTask.title" class="form-control" placeholder="Task title...">
-        </div>
-        <div class="mb-3">
-          <label>Target (e.g., 2 days, 5 hours)</label>
-          <input v-model="newTask.target_time" class="form-control" placeholder="2 days">
-        </div>
-      </CModalBody>
-      <CModalFooter>
-        <button class="btn btn-secondary" @click="dialogVisible = false">Cancel</button>
-        <button class="btn btn-primary" @click="addTask">Save Todo</button>
-      </CModalFooter>
-    </CModal>
-  </div>
+    <ion-modal :is-open="dialogVisible" @didDismiss="dialogVisible = false">
+        <ion-header>
+            <ion-toolbar>
+                <ion-title>Add New Todo</ion-title>
+                <ion-buttons slot="end">
+                    <ion-button @click="dialogVisible = false"><ion-icon :icon="closeOutline" /></ion-button>
+                </ion-buttons>
+            </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+            <ion-item>
+                <ion-label position="stacked">Title</ion-label>
+                <ion-input v-model="newTask.title" placeholder="Task title..." />
+            </ion-item>
+            <ion-item>
+                <ion-label position="stacked">Target</ion-label>
+                <ion-input v-model="newTask.target_time" placeholder="2 days" />
+            </ion-item>
+            <ion-button expand="block" class="ion-margin-top" @click="addTask">Save Todo</ion-button>
+        </ion-content>
+    </ion-modal>
+  </ion-page>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { CCard, CCardBody, CCardFooter, CRow, CCol, CModal, CModalHeader, CModalBody, CModalFooter } from '@coreui/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonModal, IonButtons, IonItem, IonLabel, IonCheckbox, IonSelect, IonSelectOption, IonList, IonNote, IonInput } from '@ionic/vue';
+import { addOutline, trashOutline, closeOutline, timeOutline } from 'ionicons/icons';
 import { TodoRepository } from '@/db/todoRepository'
 
 const tasks = ref<any[]>([])

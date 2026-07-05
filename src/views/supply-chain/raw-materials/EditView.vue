@@ -1,34 +1,27 @@
 <template>
-  <div class="container py-4" v-if="form">
-    <h3 class="mb-3">Edit Bahan Baku</h3>
-    <CCard>
-      <CCardBody>
-        <CForm @submit.prevent="save">
-          <div class="mb-3">
-            <CFormLabel>Nama</CFormLabel>
-            <CFormInput v-model="form.name" required />
-          </div>
-          <div class="mb-3">
-            <CFormLabel>Satuan</CFormLabel>
-            <CFormInput v-model="form.unit" required />
-          </div>
-          <div class="mb-3">
-            <CFormLabel>Stok</CFormLabel>
-            <CFormInput type="number" v-model.number="form.stock" required />
-          </div>
-          <CButton type="submit" color="primary">Simpan</CButton>
-          <router-link to="/raw-materials" class="btn btn-secondary ms-2">Batal</router-link>
-        </CForm>
-      </CCardBody>
-    </CCard>
-  </div>
+  <ion-page v-if="form">
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start"><ion-back-button default-href="/raw-materials" /></ion-buttons>
+        <ion-title>Edit Bahan Baku</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+        <ion-list>
+            <ion-item><ion-label position="stacked">Nama</ion-label><ion-input v-model="form.name" /></ion-item>
+            <ion-item><ion-label position="stacked">Satuan</ion-label><ion-input v-model="form.unit" /></ion-item>
+            <ion-item><ion-label position="stacked">Stok</ion-label><ion-input type="number" v-model.number="form.stock" /></ion-item>
+        </ion-list>
+        <ion-button expand="block" class="ion-margin-top" @click="save">Simpan Perubahan</ion-button>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { RawMaterialsRepository } from '../../../db/repositories'
-import { CCard, CCardBody, CForm, CFormInput, CFormLabel, CButton } from '@coreui/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, IonItem, IonLabel, IonInput, IonList } from '@ionic/vue';
 
 export default {
   name: 'RawMaterialsEditView',

@@ -1,21 +1,20 @@
 <template>
-  <div class="d-flex wrapper" >
+  <ion-page>
     <AppSidebar />
-    <div class="wrapper d-flex flex-column min-vh-100 flex-grow-1" style="background: #ecf3fd !important;">
+    <ion-header>
       <AppHeader />
-      <div class="body flex-grow-1 px-3" router-view>
-        <CContainer lg>
-          <router-view />
-        </CContainer>
+    </ion-header>
+    <ion-content id="main-content">
+      <div class="ion-padding">
+        <ion-router-outlet />
       </div>
       <AppFooter />
-    </div>
-
-  </div>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
-import { CContainer } from '@coreui/vue'
+import { IonPage, IonContent, IonRouterOutlet } from '@ionic/vue';
 import AppHeader from './AppHeader.vue'
 import AppSidebar from './AppSidebar.vue'
 import AppFooter from './AppFooter.vue'
@@ -29,7 +28,9 @@ export default {
     AppHeader,
     AppSidebar,
     AppFooter,
-    CContainer,
+    IonPage,
+    IonContent,
+    IonRouterOutlet
   },
   setup() {
     const store = useStore()

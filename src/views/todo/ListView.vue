@@ -1,113 +1,90 @@
 <template>
-  <div class="container-fluid p-0 mt-3">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h4 class="mb-0 fw-bold">To Do Team</h4>
-        <small class="text-muted">Kelola tugas team anda.</small>
-      </div>
-      <button class="btn btn-primary d-flex align-items-center gap-2" @click="openModal()">
-        <i class="fas fa-plus"></i>
-        Create Todo
-      </button>
-    </div>
+  <ion-page>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>To Do Team</ion-title>
+        <ion-buttons slot="end">
+            <ion-button @click="openModal()">
+                <ion-icon slot="icon-only" :icon="addOutline" />
+            </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
 
-    <!-- Filter chips -->
-    <div class="d-flex gap-2 mb-3 flex-wrap">
-      <button
-        v-for="f in filters"
-        :key="f.value"
-        class="btn btn-sm rounded-3 opacity-75 px-3"
-        :class="activeFilter === f.value ? 'btn-primary' : 'btn-outline-secondary'"
-        @click="activeFilter = f.value"
-      >
-        {{ f.label }}
-        <span class="badge ms-1" :class="activeFilter === f.value ? 'bg-white text-primary' : 'bg-secondary text-white'">
-          {{ filterCount(f.value) }}
-        </span>
-      </button>
-    </div>
+    <ion-content class="ion-padding">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <ion-button size="small" v-for="f in filters" :key="f.value" :fill="activeFilter === f.value ? 'solid' : 'outline'" @click="activeFilter = f.value">
+                {{ f.label }}
+            </ion-button>
+        </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status"></div>
-    </div>
+        <div v-if="loading" class="ion-text-center ion-padding">
+            <ion-spinner />
+        </div>
 
-    <!-- Table -->
-    <CRow v-if="filteredTasks.length > 0">
-      <CCol xs="12" md="6" lg="4" v-for="task in filteredTasks" :key="task.id" class="mb-3">
-        <CCard class="h-100 shadow-sm border-0">
-          <CCardBody>
-            <div class="d-flex align-items-center mb-2">
-               <input
-                    type="checkbox"
-                    class="form-check-input me-2"
-                    :checked="task.status === 'DONE'"
-                    @change="toggleDone(task)"
-                  />
-                <a
-                   href="#"
-                   class="text-decoration-none text-primary fw-bold"
-                   :class="{'text-decoration-line-through text-muted': task.status === 'DONE'}"
-                   @click.prevent="openModal(task)"
-                >
-                  {{ task.work_id }} {{ task.title }}
-                </a>
-            </div>
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-2 text-muted small">
-                <span title="Assignee"><i class="fas fa-user-circle"></i> {{ task.assignee?.name || 'Unassigned' }}</span>
-                <span title="Priority"><i :class="getPriorityIcon(task.priority)" :style="`color:${getPriorityColor(task.priority)}`"></i> {{ task.priority }}</span>
-                <span title="Due Date"><i class="fas fa-calendar-alt"></i> {{ task.due_date || 'None' }}</span>
-                <span v-if="task.label" title="Label" class="badge bg-light text-secondary border">
-                  <i class="fas fa-tag"></i> {{ task.label }}
-                </span>
-            </div>
-            <div v-if="task.description" class="mt-2 small text-muted fst-italic">
-                {{ task.description.length > 200 ? task.description.substring(0, 200) + '...' : task.description }}
-            </div>
-          </CCardBody>
-          <CCardFooter class="border-0 d-flex justify-content-between align-items-center bg-white">
-            <select
-                v-model="task.status"
-                class="form-select form-select-sm w-auto"
-                :class="getStatusClass(task.status)"
-                @change="updateStatus(task)"
-            >
-                <option value="TO DO">TO DO</option>
-                <option value="IN PROGRESS">IN PROGRESS</option>
-                <option value="DONE">DONE</option>
-            </select>
-            <button class="btn btn-sm btn-outline-danger" @click="deleteTask(task.id)">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-          </CCardFooter>
-        </CCard>
-      </CCol>
-    </CRow>
-    <div v-else class="text-center py-5 text-muted">
-        Belum ada task.
-    </div>
+        <ion-grid v-else-if="filteredTasks.length > 0">
+            <ion-row>
+                <ion-col size="12" size-md="6" size-lg="4" v-for="task in filteredTasks" :key="task.id">
+                    <ion-card>
+                        <ion-card-header>
+                            <div class="d-flex align-items-center">
+                                <ion-checkbox :checked="task.status === 'DONE'" @ionChange="toggleDone(task)" />
+                                <ion-card-title class="ms-2" :class="{'text-decoration-line-through': task.status === 'DONE'}">
+                                    {{ task.work_id }} {{ task.title }}
+                                </ion-card-title>
+                            </div>
+                        </ion-card-header>
+                        <ion-card-content>
+                            <div class="d-flex align-items-center gap-2 text-muted small">
+                                <ion-icon :icon="personCircleOutline" /> {{ task.assignee?.name || 'Unassigned' }}
+                                <ion-icon :icon="calendarOutline" /> {{ task.due_date || 'None' }}
+                            </div>
+                            <p class="mt-2">{{ task.description }}</p>
+                            <div class="d-flex justify-content-between ion-margin-top">
+                                <ion-select v-model="task.status" @ionChange="updateStatus(task)">
+                                    <ion-select-option value="TO DO">TO DO</ion-select-option>
+                                    <ion-select-option value="IN PROGRESS">IN PROGRESS</ion-select-option>
+                                    <ion-select-option value="DONE">DONE</ion-select-option>
+                                </ion-select>
+                                <ion-button fill="clear" color="danger" @click="deleteTask(task.id)">
+                                    <ion-icon :icon="trashOutline" />
+                                </ion-button>
+                            </div>
+                        </ion-card-content>
+                    </ion-card>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+        <div v-else class="ion-text-center ion-padding">Belum ada task.</div>
+    </ion-content>
 
-    <!-- Modal Form -->
-    <CModal :visible="modalVisible" @close="modalVisible = false" size="lg">
-      <CModalHeader>{{ isEdit ? 'Edit Todo Team' : 'Create Todo Team' }}</CModalHeader>
-      <CModalBody>
-        <FormView :task="form" @save="(taskData: any) => saveTask(taskData)" @cancel="modalVisible = false" />
-      </CModalBody>
-    </CModal>
-  </div>
+    <ion-modal :is-open="modalVisible" @didDismiss="modalVisible = false">
+        <ion-header>
+            <ion-toolbar>
+                <ion-title>{{ isEdit ? 'Edit Todo Team' : 'Create Todo Team' }}</ion-title>
+                <ion-buttons slot="end">
+                    <ion-button @click="modalVisible = false"><ion-icon :icon="closeOutline" /></ion-button>
+                </ion-buttons>
+            </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+            <FormView :task="form" @save="(taskData: any) => saveTask(taskData)" @cancel="modalVisible = false" />
+        </ion-content>
+    </ion-modal>
+  </ion-page>
 </template>
 
 <script lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
-import { CCard, CCardBody, CCardFooter, CRow, CCol, CModal, CModalHeader, CModalBody, CModalFooter } from '@coreui/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonModal, IonButtons, IonItem, IonLabel, IonCheckbox, IonSpinner, IonBadge, IonSelect, IonSelectOption, IonList, IonNote } from '@ionic/vue';
+import { addOutline, trashOutline, pencilOutline, closeOutline, personCircleOutline, calendarOutline, tagOutline } from 'ionicons/icons';
 import { TeamTodoRepository } from '@/db/teamTodoRepository'
 import { UsersRepository } from '@/db/usersRepository'
 import FormView from './FormView.vue'
 
 export default {
   name: 'TodoListView',
-  components: { CCard, CCardBody, CCardFooter, CRow, CCol, CModal, CModalHeader, CModalBody, CModalFooter, FormView },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonModal, IonButtons, IonItem, IonLabel, IonCheckbox, IonSpinner, IonBadge, IonSelect, IonSelectOption, IonList, IonNote, FormView },
   setup() {
     const tasks = ref([])
     const loading = ref(false)
@@ -225,8 +202,8 @@ export default {
     return {
       tasks, loading, activeFilter, filters, filteredTasks, filterCount,
       fetchTasks, updateStatus, toggleDone, deleteTask,
-      getPriorityIcon, getPriorityColor, getStatusClass,
-      openModal, saveTask, isEdit, modalVisible, form
+      openModal, saveTask, isEdit, modalVisible, form,
+      addOutline, trashOutline, pencilOutline
     }
   }
 }

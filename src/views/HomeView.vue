@@ -1,37 +1,45 @@
 <template>
-  <div class="container-fluid p-3">
-    <h5 class="fw-bold mb-3">MENU</h5>
-    <div class="row g-4">
-      <div v-for="item in menuItems" :key="item.path" class="col-6 col-sm-4 col-md-3 col-lg-2">
-        <router-link :to="item.path" class="text-decoration-none">
-          <div class="card p-3 d-flex flex-column align-items-center justify-content-center text-center shadow-sm" style="border-radius: 15px; border: none; height: 130px;">
-            <CIcon :icon="item.icon" size="xl" class="mb-2 text-primary" />
-            <span class="small fw-bold text-dark">{{ item.name }}</span>
-            <span v-if="item.name !== 'Profile'" class="text-muted" style="font-size: 0.75rem;">{{ item.count }} datas</span>
-          </div>
-        </router-link>
-      </div>
-    </div>
-  </div>
+  <ion-page>
+    <ion-content class="ion-padding">
+      <h5 class="fw-bold mb-3 ion-padding-start">MENU</h5>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6" size-sm="4" size-md="3" size-lg="2" v-for="item in menuItems" :key="item.path">
+            <router-link :to="item.path" class="text-decoration-none">
+              <ion-card class="ion-text-center shadow-sm" style="border-radius: 15px; height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <ion-card-content class="d-flex flex-column align-items-center">
+                  <ion-icon :icon="item.icon" size="large" class="mb-2" color="primary" />
+                  <span class="small fw-bold text-dark">{{ item.name }}</span>
+                  <span v-if="item.name !== 'Profile'" class="text-muted" style="font-size: 0.75rem;">{{ item.count }} datas</span>
+                </ion-card-content>
+              </ion-card>
+            </router-link>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue'
-import { CIcon } from '@coreui/icons-vue'
+import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonIcon } from '@ionic/vue';
+import { checkboxOutline, documentTextOutline, walletOutline, basketOutline, personOutline } from 'ionicons/icons';
 import { cilTask, cilDescription, cilWallet, cilBasket, cilUser } from '@coreui/icons'
-import { ProductRepository, capitalCostsRepo, CategoryRepository } from '../db/repositories'
 
 export default {
   name: 'HomeView',
-  components: { CIcon },
+  components: { 
+    IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonIcon 
+  },
   setup() {
     const menuItems = ref([
-      { name: 'To Do', path: '/todo-personal', icon: cilTask, count: 0 },
-      { name: 'To Do Team', path: '/todo', icon: cilTask, count: 0 },
-      { name: 'Manajemen Proyek', path: '/catatan_proyek', icon: cilDescription, count: 0 },
-      { name: 'Tabungan', path: '/capital', icon: cilWallet, count: 0 },
-      { name: 'Produk Jadi', path: '/products', icon: cilBasket, count: 0 },
-      { name: 'Profile', path: '/profile', icon: cilUser, count: 0 },
+      { name: 'To Do', path: '/todo-personal', icon: checkboxOutline, count: 0 },
+      { name: 'To Do Team', path: '/todo', icon: checkboxOutline, count: 0 },
+      { name: 'Manajemen Proyek', path: '/catatan_proyek', icon: documentTextOutline, count: 0 },
+      { name: 'Tabungan', path: '/capital', icon: walletOutline, count: 0 },
+      { name: 'Produk Jadi', path: '/products', icon: basketOutline, count: 0 },
+      { name: 'Profile', path: '/profile', icon: personOutline, count: 0 },
     ])
 
     const fetchCounts = async () => {

@@ -3,27 +3,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as XLSX from 'xlsx'
 import { initDB } from '@/db'
-import {
-  CButton,
-  CCard,
-  CCardBody,
-  CBadge,
-  CProgress,
-  CModal,
-  CModalHeader,
-  CModalBody,
-  CModalFooter,
-  CForm,
-  CFormInput,
-  CFormTextarea,
-  CFormSelect,
-  CRow,
-  CCol,
-  CSpinner,
-} from '@coreui/vue'
-import VueApexCharts from 'vue3-apexcharts'
-import { CIcon } from '@coreui/icons-vue'
-import * as icons from '@coreui/icons'
+import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader } from '@ionic/vue';
+import { addOutline, trashOutline, pencilOutline, closeOutline, cloudUploadOutline, cloudDownloadOutline, listOutline, checkmarkCircleOutline } from 'ionicons/icons';
 
 interface Transaction {
   id: number
@@ -506,265 +487,103 @@ onUnmounted(() => clearInterval(interval))
 </script>
 
 <template>
-  <template v-if="loading">
-    <div class="text-center py-16">
-      <CSpinner color="primary" size="lg" />
-      <p class="text-body-2 text-disabled mt-4">Memuat data projek...</p>
-    </div>
-  </template>
+  <ion-page>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button @click="router.back()">Kembali</ion-button>
+        </ion-buttons>
+        <ion-title>{{ project?.name || 'Detail Proyek' }}</ion-title>
+      </ion-toolbar>
+    </ion-header>
 
-  <template v-else-if="project">
-    <div>
-      <CRow class="mb-4">
-        <CCol xs="12">
-          <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mt-2">
-            <div>
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <h2 class="text-h4 font-weight-bold">{{ project.name }}</h2>
-                <CBadge :color="project.status === 'Active' ? 'success' : 'secondary'">
-                  {{ project.status === 'Active' ? 'Aktif' : 'Selesai' }}
-                </CBadge>
-              </div>
-              <p class="text-body-2 text-disabled mb-0">{{ project.description || 'Tidak ada deskripsi' }}</p>
-            </div>
-            <div class="d-flex flex-wrap gap-2">
-              <CButton color="warning" size="lg" class="btn-warning status-select text-white" @click="handleImport"><CIcon :icon="icons.cilCloudUpload" class="me-1" /> Import Excel</CButton>
-              <input type="file" ref="fileInput" class="d-none" @change="onFileChange" accept=".xlsx, .xls" />
-              <CButton color="info" size="lg" class="btn-info status-select text-white" @click="downloadTemplate"><CIcon :icon="icons.cilCloudDownload" class="me-1" /> Template</CButton>
-              <CButton color="success" size="lg" class="btn-success status-select text-white" @click="exportToExcel"><CIcon :icon="icons.cilSpreadsheet" class="me-1" /> Export Excel</CButton>
-              <CButton color="primary" size="lg" class="btn-primary status-select" @click="openCreateDialog">
-                <CIcon :icon="icons.cilPlus" class="me-1" /> Tambah Transaksi
-              </CButton>
-            </div>
-          </div>
-        </CCol>
-      </CRow>
-
-      <CRow class="g-4 mb-4">
-        <CCol xs="6" sm="3" class="d-flex">
-          <CCard class="border-0 shadow-sm p-1 w-100" style="background-color: #e8f5e9;">
-              <CCardBody class="d-flex flex-column">
-                  <div class="text-muted fw-medium small">Modal</div>
-                  <div class="fs-6 fw-bold text-success">{{ formatCurrency((project as any).modal_total || 0) }}</div>
-              </CCardBody>
-          </CCard>
-        </CCol>
-        <CCol v-if="(project as any).panen_total > 0" xs="6" sm="3" class="d-flex">
-          <CCard class="border-0 shadow-sm p-1 w-100" style="background-color: #e8f5e9;">
-              <CCardBody class="d-flex flex-column">
-                  <div class="text-muted fw-medium small">Pendapatan</div>
-                  <div class="fs-6 fw-bold text-success">{{ formatCurrency((project as any).panen_total || 0) }}</div>
-              </CCardBody>
-          </CCard>
-        </CCol>
-        <CCol xs="6" sm="3" class="d-flex">
-          <CCard class="border-0 shadow-sm p-1 w-100" style="background-color: #ffebee;">
-              <CCardBody class="d-flex flex-column">
-                  <div class="text-muted fw-medium small">Pengeluaran</div>
-                  <div class="fs-6 fw-bold text-danger">{{ formatCurrency(project.total_expenses) }}</div>
-              </CCardBody>
-          </CCard>
-        </CCol>
-        <CCol xs="6" sm="3" class="d-flex">
-          <CCard class="border-0 shadow-sm p-1 w-100" :style="(project.panen_total - project.total_expenses) >= 0 ? 'background-color: #e3f2fd;' : 'background-color: #fff3e0;'">
-              <CCardBody class="d-flex flex-column">
-                  <template v-if="(project as any).panen_total > 0">
-                    <div class="d-flex justify-content-between">
-                        <div class="text-muted fw-medium small">Bersih</div>
-                        <div class="text-muted fw-bold small">{{ ((( (project.panen_total - project.total_expenses) / (project as any).panen_total) * 100).toFixed(0) + '%') }}</div>
-                    </div>
-                    <div class="fs-6 fw-bold mb-2" :class="(project.panen_total - project.total_expenses) >= 0 ? 'text-primary' : 'text-danger'">{{ formatCurrency(project.panen_total - project.total_expenses) }}</div>
-                    <div class="pt-2 border-top"></div>
-                  </template>
-                  
-                  <div class="text-muted fw-medium small">Sisa Modal</div>
-                  <div class="fs-6 fw-bold" :class="(((project as any).modal_total || 0) - project.total_expenses) >= 0 ? 'text-info' : 'text-warning'">{{ formatCurrency(((project as any).modal_total || 0) - project.total_expenses) }}</div>
-              </CCardBody>
-          </CCard>
-        </CCol>
-        <CCol v-if="((1 + ((project as any).panen_total > 0 ? 1 : 0) + 1 + 1) % 2 !== 0)" xs="6" sm="3" class="d-flex">
-          <CCard class="border-0 shadow-sm p-1 w-100" style="background-color: #fff8e1;">
-              <CCardBody class="d-flex flex-column">
-                  <div class="text-muted fw-medium small text-warning">Total Transaksi</div>
-                  <div class="fs-6 fw-bold text-warning">{{ project.transactions.length }}</div>
-              </CCardBody>
-          </CCard>
-        </CCol>
-      </CRow>
-
-      <div class="d-flex flex-row overflow-x-auto flex-nowrap gap-3 pb-3" ref="chartCarousel">
-        <CCard class="shadow-sm border-0 flex-shrink-0 w-100 snap-item" style="min-width: 100%; width: 100%;">
-            <CCardBody class="p-2">
-              <h5 class="mb-3">Distribusi Pengeluaran</h5>
-              <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" style="pointer-events: auto;" />
-            </CCardBody>
-        </CCard>
-        <CCard class="shadow-sm border-0 flex-shrink-0 w-100 snap-item" style="min-width: 100%; width: 100%;">
-            <CCardBody class="p-2">
-              <h5 class="mb-3">Arus Kas Keluar per Bulan</h5>
-              <VueApexCharts type="bar" :options="barOptions" :series="barSeries" />
-            </CCardBody>
-        </CCard>
+    <ion-content class="ion-padding">
+      <div v-if="loading" class="ion-text-center">
+        <ion-spinner />
       </div>
-      <CCol xs="12" class="mb-4">
-        <CCard>
-          <CCardBody class="p-0">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-end align-items-md-center mb-3">
-              <h5 class="mb-4 mb-md-0 align-self-start">
-                Riwayat Transaksi
-              </h5>
-
-              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                <button
-                  v-for="f in filterOptions"
-                  :key="f.value"
-                  class="btn btn-sm rounded-3 opacity-75 px-3"
-                  :class="filterType === f.value ? 'bg-primary text-white fw-bold' : 'bg-light text-secondary border'"
-                  @click="filterType = f.value"
-                >
-                  {{ f.label }}
-                  <span class="badge ms-1" :class="filterType === f.value ? 'bg-white text-primary' : 'bg-secondary text-white'">
-                    {{ filterCount(f.value) }}
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <div class="overflow-x-auto pb-2">
-              <div class="d-flex flex-column gap-1">
-                <CCard
-                  v-for="tx in filteredTransactions"
-                  :key="tx.id"
-                  class="shadow-none border border-light-subtle p-0 border-0 "
-                >
-                  <CCardBody class="p-0 d-flex align-items-center">
-                    <div
-                      class="d-flex align-items-center px-3 py-2 rounded-3"
-                      style="min-width: max-content; width: 100%"
-                      :class="tx.type === 'DEPOSIT'
-                        ? 'bg-success bg-opacity-10'
-                        : 'bg-danger bg-opacity-10'"
-                    >
-                    <!-- Tipe -->
-                    <div class="flex-shrink-0" style="width: 60px;">
-                      <span class="extra-small fw-bold" :class="tx.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
-                        {{ tx.type === 'DEPOSIT' ? '▲ In' : '▼ Out' }}
-                      </span>
-                    </div>
-
-                    <!-- Tanggal -->
-                    <div class="flex-shrink-0" style="width: 100px;">
-                      <span class="text-muted extra-small">{{ formatDate(tx.date) }}</span>
-                    </div>
-
-                    <!-- Kategori -->
-                    <div class="flex-shrink-0 text-truncate px-2" style="width: 180px;">
-                      <span class="fw-bold extra-small">{{ tx.category }}</span>
-                    </div>
-
-                    <!-- Deskripsi -->
-                    <div class="flex-grow-1 text-truncate px-2" style="min-width: 180px;">
-                      <span class="text-muted extra-small">{{ tx.description || '-' }}</span>
-                    </div>
-
-                    <!-- Nominal -->
-                    <div class="flex-shrink-0 text-end fw-bold" style="width: 120px;" :class="tx.type === 'DEPOSIT' ? 'text-success' : 'text-danger'">
-                      {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
-                    </div>
-
-                    <!-- Aksi -->
-                    <div class="flex-shrink-0 d-flex justify-content-end" style="width: 100px;">
-                      <button class="btn btn-outline-primary status-select me-2" @click="openEditDialog(tx)"><i class="fas fa-edit fa-xs"></i></button>
-                      <button class="btn btn-outline-danger status-select bg-danger bg-opacity-10" @click="dialogDeleteTxId = tx.id"><i class="fas fa-trash fa-xs"></i></button>
-                    </div>
-
-                    </div>
-                  </CCardBody>
-                </CCard>
-              </div>
-            </div>
-          
-          <div v-if="filteredTransactions.length === 0" class="text-center text-disabled py-8">
-            <p class="text-body-2">Belum ada transaksi</p>
-            <button class="btn btn-primary status-select mt-2" @click="openCreateDialog">
-              + Tambah Transaksi Baru
-            </button>
-          </div>
-          </CCardBody>
-        </CCard>
-      </CCol>
-    </div>
-  </template>
-
-  <template v-else>
-    <CRow class="text-center py-16">
-      <CCol>
-        <h2>Projek tidak ditemukan</h2>
-        <p>Projek yang Anda cari tidak ada atau telah dihapus.</p>
-        <button class="btn btn-primary status-select" @click="router.back()">Kembali ke Semua Manajemen Proyek</button>
-      </CCol>
-    </CRow>
-  </template>
-
-  <!-- Dialog: Tambah / Edit Transaksi -->
-  <CModal :visible="dialogTransaction" @close="closeDialog" >
-    <CModalHeader>{{ editingTxId ? 'Edit Transaksi' : 'Tambah Transaksi' }}</CModalHeader>
-    <CModalBody>
-        <CForm>
-            <div class="mb-3">
-                <CFormLabel>Tipe Transaksi</CFormLabel>
-                    <CFormSelect v-model="formTx.type" size="lg">
-                        <option value="DEPOSIT">Modal / Pendapatan</option>
-                        <option value="EXPENSE">Pengeluaran</option>
-                    </CFormSelect>
-            </div>
-            <div class="mb-3">
-                <CFormLabel>Kategori</CFormLabel>
-                <CFormSelect v-model="formTx.category" size="lg" :options="availableCategories"></CFormSelect>
-            </div>
-            <div class="mb-3">
-                <CFormLabel>Nominal</CFormLabel>
-                <CFormInput type="number" v-model.number="formTx.amount" size="lg" placeholder="Contoh: 100000" />
-            </div>
-            <div class="mb-3">
-                <CFormLabel>Tanggal</CFormLabel>
-                <CFormInput type="date" v-model="formTx.date" size="lg" />
-            </div>
-            <div class="mb-3">
-                <CFormLabel>Deskripsi</CFormLabel>
-                <CFormTextarea v-model="formTx.description" size="lg"></CFormTextarea>
-            </div>
-        </CForm>
-    </CModalBody>
-    <CModalFooter>
-      <button class="btn btn-secondary status-select" @click="closeDialog"><i class="fas fa-times me-2"></i>Batal</button>
-      <button :class="['btn', formTx.type === 'DEPOSIT' ? 'btn-success' : 'btn-danger', 'status-select']" :disabled="submitting" @click="saveTransaction">
-        <i class="fas fa-save me-2"></i>{{ editingTxId ? 'Simpan Perubahan' : 'Simpan Transaksi' }}
-      </button>
-    </CModalFooter>
-  </CModal>
-
-  <!-- Dialog: Konfirmasi Hapus -->
-    <CModal :visible="dialogDeleteTxId !== null" @close="dialogDeleteTxId = null">
-      <CModalHeader>Hapus Transaksi</CModalHeader>
-      <CModalBody>
-        Apakah Anda yakin ingin menghapus transaksi ini? Saldo projek akan diperbarui secara otomatis.
-      </CModalBody>
-      <CModalFooter>
-        <button class="btn btn-secondary status-select" @click="dialogDeleteTxId = null"><i class="fas fa-times me-2"></i>Batal</button>
-        <button class="btn btn-danger status-select" @click="deleteTransaction(dialogDeleteTxId!)"><i class="fas fa-trash me-2"></i>Hapus</button>
-      </CModalFooter>
-    </CModal>
-
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
-      <div class="toast show" v-if="snackbar.show" role="alert">
-        <div class="toast-header" :class="snackbar.color === 'success' ? 'bg-success text-white' : 'bg-danger text-white'">
-          <strong class="me-auto">{{ snackbar.color === 'success' ? 'Berhasil' : 'Error' }}</strong>
-          <button type="button" class="btn-close" @click="snackbar.show = false"></button>
+      <div v-else-if="project">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="text-h4 font-weight-bold">{{ project.name }}</h2>
+          <ion-badge :color="project.status === 'Active' ? 'success' : 'medium'">{{ project.status }}</ion-badge>
         </div>
-        <div class="toast-body">{{ snackbar.text }}</div>
+        <p>{{ project.description }}</p>
+
+        <ion-grid>
+          <ion-row>
+            <ion-col size="6" size-sm="3">
+              <ion-card color="success" class="ion-padding">
+                <ion-card-subtitle>Modal</ion-card-subtitle>
+                <ion-card-title>{{ formatCurrency((project as any).modal_total || 0) }}</ion-card-title>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="3">
+              <ion-card color="danger" class="ion-padding">
+                <ion-card-subtitle>Pengeluaran</ion-card-subtitle>
+                <ion-card-title>{{ formatCurrency(project.total_expenses) }}</ion-card-title>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <ion-list>
+          <ion-list-header>Riwayat Transaksi</ion-list-header>
+          <ion-item v-for="tx in filteredTransactions" :key="tx.id">
+            <ion-icon slot="start" :icon="tx.type === 'DEPOSIT' ? checkmarkCircleOutline : listOutline" :color="tx.type === 'DEPOSIT' ? 'success' : 'danger'" />
+            <ion-label>
+              <h2>{{ tx.category }}</h2>
+              <p>{{ formatDate(tx.date) }} - {{ tx.description }}</p>
+            </ion-label>
+            <ion-note slot="end" :color="tx.type === 'DEPOSIT' ? 'success' : 'danger'">
+              {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
+            </ion-note>
+            <ion-button fill="clear" color="medium" @click="openEditDialog(tx)">
+              <ion-icon :icon="pencilOutline" />
+            </ion-button>
+            <ion-button fill="clear" color="danger" @click="dialogDeleteTxId = tx.id">
+              <ion-icon :icon="trashOutline" />
+            </ion-button>
+          </ion-item>
+        </ion-list>
+
+        <ion-button expand="block" @click="openCreateDialog" class="ion-margin-top">Tambah Transaksi</ion-button>
       </div>
-    </div>
+      <div v-else>
+        Proyek tidak ditemukan.
+      </div>
+    </ion-content>
+
+    <!-- Dialogs -->
+    <ion-modal :is-open="dialogTransaction" @didDismiss="closeDialog">
+        <ion-header>
+            <ion-toolbar>
+                <ion-title>{{ editingTxId ? 'Edit Transaksi' : 'Tambah Transaksi' }}</ion-title>
+                <ion-buttons slot="end">
+                    <ion-button @click="closeDialog"><ion-icon :icon="closeOutline" /></ion-button>
+                </ion-buttons>
+            </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+            <ion-item>
+                <ion-label position="stacked">Tipe</ion-label>
+                <ion-select v-model="formTx.type">
+                    <ion-select-option value="DEPOSIT">Modal/Pendapatan</ion-select-option>
+                    <ion-select-option value="EXPENSE">Pengeluaran</ion-select-option>
+                </ion-select>
+            </ion-item>
+            <ion-item>
+                <ion-label position="stacked">Kategori</ion-label>
+                <ion-select v-model="formTx.category">
+                    <ion-select-option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</ion-select-option>
+                </ion-select>
+            </ion-item>
+            <ion-item>
+                <ion-label position="stacked">Nominal</ion-label>
+                <ion-input type="number" v-model.number="formTx.amount" />
+            </ion-item>
+            <ion-button expand="block" @click="saveTransaction" class="ion-margin-top">Simpan</ion-button>
+        </ion-content>
+    </ion-modal>
+  </ion-page>
 </template>
 
 <style scoped>
