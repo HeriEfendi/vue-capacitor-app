@@ -3,7 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import { seedDatabase } from './db/schema'
-import { seedLocalStorage } from './db/localStorage'
+
 
 // Import CoreUI CSS
 import '@coreui/coreui/dist/css/coreui.min.css'
@@ -21,7 +21,8 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 async function initializeApp() {
   try {
     await seedDatabase();
-    seedLocalStorage();
+    const { UsersRepository } = await import('./db/usersRepository');
+    await UsersRepository.seed();
   } catch (error) {
     console.error('Failed to seed database:', error);
   }

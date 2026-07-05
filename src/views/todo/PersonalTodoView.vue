@@ -34,7 +34,7 @@
     </CRow>
 
     <CModal :visible="dialogVisible" @close="dialogVisible = false">
-      <CModalHeader>Add New Task</CModalHeader>
+      <CModalHeader>Add New Todo</CModalHeader>
       <CModalBody>
         <div class="mb-3">
           <label>Title</label>
@@ -47,26 +47,27 @@
       </CModalBody>
       <CModalFooter>
         <button class="btn btn-secondary" @click="dialogVisible = false">Cancel</button>
-        <button class="btn btn-primary" @click="addTask">Save Task</button>
+        <button class="btn btn-primary" @click="addTask">Save Todo</button>
       </CModalFooter>
     </CModal>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { CCard, CCardBody, CCardFooter, CRow, CCol, CModal, CModalHeader, CModalBody, CModalFooter } from '@coreui/vue'
-import { TodoRepository } from '../../db/localStorage'
+import { TodoRepository } from '@/db/todoRepository'
 
-const tasks = ref([])
+const tasks = ref<any[]>([])
 const newTask = ref({ title: '', target_time: '', status: 'TO DO' })
 const dialogVisible = ref(false)
 
-const loadTasks = () => {
-  tasks.value = TodoRepository.getAll().filter(t => t.type === 'PERSONAL')
+const loadTasks = async () => {
+  const allTasks = await TodoRepository.getAll()
+  tasks.value = allTasks.filter(t => t.type === 'PERSONAL')
 }
 
-const updateStatus = (task) => {
+const updateStatus = async (task: any) => {
   const update = { status: task.status }
   
   if (task.status === 'IN PROGRESS') {
@@ -75,13 +76,13 @@ const updateStatus = (task) => {
       update.due_date = ''
   }
   
-  TodoRepository.update(task.id, update)
-  loadTasks()
+  await TodoRepository.update(task.id, update)
+  await loadTasks()
 }
 
-const addTask = () => {
+const addTask = async () => {
   if (!newTask.value.title) return
-  TodoRepository.add({
+  await TodoRepository.add({
     title: newTask.value.title,
     target_time: newTask.value.target_time,
     status: 'TO DO',
@@ -89,12 +90,12 @@ const addTask = () => {
   })
   newTask.value = { title: '', target_time: '', status: 'TO DO' }
   dialogVisible.value = false
-  loadTasks()
+  await loadTasks()
 }
 
-const removeTask = (id) => {
-  TodoRepository.delete(id)
-  loadTasks()
+const removeTask = async (id: number) => {
+  await TodoRepository.delete(id)
+  await loadTasks()
 }
 
 const getStatusClass = (status) => {

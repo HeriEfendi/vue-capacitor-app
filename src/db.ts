@@ -1,0 +1,23 @@
+import { openDB } from 'idb';
+
+const DB_NAME = 'FinancialAppDB';
+const DB_VERSION = 3;
+
+export const initDB = async () => {
+  return openDB(DB_NAME, DB_VERSION, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains('projects')) {
+        db.createObjectStore('projects', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('todos')) {
+        db.createObjectStore('todos', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('team_todos')) {
+        db.createObjectStore('team_todos', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('users')) {
+        db.createObjectStore('users', { keyPath: 'id' });
+      }
+    },
+  });
+};

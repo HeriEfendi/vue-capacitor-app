@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { initDB } from '@/db'
 import {
   CButton,
   CCard,
@@ -75,8 +76,8 @@ function getStatusColor(status: string) {
 async function fetchProjects() {
   loading.value = true
   try {
-    const data = localStorage.getItem('financial_projects')
-    projects.value = data ? JSON.parse(data) : []
+    const db = await initDB()
+    projects.value = await db.getAll('projects') || []
   } catch (e) {
     showSnackbar('Gagal memuat data projek', 'error')
   } finally {
@@ -100,7 +101,8 @@ async function createProject() {
       transactions: []
     }
     projects.value.unshift(newProject)
-    localStorage.setItem('financial_projects', JSON.stringify(projects.value))
+    const db = await initDB()
+    await db.put('projects', newProject)
     dialogCreate.value = false
     formNew.value = { name: '', description: '', status: 'Active' }
     showSnackbar('Projek berhasil dibuat!', 'success')
@@ -114,7 +116,8 @@ async function createProject() {
 async function deleteProject(id: number) {
   try {
     projects.value = projects.value.filter(p => p.id !== id)
-    localStorage.setItem('financial_projects', JSON.stringify(projects.value))
+    const db = await initDB()
+    await db.delete('projects', id)
     dialogDeleteId.value = null
     showSnackbar('Projek berhasil dihapus', 'success')
   } catch (e) {
@@ -143,7 +146,8 @@ async function updateProject() {
     const pIndex = projects.value.findIndex(p => p.id === editingId.value)
     if (pIndex !== -1) {
       projects.value[pIndex] = { ...projects.value[pIndex], ...formEdit.value }
-      localStorage.setItem('financial_projects', JSON.stringify(projects.value))
+      const db = await initDB()
+      await db.put('projects', projects.value[pIndex])
       dialogEdit.value = false
       showSnackbar('Projek berhasil diupdate!', 'success')
     }
@@ -158,7 +162,7 @@ onMounted(fetchProjects)
 </script>
 
 <template>
-  <CRow class="mt-4">
+  <CRow>
     <!-- Header -->
     <CCol xs="12" class="d-flex justify-content-between align-items-center mb-4">
       <div>
@@ -252,7 +256,7 @@ onMounted(fetchProjects)
         @click="goToDetail(project.id)"
         style="cursor: pointer;"
       >
-        <CCardBody class="p-4">
+        <CCardBody class="p-2">
           <div class="d-flex justify-content-between align-items-start mb-3">
             <CBadge :color="getStatusColor(project.status)" size="small">
               {{ project.status === 'Active' ? 'Aktif' : 'Selesai' }}
@@ -313,7 +317,7 @@ onMounted(fetchProjects)
 
   <!-- Dialog: Add Project Baru -->
   <CModal :visible="dialogCreate" @close="dialogCreate = false">
-      <CModalHeader>Buat Manajemen Proyek Keuangan Baru</CModalHeader>
+      <CModalHeader>Buat Manajemen Proyek Baru</CModalHeader>
     <CModalBody>
       <CForm @submit.prevent="createProject">
         <CFormInput
@@ -342,7 +346,7 @@ onMounted(fetchProjects)
     </CModalBody>
     <CModalFooter>
         <button class="btn btn-secondary status-select" @click="dialogCreate = false"><i class="fas fa-times me-2"></i>Batal</button>
-        <button class="btn btn-primary status-select" :disabled="submitting" @click="createProject"><i class="fas fa-plus me-2"></i>Buat Manajemen Proyek</button>
+        <button class="btn btn-primary status-select" :disabled="submitting" @click="createProject"><i class="fas fa-plus me-2"></i>Buat Proyek</button>
     </CModalFooter>
   </CModal>
 

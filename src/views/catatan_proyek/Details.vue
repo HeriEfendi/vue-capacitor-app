@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as XLSX from 'xlsx'
+import { initDB } from '@/db'
 import {
   CButton,
   CCard,
@@ -56,7 +57,21 @@ const dialogDeleteTxId = ref<number | null>(null)
 const submitting = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 const editingTxId = ref<number | null>(null)
-const filterType = ref<'SEMUA' | 'DEPOSIT' | 'EXPENSE'>('SEMUA')
+const filterType = ref('SEMUA')
+const filterOptions = ref([
+  { label: 'Semua', value: 'SEMUA' },
+  { label: 'Modal', value: 'MODAL' },
+  { label: 'Pengeluaran', value: 'EXPENSE' },
+  { label: 'Pendapatan', value: 'PENDAPATAN' },
+])
+
+const filterCount = (filter: string) => {
+  if (filter === 'SEMUA') return project.value?.transactions.length || 0
+  if (filter === 'MODAL') return project.value?.transactions.filter(t => t.type === 'DEPOSIT' && categories.DEPOSIT_MODAL.includes(t.category)).length || 0
+  if (filter === 'EXPENSE') return project.value?.transactions.filter(t => t.type === 'EXPENSE').length || 0
+  if (filter === 'PENDAPATAN') return project.value?.transactions.filter(t => t.type === 'DEPOSIT' && categories.DEPOSIT_PENDAPATAN.includes(t.category)).length || 0
+  return 0
+}
 const maxWidth = '100%'
 
 const categories = {
@@ -105,10 +120,17 @@ function formatDate(d: string) {
 async function fetchProject() {
   loading.value = true
   try {
-    const projectsData = localStorage.getItem('financial_projects')
-    if (projectsData) {
-      const projects: Project[] = JSON.parse(projectsData)
-      project.value = projects.find(p => p.id === Number(route.params.id)) || null
+    const db = await initDB()
+    const projects = await db.getAll('projects')
+    if (projects) {
+      let found = projects.find(p => p.id === Number(route.params.id)) || null
+      if (found) {
+        // Recalculate totals
+        const deposits = found.transactions.filter(t => t.type === 'DEPOSIT');
+        (found as any).modal_total = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+        (found as any).panen_total = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+      }
+      project.value = found
     }
   } catch {
     showSnackbar('Gagal memuat data projek', 'error')
@@ -129,46 +151,43 @@ async function saveTransaction() {
   }
 
   try {
-    const projectsData = localStorage.getItem('financial_projects')
-    if (projectsData && project.value) {
-      const projects: Project[] = JSON.parse(projectsData)
-      const projectIndex = projects.findIndex(p => p.id === project.value!.id)
+    const db = await initDB()
+    const projects = await db.getAll('projects')
+    const projectIndex = projects.findIndex(p => p.id === project.value!.id)
 
-      if (projectIndex !== -1) {
-        if (editingTxId.value) {
-          const txIndex = projects[projectIndex].transactions.findIndex(t => t.id === editingTxId.value)
-          if (txIndex !== -1) {
-            projects[projectIndex].transactions[txIndex] = { ...projects[projectIndex].transactions[txIndex], ...formTx.value };
-          }
-        } else {
-          const newTx: Transaction = {
-            id: Date.now(),
-            project_id: project.value.id,
-            ...formTx.value
-          }
-          if (!projects[projectIndex].transactions) projects[projectIndex].transactions = []
-          projects[projectIndex].transactions.push(newTx)
+    if (projectIndex !== -1) {
+      if (editingTxId.value) {
+        const txIndex = projects[projectIndex].transactions.findIndex(t => t.id === editingTxId.value)
+        if (txIndex !== -1) {
+          projects[projectIndex].transactions[txIndex] = { ...projects[projectIndex].transactions[txIndex], ...formTx.value };
         }
-        
-        // Recalculate totals
-        const p = projects[projectIndex];
-        const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
-        p.total_deposits = deposits.reduce((acc, t) => acc + t.amount, 0);
-        p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
-        
-        // Split Modal vs Panen
-        const modal = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-        const panen = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-        
-        (p as any).modal_total = modal;
-        (p as any).panen_total = panen;
-        p.balance = p.total_deposits - p.total_expenses;
-
-        localStorage.setItem('financial_projects', JSON.stringify(projects))
-        await fetchProject()
-        closeDialog()
-        showSnackbar('Transaksi berhasil disimpan!', 'success')
+      } else {
+        const newTx: Transaction = {
+          id: Date.now(),
+          project_id: project.value.id,
+          ...formTx.value
+        }
+        if (!projects[projectIndex].transactions) projects[projectIndex].transactions = []
+        projects[projectIndex].transactions.push(newTx)
       }
+      
+      // Recalculate totals
+      const p = projects[projectIndex];
+      const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
+      p.total_deposits = deposits.reduce((acc, t) => acc + t.amount, 0);
+      p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
+      
+      const modal = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+      const panen = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+      
+      (p as any).modal_total = modal;
+      (p as any).panen_total = panen;
+      p.balance = p.total_deposits - p.total_expenses;
+
+      await db.put('projects', projects[projectIndex])
+      await fetchProject()
+      closeDialog()
+      showSnackbar('Transaksi berhasil disimpan!', 'success')
     }
   } catch (e) {
     console.error(e)
@@ -180,32 +199,30 @@ async function saveTransaction() {
 
 async function deleteTransaction(id: number) {
     try {
-        const projectsData = localStorage.getItem('financial_projects');
-        if (projectsData && project.value) {
-            let projects: Project[] = JSON.parse(projectsData);
-            const projectIndex = projects.findIndex(p => p.id === project.value!.id);
+        const db = await initDB();
+        const projects = await db.getAll('projects');
+        const projectIndex = projects.findIndex(p => p.id === project.value!.id);
 
-            if (projectIndex !== -1) {
-                projects[projectIndex].transactions = projects[projectIndex].transactions.filter(t => t.id !== id);
-                
-                // Recalculate totals
-                const p = projects[projectIndex];
-                const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
-                p.total_deposits = deposits.reduce((acc, t) => acc + t.amount, 0);
-                p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
-                
-                const modal = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-                const panen = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-                (p as any).modal_total = modal;
-                (p as any).panen_total = panen;
-                
-                p.balance = p.total_deposits - p.total_expenses;
+        if (projectIndex !== -1) {
+            projects[projectIndex].transactions = projects[projectIndex].transactions.filter(t => t.id !== id);
+            
+            // Recalculate totals
+            const p = projects[projectIndex];
+            const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
+            p.total_deposits = deposits.reduce((acc, t) => acc + t.amount, 0);
+            p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
+            
+            const modal = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+            const panen = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+            (p as any).modal_total = modal;
+            (p as any).panen_total = panen;
+            
+            p.balance = p.total_deposits - p.total_expenses;
 
-                localStorage.setItem('financial_projects', JSON.stringify(projects));
-                await fetchProject();
-                dialogDeleteTxId.value = null;
-                showSnackbar('Transaksi berhasil dihapus', 'success');
-            }
+            await db.put('projects', projects[projectIndex]);
+            await fetchProject();
+            dialogDeleteTxId.value = null;
+            showSnackbar('Transaksi berhasil dihapus', 'success');
         }
     } catch {
         showSnackbar('Gagal menghapus transaksi', 'error');
@@ -274,32 +291,48 @@ async function onFileChange(e: Event) {
     }))
 
     if (project.value) {
-      try {
-        project.value.transactions.push(...newTransactions)
-        // Recalculate and save to localStorage logic
-        const projectsData = localStorage.getItem('financial_projects')
-        if (projectsData) {
-            const projects: Project[] = JSON.parse(projectsData)
-            const pIndex = projects.findIndex(p => p.id === project.value!.id)
-            if (pIndex !== -1) {
-                projects[pIndex].transactions = project.value.transactions
-                projects[pIndex].total_deposits = projects[pIndex].transactions.filter(t => t.type === 'DEPOSIT').reduce((acc, t) => acc + t.amount, 0)
-                projects[pIndex].total_expenses = projects[pIndex].transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0)
-                projects[pIndex].balance = projects[pIndex].total_deposits - projects[pIndex].total_expenses
-                localStorage.setItem('financial_projects', JSON.stringify(projects))
-                showSnackbar('Transaksi berhasil diimpor!', 'success')
-                fetchProject()
-            } else {
-                throw new Error('Projek tidak ditemukan')
-            }
+      (async () => {
+        try {
+          project.value!.transactions.push(...newTransactions)
+          const db = await initDB()
+          const p = await db.get('projects', project.value!.id)
+          if (p) {
+              p.transactions = project.value!.transactions
+              p.total_deposits = p.transactions.filter(t => t.type === 'DEPOSIT').reduce((acc, t) => acc + t.amount, 0)
+              p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0)
+              p.balance = p.total_deposits - p.total_expenses
+              
+              const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
+              (p as any).modal_total = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+              (p as any).panen_total = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+
+              await db.put('projects', JSON.parse(JSON.stringify(p)))
+              showSnackbar('Transaksi berhasil diimpor!', 'success')
+              fetchProject()
+          } else {
+              throw new Error('Projek tidak ditemukan')
+          }
+        } catch (e) {
+          console.error(e)
+          showSnackbar('Gagal menyimpan transaksi impor', 'error')
         }
-      } catch (e) {
-        console.error(e)
-        showSnackbar('Gagal menyimpan transaksi impor', 'error')
-      }
+      })()
     }
   }
   reader.readAsArrayBuffer(file)
+}
+
+function getGuideData() {
+  return [
+    ['Tipe', 'Kategori'],
+    ...categories.DEPOSIT_MODAL.map(c => ['DEPOSIT', c]),
+    ...categories.DEPOSIT_PENDAPATAN.map(c => ['DEPOSIT', c]),
+    ...categories.EXPENSE.map(c => ['EXPENSE', c]),
+    [],
+    ['Format Info'],
+    ['Tanggal', 'DD/MM/YYYY (Contoh: 01/07/2026)'],
+    ['Nominal', 'Angka bulat tanpa titik/koma (Contoh: 1000000)']
+  ]
 }
 
 function downloadTemplate() {
@@ -309,9 +342,14 @@ function downloadTemplate() {
     ['EXPENSE', 'Material / Bahan', 500000, '02/07/2026', 'Semen']
   ])
   ws['!cols'] = [{ wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 30 }]
+  
+  const wsGuide = XLSX.utils.aoa_to_sheet(getGuideData())
+  wsGuide['!cols'] = [{ wch: 20 }, { wch: 40 }]
+  
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Template')
-  XLSX.writeFile(wb, 'Template_Transaksi.xlsx')
+  XLSX.utils.book_append_sheet(wb, wsGuide, 'Panduan')
+  XLSX.writeFile(wb, 'Tamplate Manajemen Proyek.xlsx')
 }
 
 function exportToExcel() {
@@ -324,9 +362,14 @@ function exportToExcel() {
   }))
   const ws = XLSX.utils.json_to_sheet(data)
   ws['!cols'] = [{ wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 30 }]
+  
+  const wsGuide = XLSX.utils.aoa_to_sheet(getGuideData())
+  wsGuide['!cols'] = [{ wch: 20 }, { wch: 40 }]
+
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Transaksi')
-  XLSX.writeFile(wb, 'Riwayat_Transaksi.xlsx')
+  XLSX.utils.book_append_sheet(wb, wsGuide, 'Panduan')
+  XLSX.writeFile(wb, `Manajemen Proyek - ${project.value!.name}.xlsx`)
 }
 
 function parseDate(d: any): string {
@@ -359,6 +402,8 @@ const donutOptions = computed(() => ({
   },
   labels: Object.keys(categoryTotals.value),
   tooltip: {
+    enabled: true,
+    trigger: 'click',
     y: {
       formatter: (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
     }
@@ -439,6 +484,25 @@ const barSeries = computed(() => {
 })
 
 onMounted(fetchProject)
+
+const chartCarousel = ref(null)
+let interval: any = null
+
+onMounted(() => {
+  if (window.innerWidth < 768) {
+    let active = 0
+    interval = setInterval(() => {
+      active = active === 0 ? 1 : 0
+      if (chartCarousel.value) {
+        (chartCarousel.value as any).scrollTo({
+          left: active * (chartCarousel.value as any).offsetWidth,
+          behavior: 'smooth'
+        })
+      }
+    }, 5000)
+  }
+})
+onUnmounted(() => clearInterval(interval))
 </script>
 
 <template>
@@ -514,7 +578,7 @@ onMounted(fetchProject)
                   </template>
                   
                   <div class="text-muted fw-medium small">Sisa Modal</div>
-                  <div class="fs-6 fw-bold" :class="(project.modal_total - project.total_expenses) >= 0 ? 'text-info' : 'text-warning'">{{ formatCurrency(project.modal_total - project.total_expenses) }}</div>
+                  <div class="fs-6 fw-bold" :class="(((project as any).modal_total || 0) - project.total_expenses) >= 0 ? 'text-info' : 'text-warning'">{{ formatCurrency(((project as any).modal_total || 0) - project.total_expenses) }}</div>
               </CCardBody>
           </CCard>
         </CCol>
@@ -528,50 +592,41 @@ onMounted(fetchProject)
         </CCol>
       </CRow>
 
-      <div class="d-flex flex-row overflow-x-auto flex-nowrap gap-3 pb-3">
-        <CCard class="shadow-sm border-0 flex-shrink-0 w-100" style="min-width: 100%; width: 100%;">
+      <div class="d-flex flex-row overflow-x-auto flex-nowrap gap-3 pb-3" ref="chartCarousel">
+        <CCard class="shadow-sm border-0 flex-shrink-0 w-100 snap-item" style="min-width: 100%; width: 100%;">
             <CCardBody class="p-2">
               <h5 class="mb-3">Distribusi Pengeluaran</h5>
-              <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" />
+              <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" style="pointer-events: auto;" />
             </CCardBody>
         </CCard>
-        <CCard class="shadow-sm border-0 flex-shrink-0 w-100" style="min-width: 100%; width: 100%;">
+        <CCard class="shadow-sm border-0 flex-shrink-0 w-100 snap-item" style="min-width: 100%; width: 100%;">
             <CCardBody class="p-2">
               <h5 class="mb-3">Arus Kas Keluar per Bulan</h5>
               <VueApexCharts type="bar" :options="barOptions" :series="barSeries" />
             </CCardBody>
         </CCard>
       </div>
-      
       <CCol xs="12" class="mb-4">
         <CCard>
           <CCardBody class="p-0">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-end align-items-md-center mb-3">
               <h5 class="mb-4 mb-md-0 align-self-start">
-                Riwayat Transaksi ({{ filteredTransactions.length }})
+                Riwayat Transaksi
               </h5>
 
-              <div class="btn-group border rounded overflow-hidden">
-                <button 
-                  class="btn filter-btn border-0" 
-                  :class="filterType === 'SEMUA' ? 'bg-primary bg-opacity-75 text-white fw-bold' : 'bg-primary bg-opacity-10 text-primary'" 
-                  @click="filterType = 'SEMUA'"
-                >Semua</button>
-                <button 
-                  class="btn filter-btn border-0" 
-                  :class="filterType === 'MODAL' ? 'bg-primary bg-opacity-75 text-white fw-bold' : 'bg-primary bg-opacity-10 text-primary'" 
-                  @click="filterType = 'MODAL'"
-                >Modal</button>
-                <button 
-                  class="btn filter-btn border-0" 
-                  :class="filterType === 'EXPENSE' ? 'bg-primary bg-opacity-75 text-white fw-bold' : 'bg-primary bg-opacity-10 text-primary'" 
-                  @click="filterType = 'EXPENSE'"
-                >Pengeluaran</button>
-                <button 
-                  class="btn filter-btn border-0" 
-                  :class="filterType === 'PENDAPATAN' ? 'bg-primary bg-opacity-75 text-white fw-bold' : 'bg-primary bg-opacity-10 text-primary'" 
-                  @click="filterType = 'PENDAPATAN'"
-                >Pendapatan</button>
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <button
+                  v-for="f in filterOptions"
+                  :key="f.value"
+                  class="btn btn-sm rounded-3 opacity-75 px-3"
+                  :class="filterType === f.value ? 'bg-primary text-white fw-bold' : 'bg-light text-secondary border'"
+                  @click="filterType = f.value"
+                >
+                  {{ f.label }}
+                  <span class="badge ms-1" :class="filterType === f.value ? 'bg-white text-primary' : 'bg-secondary text-white'">
+                    {{ filterCount(f.value) }}
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -632,7 +687,7 @@ onMounted(fetchProject)
           <div v-if="filteredTransactions.length === 0" class="text-center text-disabled py-8">
             <p class="text-body-2">Belum ada transaksi</p>
             <button class="btn btn-primary status-select mt-2" @click="openCreateDialog">
-              + Tambah Transaksi Pertama
+              + Tambah Transaksi Baru
             </button>
           </div>
           </CCardBody>
@@ -719,4 +774,6 @@ onMounted(fetchProject)
           min-width: calc((100% - 1rem) / 2) !important;
       }
   }
+  .snap-container { scroll-snap-type: x mandatory; }
+  .snap-item { scroll-snap-align: start; }
 </style>

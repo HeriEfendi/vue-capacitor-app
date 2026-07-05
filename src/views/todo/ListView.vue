@@ -8,7 +8,7 @@
       </div>
       <button class="btn btn-primary d-flex align-items-center gap-2" @click="openModal()">
         <i class="fas fa-plus"></i>
-        Create Task
+        Create Todo
       </button>
     </div>
 
@@ -17,7 +17,7 @@
       <button
         v-for="f in filters"
         :key="f.value"
-        class="btn btn-sm px-3 py-2"
+        class="btn btn-sm rounded-3 opacity-75 px-3"
         :class="activeFilter === f.value ? 'btn-primary' : 'btn-outline-secondary'"
         @click="activeFilter = f.value"
       >
@@ -90,18 +90,19 @@
 
     <!-- Modal Form -->
     <CModal :visible="modalVisible" @close="modalVisible = false" size="lg">
-      <CModalHeader>{{ isEdit ? 'Edit Task' : 'Create Task' }}</CModalHeader>
+      <CModalHeader>{{ isEdit ? 'Edit Todo Team' : 'Create Todo Team' }}</CModalHeader>
       <CModalBody>
-        <FormView :task="form" @save="saveTask" @cancel="modalVisible = false" />
+        <FormView :task="form" @save="(taskData: any) => saveTask(taskData)" @cancel="modalVisible = false" />
       </CModalBody>
     </CModal>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
 import { CCard, CCardBody, CCardFooter, CRow, CCol, CModal, CModalHeader, CModalBody, CModalFooter } from '@coreui/vue'
-import { TodoRepository, UsersRepository } from '../../db/localStorage'
+import { TeamTodoRepository } from '@/db/teamTodoRepository'
+import { UsersRepository } from '@/db/usersRepository'
 import FormView from './FormView.vue'
 
 export default {
@@ -113,7 +114,9 @@ export default {
     const activeFilter = ref('ALL')
     const modalVisible = ref(false)
     const isEdit = ref(false)
-    const users = ref(UsersRepository.getAll())
+    const users = ref<any[]>([])
+    const loadUsers = async () => { users.value = await UsersRepository.getAll() }
+    loadUsers()
 
     const form = reactive({
       id: null,
@@ -145,12 +148,12 @@ export default {
         modalVisible.value = true
     }
 
-    const saveTask = () => {
-        if (!form.title.trim()) return
-        if (isEdit.value) TodoRepository.update(form.id, { ...form })
-        else TodoRepository.add({ ...form })
+    const saveTask = async (taskData: any) => {
+        if (!taskData.title.trim()) return
+        if (isEdit.value) await TeamTodoRepository.update(form.id, taskData)
+        else await TeamTodoRepository.add(taskData)
         modalVisible.value = false
-        fetchTasks()
+        await fetchTasks()
     }
 
     const filteredTasks = computed(() => {
@@ -163,17 +166,17 @@ export default {
       return tasks.value.filter(t => t.status === filter).length
     }
 
-    const fetchTasks = () => {
+    const fetchTasks = async () => {
       loading.value = true
       try {
-        tasks.value = TodoRepository.getAll()
+        tasks.value = await TeamTodoRepository.getAll()
       } finally {
         loading.value = false
       }
     }
 
-    const updateStatus = (task) => {
-      TodoRepository.updateStatus(task.id, task.status)
+    const updateStatus = async (task: any) => {
+      await TeamTodoRepository.updateStatus(task.id, task.status)
     }
 
     const toggleDone = (task) => {
@@ -181,10 +184,10 @@ export default {
       updateStatus(task)
     }
 
-    const deleteTask = (id) => {
+    const deleteTask = async (id: number) => {
       if (confirm('Yakin ingin menghapus task ini?')) {
-        TodoRepository.delete(id)
-        fetchTasks()
+        await TeamTodoRepository.delete(id)
+        await fetchTasks()
       }
     }
 

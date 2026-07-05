@@ -99,27 +99,27 @@
   </form>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { UsersRepository } from '../../db/localStorage'
+import { UsersRepository } from '@/db/usersRepository'
 
 const props = defineProps(['task'])
 const emit = defineEmits(['save', 'cancel'])
 
 const localForm = ref({ ...props.task })
-const users = ref([])
+const users = ref<any[]>([])
 
 watch(() => props.task, (newVal) => {
     localForm.value = { ...newVal }
 }, { deep: true })
 
-const fetchUsers = () => {
-  users.value = UsersRepository.getAll()
+const fetchUsers = async () => {
+  users.value = await UsersRepository.getAll()
 }
 
 const emitSave = () => {
-    Object.assign(props.task, localForm.value)
-    emit('save')
+    const plainData = JSON.parse(JSON.stringify(localForm.value))
+    emit('save', plainData)
 }
 
 onMounted(fetchUsers)

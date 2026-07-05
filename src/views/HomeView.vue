@@ -19,7 +19,6 @@
 import { ref, onMounted } from 'vue'
 import { CIcon } from '@coreui/icons-vue'
 import { cilTask, cilDescription, cilWallet, cilBasket, cilUser } from '@coreui/icons'
-import { TodoRepository } from '../db/localStorage'
 import { ProductRepository, capitalCostsRepo, CategoryRepository } from '../db/repositories'
 
 export default {
@@ -27,29 +26,38 @@ export default {
   components: { CIcon },
   setup() {
     const menuItems = ref([
-      { name: 'To Do', path: '/todo-personal', icon: cilTask, repo: TodoRepository, count: 0, filter: (d) => d.filter(t => t.type === 'personal' || !t.type).length },
-      { name: 'To Do Team', path: '/todo', icon: cilTask, repo: TodoRepository, count: 0, filter: (d) => d.filter(t => t.type === 'team').length },
-      { name: 'Manajemen Proyek', path: '/catatan_proyek', icon: cilDescription, repo: CategoryRepository, count: 0 },
-      { name: 'Tabungan', path: '/capital', icon: cilWallet, repo: capitalCostsRepo, count: 0 },
-      { name: 'Produk Jadi', path: '/products', icon: cilBasket, repo: ProductRepository, count: 0 },
-      { name: 'Profile', path: '/profile', icon: cilUser, repo: null, count: 0 },
+      { name: 'To Do', path: '/todo-personal', icon: cilTask, count: 0 },
+      { name: 'To Do Team', path: '/todo', icon: cilTask, count: 0 },
+      { name: 'Manajemen Proyek', path: '/catatan_proyek', icon: cilDescription, count: 0 },
+      { name: 'Tabungan', path: '/capital', icon: cilWallet, count: 0 },
+      { name: 'Produk Jadi', path: '/products', icon: cilBasket, count: 0 },
+      { name: 'Profile', path: '/profile', icon: cilUser, count: 0 },
     ])
 
-    const loadCounts = async () => {
-      for (const item of menuItems.value) {
-        if (item.repo) {
-          try {
-            const data = await item.repo.getAll()
-            // Special handling: if CategoryRepository.getAll() returns items in an array, count the length
-            item.count = item.filter ? item.filter(data) : (data ? data.length : 0)
-          } catch (e) {
-            item.count = 0
-          }
-        }
+    const fetchCounts = async () => {
+      try {
+        const { initDB } = await import('@/db')
+        const db = await initDB()
+        const todos = await db.getAll('todos')
+        const teamTodos = await db.getAll('team_todos')
+        const projects = await db.getAll('projects')
+        
+        menuItems.value[0].count = todos.length
+        menuItems.value[1].count = teamTodos.length
+        menuItems.value[2].count = projects.length
+        
+        // Use Dexie repositories for other stores
+        const { capitalCostsRepo, ProductRepository } = await import('../db/repositories')
+        menuItems.value[3].count = (await capitalCostsRepo.getAll()).length
+        menuItems.value[4].count = (await ProductRepository.getAll()).length
+      } catch (e) {
+        console.error('Gagal memuat count:', e)
       }
     }
 
-    onMounted(loadCounts)
+    onMounted(fetchCounts)
+
+
 
     return { menuItems }
   }

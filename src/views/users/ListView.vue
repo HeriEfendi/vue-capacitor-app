@@ -118,7 +118,7 @@ import {
   CTableHeaderCell, CTableDataCell, CModal, CModalHeader, CModalTitle,
   CModalBody, CModalFooter
 } from '@coreui/vue'
-import { UsersRepository } from '../../db/localStorage'
+import { UsersRepository } from '@/db/usersRepository'
 
 export default {
   name: 'UsersListView',
@@ -134,10 +134,10 @@ export default {
     const createDialog = ref(false)
     const newUser = ref({ name: '', email: '' })
 
-    const fetchUsers = () => {
+    const fetchUsers = async () => {
       loading.value = true
       try {
-        users.value = UsersRepository.getAll()
+        users.value = await UsersRepository.getAll()
       } finally {
         loading.value = false
       }
@@ -148,7 +148,7 @@ export default {
       createDialog.value = true
     }
 
-    const saveUser = () => {
+    const saveUser = async () => {
       if (!newUser.value.name || !newUser.value.email) return
       // Check duplicate email
       const existing = users.value.find(u => u.email === newUser.value.email)
@@ -158,18 +158,18 @@ export default {
       }
       saving.value = true
       try {
-        UsersRepository.add(newUser.value)
-        fetchUsers()
+        await UsersRepository.add(newUser.value)
+        await fetchUsers()
         createDialog.value = false
       } finally {
         saving.value = false
       }
     }
 
-    const deleteUser = (id) => {
+    const deleteUser = async (id) => {
       if (confirm('Yakin ingin menghapus user ini? Task yang terkait akan kehilangan assignee/reporter.')) {
-        UsersRepository.delete(id)
-        fetchUsers()
+        await UsersRepository.delete(id)
+        await fetchUsers()
       }
     }
 
