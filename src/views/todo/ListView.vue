@@ -41,7 +41,7 @@
                             </div>
                             <p class="mt-2">{{ task.description }}</p>
                             <div class="d-flex justify-content-between ion-margin-top">
-                                <ion-select v-model="task.status" @ionChange="updateStatus(task)">
+                                <ion-select v-model="task.status" @ionChange="updateStatus(task)" interface="popover">
                                     <ion-select-option value="TO DO">TO DO</ion-select-option>
                                     <ion-select-option value="IN PROGRESS">IN PROGRESS</ion-select-option>
                                     <ion-select-option value="DONE">DONE</ion-select-option>

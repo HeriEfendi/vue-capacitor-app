@@ -1,9 +1,7 @@
 <template>
   <ion-page>
     <AppSidebar />
-    <ion-header>
-      <AppHeader />
-    </ion-header>
+    <AppHeader />
     <ion-content id="main-content">
       <div class="ion-padding">
         <ion-router-outlet />

@@ -1,7 +1,6 @@
 <template>
   <ion-page>
     <ion-content class="ion-padding">
-      <h5 class="fw-bold mb-3 ion-padding-start">MENU</h5>
       <ion-grid>
         <ion-row>
           <ion-col size="6" size-sm="4" size-md="3" size-lg="2" v-for="item in menuItems" :key="item.path">

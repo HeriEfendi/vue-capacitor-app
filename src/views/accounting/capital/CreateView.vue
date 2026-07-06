@@ -33,5 +33,6 @@ export default {
     return { form, onSubmit }
   }
 }
+</script>
 
 

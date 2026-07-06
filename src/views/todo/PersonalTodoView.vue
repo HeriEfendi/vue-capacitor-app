@@ -15,7 +15,7 @@
         <ion-grid>
             <ion-row>
                 <ion-col size="12" size-md="6" size-lg="4" v-for="task in tasks" :key="task.id">
-                    <ion-card>
+                    <ion-card class="my-0">
                         <ion-card-header>
                             <ion-card-title :class="{'text-decoration-line-through': task.status === 'DONE'}">{{ task.title }}</ion-card-title>
                         </ion-card-header>
@@ -25,7 +25,7 @@
                                 <span>{{ task.target_time }} {{ task.due_date ? '| Done: ' + task.due_date : '' }}</span>
                             </div>
                             <div class="d-flex justify-content-between ion-margin-top">
-                                <ion-select v-model="task.status" @ionChange="updateStatus(task)">
+                                <ion-select v-model="task.status" @ionChange="updateStatus(task)" interface="popover">
                                     <ion-select-option value="TO DO">TO DO</ion-select-option>
                                     <ion-select-option value="IN PROGRESS">IN PROGRESS</ion-select-option>
                                     <ion-select-option value="DONE">DONE</ion-select-option>

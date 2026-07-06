@@ -13,7 +13,7 @@
             <ion-item><ion-label position="stacked">Jatuh Tempo</ion-label><ion-input type="date" v-model="form.dueDate" /></ion-item>
             <ion-item>
                 <ion-label position="stacked">Status</ion-label>
-                <ion-select v-model="form.status">
+                <ion-select v-model="form.status" interface="popover">
                     <ion-select-option value="Belum Lunas">Belum Lunas</ion-select-option>
                     <ion-select-option value="Lunas">Lunas</ion-select-option>
                 </ion-select>

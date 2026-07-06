@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx'
 import { initDB } from '@/db'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader } from '@ionic/vue';
 import { addOutline, trashOutline, pencilOutline, closeOutline, cloudUploadOutline, cloudDownloadOutline, listOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import VueApexCharts from "vue3-apexcharts";
 
 interface Transaction {
   id: number
@@ -90,6 +91,13 @@ const filteredTransactions = computed(() => {
   })
 })
 
+const netProfit = computed(() => (project.value as any).panen_total - project.value.total_expenses)
+const roi = computed(() => Math.round(netProfit.value / project.value.total_expenses * 100) || 0)
+
+function getFinancialColor(value: number, positiveColor = '#1565c0') {
+  return value < 0 ? '#c62828' : positiveColor
+}
+
 function formatCurrency(val: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
 }
@@ -98,22 +106,31 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+function getStatusColor(status: string) {
+  if (status === 'Active') return 'success'
+  if (status === 'Finished') return 'medium'
+  return 'light'
+}
+
 async function fetchProject() {
   loading.value = true
   try {
     const db = await initDB()
-    const projects = await db.getAll('projects')
-    if (projects) {
-      let found = projects.find(p => p.id === Number(route.params.id)) || null
-      if (found) {
-        // Recalculate totals
-        const deposits = found.transactions.filter(t => t.type === 'DEPOSIT');
-        (found as any).modal_total = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-        (found as any).panen_total = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-      }
-      project.value = found
+    const projectId = Number(route.params.id)
+    let found = await db.get('projects', projectId)
+    
+    if (found) {
+      // Ensure transactions array exists
+      found.transactions = found.transactions || []
+      
+      // Recalculate totals
+      const deposits = found.transactions.filter(t => t.type === 'DEPOSIT');
+      (found as any).modal_total = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+      (found as any).panen_total = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
     }
-  } catch {
+    project.value = found || null
+  } catch(e) {
+    console.error("Failed to fetch project:", e);
     showSnackbar('Gagal memuat data projek', 'error')
   } finally {
     loading.value = false
@@ -377,8 +394,8 @@ const availableCategories = computed(() => {
 // Chart Options & Logic
 const donutOptions = computed(() => ({
   chart: { 
-    type: 'donut', 
-    height: 250,
+    type: 'donut',
+    height: 300,
     width: '100%' 
   },
   labels: Object.keys(categoryTotals.value),
@@ -417,7 +434,7 @@ const barOptions = computed(() => {
   return {
     chart: { 
       type: 'bar',
-      height: 250,
+      height: 300,
       width: '100%',
       toolbar: { show: false } 
     },
@@ -470,7 +487,7 @@ const chartCarousel = ref(null)
 let interval: any = null
 
 onMounted(() => {
-  if (window.innerWidth < 768) {
+  if (window.innerWidth < 992) { // Use 'lg' breakpoint
     let active = 0
     interval = setInterval(() => {
       active = active === 0 ? 1 : 0
@@ -483,6 +500,7 @@ onMounted(() => {
     }, 5000)
   }
 })
+
 onUnmounted(() => clearInterval(interval))
 </script>
 
@@ -490,64 +508,151 @@ onUnmounted(() => clearInterval(interval))
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-button @click="router.back()">Kembali</ion-button>
-        </ion-buttons>
-        <ion-title>{{ project?.name || 'Detail Proyek' }}</ion-title>
+        <ion-title>
+          <div>
+            {{ project?.name || 'Detail Proyek' }}
+            <ion-badge v-if="project" class="badge-status" :color="getStatusColor(project.status)">{{ project.status }}</ion-badge>
+          </div>
+          <div class="text-muted" style="font-size: 0.8rem; margin-top: 4px;">{{ project?.description || 'Tidak ada deskripsi.' }}</div>
+        </ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="ion-padding">
+      <input ref="fileInput" type="file" @change="onFileChange" accept=".xlsx" style="display: none;" />
       <div v-if="loading" class="ion-text-center">
         <ion-spinner />
       </div>
       <div v-else-if="project">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="text-h4 font-weight-bold">{{ project.name }}</h2>
-          <ion-badge :color="project.status === 'Active' ? 'success' : 'medium'">{{ project.status }}</ion-badge>
-        </div>
-        <p>{{ project.description }}</p>
+        
 
-        <ion-grid>
-          <ion-row>
-            <ion-col size="6" size-sm="3">
-              <ion-card color="success" class="ion-padding">
-                <ion-card-subtitle>Modal</ion-card-subtitle>
-                <ion-card-title>{{ formatCurrency((project as any).modal_total || 0) }}</ion-card-title>
-              </ion-card>
-            </ion-col>
-            <ion-col size="6" size-sm="3">
-              <ion-card color="danger" class="ion-padding">
-                <ion-card-subtitle>Pengeluaran</ion-card-subtitle>
-                <ion-card-title>{{ formatCurrency(project.total_expenses) }}</ion-card-title>
-              </ion-card>
-            </ion-col>
-          </ion-row>
+        <div class="d-flex flex-wrap gap-2 m-3">
+          <ion-button class="btn-action warning" @click="handleImport"><ion-icon :icon="cloudUploadOutline" slot="start" /> Import</ion-button>
+          <ion-button class="btn-action info" @click="downloadTemplate"><ion-icon :icon="listOutline" slot="start" /> Template</ion-button>
+          <ion-button class="btn-action success" @click="exportToExcel"><ion-icon :icon="cloudDownloadOutline" slot="start" /> Export</ion-button>
+          <ion-button @click="openCreateDialog" class="btn-action primary"><ion-icon :icon="addOutline" slot="start" /> Tambah Transaksi</ion-button>
+        </div>
+
+        <ion-grid style="--ion-grid-column-padding: 10px;">
+            <ion-row class="ion-align-items-stretch">
+                <ion-col size="6" size-lg="3">
+                    <div class="summary-card shadow-soft" style="background-color: #e8f5e9;">
+                        <small class="text-muted">Modal</small>
+                        <div class="fw-bold" style="color: #2e7d32;">{{ formatCurrency((project as any).modal_total || 0) }}</div>
+                    </div>
+                </ion-col>
+                <ion-col size="6" size-lg="3">
+                    <div class="summary-card shadow-soft" style="background-color: #ffebee;">
+                        <small class="text-muted">Pengeluaran</small>
+                        <div class="fw-bold" style="color: #c62828; ">{{ formatCurrency(project.total_expenses) }}</div>
+                    </div>
+                </ion-col>
+                <ion-col size="6" size-lg="3">
+                    <div class="summary-card shadow-soft" style="background-color: #e8f5e9;">
+                        <small class="text-muted">Penjualan</small>
+                        <div class="fw-bold mb-2" style="color: #2e7d32; ">{{ formatCurrency((project as any).panen_total || 0) }}</div>
+                        
+                        <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                            <small class="text-muted">ROI</small>
+                            <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ roi }}%</ion-badge>
+                        </div>
+                        <div class="fw-bold" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
+                    </div>
+                </ion-col>
+                <ion-col size="6" size-lg="3">
+                    <div class="summary-card shadow-soft" style="background-color: #e3f2fd;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Keuntungan</small>
+                            <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ Math.round(netProfit / (project as any).panen_total * 100) || 0 }}%</ion-badge>
+                        </div>
+                        <div class="fw-bold border-bottom pb-3" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
+                        
+                        <small class="text-muted">Sisa Modal</small>
+                        <div class="fw-bold" :style="{ color: getFinancialColor(project.balance) }">{{ formatCurrency(project.balance) }}</div>
+                    </div>
+                </ion-col>
+            </ion-row>
         </ion-grid>
 
-        <ion-list>
-          <ion-list-header>Riwayat Transaksi</ion-list-header>
-          <ion-item v-for="tx in filteredTransactions" :key="tx.id">
-            <ion-icon slot="start" :icon="tx.type === 'DEPOSIT' ? checkmarkCircleOutline : listOutline" :color="tx.type === 'DEPOSIT' ? 'success' : 'danger'" />
-            <ion-label>
-              <h2>{{ tx.category }}</h2>
-              <p>{{ formatDate(tx.date) }} - {{ tx.description }}</p>
-            </ion-label>
-            <ion-note slot="end" :color="tx.type === 'DEPOSIT' ? 'success' : 'danger'">
-              {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
-            </ion-note>
-            <ion-button fill="clear" color="medium" @click="openEditDialog(tx)">
-              <ion-icon :icon="pencilOutline" />
-            </ion-button>
-            <ion-button fill="clear" color="danger" @click="dialogDeleteTxId = tx.id">
-              <ion-icon :icon="trashOutline" />
-            </ion-button>
-          </ion-item>
-        </ion-list>
+        <div ref="chartCarousel" class="chart-container m-3">
+            <ion-card class="chart-card">
+              <ion-card-header>
+                <ion-card-title>Arus Kas Keluar per Bulan</ion-card-title>
+              </ion-card-header>
+              <VueApexCharts type="bar" :options="barOptions" :series="barSeries" />
+            </ion-card>
+            <ion-card class="chart-card me-0">
+              <ion-card-header>
+                <ion-card-title>Pengeluaran per Kategori</ion-card-title>
+              </ion-card-header>
+              <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" />
+            </ion-card>
+        </div>
 
-        <ion-button expand="block" @click="openCreateDialog" class="ion-margin-top">Tambah Transaksi</ion-button>
+
+
+        <div class="ion-padding mx-3">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
+            <ion-card-title>Riwayat Transaksi</ion-card-title>
+            <div class="filter-chips">
+              <ion-button class="btn-action primary" :fill="filterType === 'SEMUA' ? 'solid' : 'outline'" @click="filterType = 'SEMUA'" size="small">Semua <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('SEMUA') }}</ion-badge></ion-button>
+              <ion-button class="btn-action primary" :fill="filterType === 'MODAL' ? 'solid' : 'outline'" @click="filterType = 'MODAL'" size="small">Modal <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('MODAL') }}</ion-badge></ion-button>
+              <ion-button class="btn-action primary" :fill="filterType === 'EXPENSE' ? 'solid' : 'outline'" @click="filterType = 'EXPENSE'" size="small">Pengeluaran <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('EXPENSE') }}</ion-badge></ion-button>
+              <ion-button class="btn-action primary" :fill="filterType === 'PENDAPATAN' ? 'solid' : 'outline'" @click="filterType = 'PENDAPATAN'" size="small">Pendapatan <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('PENDAPATAN') }}</ion-badge></ion-button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto pb-2">
+            <div class="d-flex flex-column gap-1">
+              <ion-card v-for="tx in filteredTransactions" :key="tx.id" class="transaction-card">
+                <div class="d-flex align-items-center transaction-inner py-0" :class="tx.type === 'DEPOSIT' ? 'deposit-bg' : 'expense-bg'" style="min-width: max-content;">
+                  <!-- Type -->
+                  <div class="flex-shrink-0" style="width: 60px;">
+                    <span class=" fw-bold" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
+                      {{ tx.type === 'DEPOSIT' ? '▲ In' : '▼ Out' }}
+                    </span>
+                  </div>
+                  <!-- Date -->
+                  <div class="flex-shrink-0" style="width: 100px;">
+                    <span class="text-muted ">{{ formatDate(tx.date) }}</span>
+                  </div>
+                  <!-- Category -->
+                  <div class="flex-shrink-0 text-truncate px-2" style="width: 180px;">
+                    <span class="fw-bold ">{{ tx.category }}</span>
+                  </div>
+                  <!-- Description -->
+                  <div class="flex-grow-1 text-truncate px-2" style="min-width: 180px;">
+                    <span class="text-muted ">{{ tx.description || '-' }}</span>
+                  </div>
+                  <!-- Amount -->
+                  <div class="flex-shrink-0 text-end fw-bold" style="width: 120px;" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
+                    {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
+                  </div>
+                  <!-- Actions -->
+                  <div class="flex-shrink-0 d-flex justify-content-end" style="width: 100px;">
+                    <ion-button fill="clear" expand="block" class="btn-action primary" size="small" @click="openEditDialog(tx)">
+                      <ion-icon :icon="pencilOutline" />
+                    </ion-button>
+                    <ion-button fill="clear" expand="block" class="btn-action danger" size="small" @click="dialogDeleteTxId = tx.id">
+                      <ion-icon :icon="trashOutline" />
+                    </ion-button>
+                  </div>
+                </div>
+              </ion-card>
+            </div>
+          </div>
+          
+          <div v-if="filteredTransactions.length === 0" class="text-center text-muted py-5">
+            <p>Belum ada transaksi</p>
+            <ion-button @click="openCreateDialog" size="small" class="btn-action primary mt-2">
+              + Tambah Transaksi
+            </ion-button>
+          </div>
+
+        </div>
+
       </div>
-      <div v-else>
+      <div v-else class="d-flex justify-content-center align-items-center h-100">
         Proyek tidak ditemukan.
       </div>
     </ion-content>
@@ -565,14 +670,14 @@ onUnmounted(() => clearInterval(interval))
         <ion-content class="ion-padding">
             <ion-item>
                 <ion-label position="stacked">Tipe</ion-label>
-                <ion-select v-model="formTx.type">
+                <ion-select v-model="formTx.type" interface="popover">
                     <ion-select-option value="DEPOSIT">Modal/Pendapatan</ion-select-option>
                     <ion-select-option value="EXPENSE">Pengeluaran</ion-select-option>
                 </ion-select>
             </ion-item>
             <ion-item>
                 <ion-label position="stacked">Kategori</ion-label>
-                <ion-select v-model="formTx.category">
+                <ion-select v-model="formTx.category" interface="popover">
                     <ion-select-option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</ion-select-option>
                 </ion-select>
             </ion-item>
@@ -595,4 +700,67 @@ onUnmounted(() => clearInterval(interval))
   }
   .snap-container { scroll-snap-type: x mandatory; }
   .snap-item { scroll-snap-align: start; }
+  .summary-card {
+    height: 100%;
+  }
+  .chart-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 16px;
+    padding: 0 16px;
+  }
+  .chart-card {
+    min-width: 90%;
+    scroll-snap-align: start;
+  }
+  @media (min-width: 992px) { /* lg breakpoint */
+    .chart-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow-x: hidden;
+    }
+    .chart-card {
+      min-width: auto;
+      width: 100%;
+    }
+  }
+  .filter-chips ion-button {
+    --border-radius: 20px;
+    font-size: 0.8rem;
+  }
+  .transaction-inner {
+    padding: 0.5rem 0.75rem;
+    width: 100%;
+    min-width: max-content;
+  }
+  .deposit-bg {
+    background-color: rgba(var(--ion-color-success-rgb, 46, 204, 113), 0.1);
+  }
+  .expense-bg {
+    background-color: rgba(var(--ion-color-danger-rgb, 231, 76, 60), 0.1);
+  }
+  .text-success {
+    color: var(--ion-color-success);
+  }
+  .text-danger {
+    color: var(--ion-color-danger);
+  }
+  . {
+    font-size: 0.75rem;
+  }
+  .overflow-x-auto {
+    overflow-x: auto;
+  }
+  .transaction-inner {
+    padding: 0.5rem 0.75rem;
+    min-width: max-content;
+  }
+  .small-badge {
+    --padding-start: 4px;
+    --padding-end: 4px;
+    font-size: 0.65rem;
+    min-height: 14px;
+    line-height: 1;
+  }
 </style>
