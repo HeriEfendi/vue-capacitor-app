@@ -1,4 +1,4 @@
-package com.example.vuecapacitorapp;
+package com.heri.projectapp;
 
 import com.getcapacitor.BridgeActivity;
 
