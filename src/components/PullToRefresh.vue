@@ -1,12 +1,15 @@
+<template>
+  <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <slot />
+</template>
+
 <script setup>
-import { onMounted } from 'vue';
-import PullToRefresh from 'pulltorefreshjs';
+import { IonRefresher, IonRefresherContent } from '@ionic/vue';
 
-onMounted(() => {
-  PullToRefresh.init({
-    mainElement: '#app',
-    onRefresh() { window.location.reload(); }
-  });
-});
+const handleRefresh = (event) => {
+  window.location.reload();
+  event.target.complete();
+};
 </script>
-

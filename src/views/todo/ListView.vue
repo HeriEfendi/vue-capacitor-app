@@ -1,92 +1,128 @@
 <template>
-  <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>To Do Team</ion-title>
-        <ion-buttons slot="end">
-            <ion-button @click="openModal()">
-                <ion-icon slot="icon-only" :icon="addOutline" />
+  <ion-page class="app-page">
+    <ion-header class="app-header">
+      <ion-toolbar class="app-toolbar">
+        <div class="app-hero">
+          <div>
+            <p class="eyebrow">Team Tasks</p>
+            <ion-title class="app-hero-title">To Do Team</ion-title>
+            <p class="app-hero-subtitle">Pantau task, prioritas, assignee, dan progress dari layar mobile.</p>
+          </div>
+          <ion-buttons class="app-action-row">
+            <ion-button class="btn-action primary" @click="openModal()">
+              <ion-icon slot="start" :icon="addOutline" /> Task Baru
             </ion-button>
-        </ion-buttons>
+          </ion-buttons>
+        </div>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
-        <div class="d-flex gap-2 mb-3 flex-wrap">
-            <ion-button size="small" v-for="f in filters" :key="f.value" :fill="activeFilter === f.value ? 'solid' : 'outline'" @click="activeFilter = f.value">
-                {{ f.label }}
-            </ion-button>
-        </div>
+    <ion-content class="app-content-wrap">
+      <div class="filter-chip-row">
+        <ion-button
+          v-for="f in filters"
+          :key="f.value"
+          class="chip-btn btn-action primary"
+          :fill="activeFilter === f.value ? 'solid' : 'outline'"
+          @click="activeFilter = f.value"
+        >
+          {{ f.label }}
+          <ion-badge slot="end" class="ms-2">{{ filterCount(f.value) }}</ion-badge>
+        </ion-button>
+      </div>
 
-        <div v-if="loading" class="ion-text-center ion-padding">
-            <ion-spinner />
-        </div>
+      <div v-if="loading" class="loading-state">
+        <ion-spinner />
+        <p>Memuat task...</p>
+      </div>
 
-        <ion-grid v-else-if="filteredTasks.length > 0">
-            <ion-row>
-                <ion-col size="12" size-md="6" size-lg="4" v-for="task in filteredTasks" :key="task.id">
-                    <ion-card>
-                        <ion-card-header>
-                            <div class="d-flex align-items-center">
-                                <ion-checkbox :checked="task.status === 'DONE'" @ionChange="toggleDone(task)" />
-                                <ion-card-title class="ms-2" :class="{'text-decoration-line-through': task.status === 'DONE'}">
-                                    {{ task.work_id }} {{ task.title }}
-                                </ion-card-title>
-                            </div>
-                        </ion-card-header>
-                        <ion-card-content>
-                            <div class="d-flex align-items-center gap-2 text-muted small">
-                                <ion-icon :icon="personCircleOutline" /> {{ task.assignee?.name || 'Unassigned' }}
-                                <ion-icon :icon="calendarOutline" /> {{ task.due_date || 'None' }}
-                            </div>
-                            <p class="mt-2">{{ task.description }}</p>
-                            <div class="d-flex justify-content-between ion-margin-top">
-                                <ion-select v-model="task.status" @ionChange="updateStatus(task)" interface="popover">
-                                    <ion-select-option value="TO DO">TO DO</ion-select-option>
-                                    <ion-select-option value="IN PROGRESS">IN PROGRESS</ion-select-option>
-                                    <ion-select-option value="DONE">DONE</ion-select-option>
-                                </ion-select>
-                                <ion-button fill="clear" color="danger" @click="deleteTask(task.id)">
-                                    <ion-icon :icon="trashOutline" />
-                                </ion-button>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
-                </ion-col>
-            </ion-row>
-        </ion-grid>
-        <div v-else class="ion-text-center ion-padding">Belum ada task.</div>
+      <div v-else-if="filteredTasks.length > 0">
+        <ion-card v-for="task in filteredTasks" :key="task.id" class="mobile-card">
+          <ion-card-header class="mobile-card-header">
+            <div class="mobile-card-top">
+              <ion-checkbox :checked="task.status === 'DONE'" @ionChange="toggleDone(task)" />
+              <span :class="['pill-badge', getStatusClass(task.status)]">{{ task.status }}</span>
+            </div>
+            <ion-card-title class="mobile-card-title" :class="{'text-decoration-line-through': task.status === 'DONE'}">
+              {{ task.work_id }} {{ task.title }}
+            </ion-card-title>
+            <ion-card-subtitle class="mobile-card-subtitle">
+              {{ task.description || 'Tidak ada deskripsi' }}
+            </ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <div class="metric-row">
+              <span class="metric-label">Assignee</span>
+              <span class="metric-value">{{ task.assignee?.name || 'Unassigned' }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Reporter</span>
+              <span class="metric-value">{{ task.reporter?.name || 'Unknown' }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Due Date</span>
+              <span class="metric-value">{{ task.due_date || 'None' }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Story Points</span>
+              <span class="metric-value">{{ task.story_points || 0 }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Priority</span>
+              <span :class="['pill-badge', String(task.priority || 'Medium').toLowerCase()]">{{ task.priority || 'Medium' }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Label</span>
+              <span class="metric-value">{{ task.label || '-' }}</span>
+            </div>
+
+            <div class="mobile-card-footer mt-3">
+              <ion-select v-model="task.status" @ionChange="updateStatus(task)" interface="popover" class="status-select">
+                <ion-select-option value="TO DO">TO DO</ion-select-option>
+                <ion-select-option value="IN PROGRESS">IN PROGRESS</ion-select-option>
+                <ion-select-option value="DONE">DONE</ion-select-option>
+              </ion-select>
+              <ion-button fill="clear" color="danger" class="icon-btn" @click="deleteTask(task.id)">
+                <ion-icon :icon="trashOutline" />
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div v-else class="empty-state">Belum ada task.</div>
     </ion-content>
 
     <ion-modal :is-open="modalVisible" @didDismiss="modalVisible = false">
-        <ion-header>
-            <ion-toolbar>
-                <ion-title>{{ isEdit ? 'Edit Todo Team' : 'Create Todo Team' }}</ion-title>
-                <ion-buttons slot="end">
-                    <ion-button @click="modalVisible = false"><ion-icon :icon="closeOutline" /></ion-button>
-                </ion-buttons>
-            </ion-toolbar>
-        </ion-header>
-        <ion-content class="ion-padding">
-            <FormView :task="form" @save="(taskData: any) => saveTask(taskData)" @cancel="modalVisible = false" />
-        </ion-content>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ isEdit ? 'Edit Todo Team' : 'Create Todo Team' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click="modalVisible = false"><ion-icon :icon="closeOutline" /></ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <FormView :task="form" @save="(taskData: any) => saveTask(taskData)" @cancel="modalVisible = false" />
+      </ion-content>
     </ion-modal>
   </ion-page>
 </template>
 
 <script lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonModal, IonButtons, IonItem, IonLabel, IonCheckbox, IonSpinner, IonBadge, IonSelect, IonSelectOption, IonList, IonNote } from '@ionic/vue';
-import { addOutline, trashOutline, pencilOutline, closeOutline, personCircleOutline, calendarOutline, tagOutline } from 'ionicons/icons';
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonModal, IonButtons, IonCheckbox, IonSpinner, IonBadge, IonSelect, IonSelectOption } from '@ionic/vue';
+import { addOutline, trashOutline, closeOutline } from 'ionicons/icons';
 import { TeamTodoRepository } from '@/db/teamTodoRepository'
 import { UsersRepository } from '@/db/usersRepository'
 import FormView from './FormView.vue'
 
 export default {
   name: 'TodoListView',
-  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonModal, IonButtons, IonItem, IonLabel, IonCheckbox, IonSpinner, IonBadge, IonSelect, IonSelectOption, IonList, IonNote, FormView },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonModal, IonButtons, IonCheckbox, IonSpinner, IonBadge, IonSelect, IonSelectOption, FormView },
   setup() {
-    const tasks = ref([])
+    const tasks = ref<any[]>([])
     const loading = ref(false)
     const activeFilter = ref('ALL')
     const modalVisible = ref(false)
@@ -115,22 +151,19 @@ export default {
       { label: 'Done', value: 'DONE' },
     ]
 
-    const openModal = (task = null) => {
-        isEdit.value = !!task
-        if(task) {
-            Object.assign(form, task)
-        } else {
-            Object.assign(form, { id: null, title: '', assignee_id: null, reporter_id: null, story_points: 1, priority: 'Medium', status: 'TO DO', due_date: '', label: '', description: '' })
-        }
-        modalVisible.value = true
+    const openModal = (task: any = null) => {
+      isEdit.value = !!task
+      if (task) Object.assign(form, task)
+      else Object.assign(form, { id: null, title: '', assignee_id: null, reporter_id: null, story_points: 1, priority: 'Medium', status: 'TO DO', due_date: '', label: '', description: '' })
+      modalVisible.value = true
     }
 
     const saveTask = async (taskData: any) => {
-        if (!taskData.title.trim()) return
-        if (isEdit.value) await TeamTodoRepository.update(form.id, taskData)
-        else await TeamTodoRepository.add(taskData)
-        modalVisible.value = false
-        await fetchTasks()
+      if (!taskData.title.trim()) return
+      if (isEdit.value) await TeamTodoRepository.update(form.id, taskData)
+      else await TeamTodoRepository.add(taskData)
+      modalVisible.value = false
+      await fetchTasks()
     }
 
     const filteredTasks = computed(() => {
@@ -138,10 +171,7 @@ export default {
       return tasks.value.filter(t => t.status === activeFilter.value)
     })
 
-    const filterCount = (filter) => {
-      if (filter === 'ALL') return tasks.value.length
-      return tasks.value.filter(t => t.status === filter).length
-    }
+    const filterCount = (filter: string) => filter === 'ALL' ? tasks.value.length : tasks.value.filter(t => t.status === filter).length
 
     const fetchTasks = async () => {
       loading.value = true
@@ -152,90 +182,17 @@ export default {
       }
     }
 
-    const updateStatus = async (task: any) => {
-      await TeamTodoRepository.updateStatus(task.id, task.status)
-    }
-
-    const toggleDone = (task) => {
-      task.status = task.status === 'DONE' ? 'TO DO' : 'DONE'
-      updateStatus(task)
-    }
-
-    const deleteTask = async (id: number) => {
-      if (confirm('Yakin ingin menghapus task ini?')) {
-        await TeamTodoRepository.delete(id)
-        await fetchTasks()
-      }
-    }
-
-    const getPriorityIcon = (priority) => {
-      const map = {
-        Highest: 'fas fa-angle-double-up',
-        High: 'fas fa-angle-up',
-        Medium: 'fas fa-minus',
-        Low: 'fas fa-angle-down',
-      }
-      return map[priority] || 'fas fa-minus'
-    }
-
-    const getPriorityColor = (priority) => {
-      const map = {
-        Highest: '#c62828',
-        High: '#e53935',
-        Medium: '#fb8c00',
-        Low: '#1e88e5',
-      }
-      return map[priority] || '#757575'
-    }
-
-    const getStatusClass = (status) => {
-      const map = {
-        'TO DO': 'status-todo',
-        'IN PROGRESS': 'status-inprogress',
-        'DONE': 'status-done',
-      }
-      return map[status] || ''
-    }
+    const updateStatus = async (task: any) => { await TeamTodoRepository.updateStatus(task.id, task.status) }
+    const toggleDone = (task: any) => { task.status = task.status === 'DONE' ? 'TO DO' : 'DONE'; updateStatus(task) }
+    const deleteTask = async (id: number) => { if (confirm('Yakin ingin menghapus task ini?')) { await TeamTodoRepository.delete(id); await fetchTasks() } }
+    const getStatusClass = (status: string) => ({ 'TO DO': 'todo', 'IN PROGRESS': 'progress', DONE: 'done' } as any)[status] || ''
 
     onMounted(fetchTasks)
 
-    return {
-      tasks, loading, activeFilter, filters, filteredTasks, filterCount,
-      fetchTasks, updateStatus, toggleDone, deleteTask,
-      openModal, saveTask, isEdit, modalVisible, form,
-      addOutline, trashOutline, pencilOutline
-    }
+    return { tasks, loading, activeFilter, filters, filteredTasks, filterCount, updateStatus, toggleDone, deleteTask, openModal, saveTask, isEdit, modalVisible, form, addOutline, trashOutline, closeOutline, getStatusClass }
   }
 }
 </script>
 
 <style scoped>
-.task-table th, .task-table td {
-  padding: 8px 12px;
-  white-space: nowrap;
-}
-.task-table tbody tr:hover {
-  background-color: rgba(0,0,0,.03);
-}
-
-.status-select {
-  border-radius: 4px;
-  padding: 2px 4px;
-  height: auto;
-}
-.status-todo {
-  background-color: #e8eaf6;
-  color: #3949ab;
-  border-color: #9fa8da;
-}
-.status-inprogress {
-  background-color: #fff3e0;
-  color: #e65100;
-  border-color: #ffcc80;
-}
-.status-done {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-  border-color: #a5d6a7;
-}
 </style>

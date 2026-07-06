@@ -1,74 +1,92 @@
 <template>
-  <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>Personal Tasks</ion-title>
-        <ion-buttons slot="end">
-            <ion-button @click="dialogVisible = true">
-                <ion-icon slot="icon-only" :icon="addOutline" />
+  <ion-page class="app-page">
+    <ion-header class="app-header">
+      <ion-toolbar class="app-toolbar">
+        <div class="app-hero">
+          <div>
+            <p class="eyebrow">Personal Tasks</p>
+            <ion-title class="app-hero-title">Personal Todo</ion-title>
+            <p class="app-hero-subtitle">Kelola task pribadi dengan tampilan mobile yang lebih rapi dan konsisten.</p>
+          </div>
+          <ion-buttons class="app-action-row">
+            <ion-button class="btn-action primary" @click="dialogVisible = true">
+              <ion-icon slot="start" :icon="addOutline" /> Task Baru
             </ion-button>
-        </ion-buttons>
+          </ion-buttons>
+        </div>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
-        <ion-grid>
-            <ion-row>
-                <ion-col size="12" size-md="6" size-lg="4" v-for="task in tasks" :key="task.id">
-                    <ion-card class="my-0">
-                        <ion-card-header>
-                            <ion-card-title :class="{'text-decoration-line-through': task.status === 'DONE'}">{{ task.title }}</ion-card-title>
-                        </ion-card-header>
-                        <ion-card-content>
-                            <div class="d-flex align-items-center gap-2 text-muted">
-                                <ion-icon :icon="timeOutline" />
-                                <span>{{ task.target_time }} {{ task.due_date ? '| Done: ' + task.due_date : '' }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between ion-margin-top">
-                                <ion-select v-model="task.status" @ionChange="updateStatus(task)" interface="popover">
-                                    <ion-select-option value="TO DO">TO DO</ion-select-option>
-                                    <ion-select-option value="IN PROGRESS">IN PROGRESS</ion-select-option>
-                                    <ion-select-option value="DONE">DONE</ion-select-option>
-                                </ion-select>
-                                <ion-button fill="clear" color="danger" @click="removeTask(task.id)">
-                                    <ion-icon :icon="trashOutline" />
-                                </ion-button>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
-                </ion-col>
-            </ion-row>
-        </ion-grid>
+    <ion-content class="app-content-wrap">
+      <div v-if="tasks.length" class="task-stack">
+        <ion-card v-for="task in tasks" :key="task.id" class="mobile-card">
+          <ion-card-header class="mobile-card-header">
+            <div class="mobile-card-top">
+              <span :class="['pill-badge', getStatusClass(task.status)]">{{ task.status }}</span>
+              <ion-button fill="clear" color="danger" class="icon-btn" @click="removeTask(task.id)">
+                <ion-icon :icon="trashOutline" />
+              </ion-button>
+            </div>
+            <ion-card-title class="mobile-card-title" :class="{'text-decoration-line-through': task.status === 'DONE'}">
+              {{ task.title }}
+            </ion-card-title>
+            <ion-card-subtitle class="mobile-card-subtitle">
+              {{ task.target_time || 'Target belum diisi' }}
+            </ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <div class="metric-row">
+              <span class="metric-label">Target Time</span>
+              <span class="metric-value">{{ task.target_time || '-' }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Due Date</span>
+              <span class="metric-value">{{ task.due_date || '-' }}</span>
+            </div>
+
+            <div class="mobile-card-footer mt-3">
+              <ion-select v-model="task.status" @ionChange="updateStatus(task)" interface="popover" class="status-select">
+                <ion-select-option value="TO DO">TO DO</ion-select-option>
+                <ion-select-option value="IN PROGRESS">IN PROGRESS</ion-select-option>
+                <ion-select-option value="DONE">DONE</ion-select-option>
+              </ion-select>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div v-else class="empty-state">Belum ada task.</div>
     </ion-content>
 
     <ion-modal :is-open="dialogVisible" @didDismiss="dialogVisible = false">
-        <ion-header>
-            <ion-toolbar>
-                <ion-title>Add New Todo</ion-title>
-                <ion-buttons slot="end">
-                    <ion-button @click="dialogVisible = false"><ion-icon :icon="closeOutline" /></ion-button>
-                </ion-buttons>
-            </ion-toolbar>
-        </ion-header>
-        <ion-content class="ion-padding">
-            <ion-item>
-                <ion-label position="stacked">Title</ion-label>
-                <ion-input v-model="newTask.title" placeholder="Task title..." />
-            </ion-item>
-            <ion-item>
-                <ion-label position="stacked">Target</ion-label>
-                <ion-input v-model="newTask.target_time" placeholder="2 days" />
-            </ion-item>
-            <ion-button expand="block" class="ion-margin-top" @click="addTask">Save Todo</ion-button>
-        </ion-content>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Add New Todo</ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click="dialogVisible = false"><ion-icon :icon="closeOutline" /></ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <ion-item>
+          <ion-label position="stacked">Title</ion-label>
+          <ion-input v-model="newTask.title" placeholder="Task title..." />
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Target</ion-label>
+          <ion-input v-model="newTask.target_time" placeholder="2 days" />
+        </ion-item>
+        <ion-button expand="block" class="ion-margin-top btn-action primary" @click="addTask">Save Todo</ion-button>
+      </ion-content>
     </ion-modal>
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonModal, IonButtons, IonItem, IonLabel, IonCheckbox, IonSelect, IonSelectOption, IonList, IonNote, IonInput } from '@ionic/vue';
-import { addOutline, trashOutline, closeOutline, timeOutline } from 'ionicons/icons';
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonModal, IonButtons, IonItem, IonLabel, IonSelect, IonSelectOption, IonInput } from '@ionic/vue';
+import { addOutline, trashOutline, closeOutline } from 'ionicons/icons';
 import { TodoRepository } from '@/db/todoRepository'
 
 const tasks = ref<any[]>([])
@@ -81,14 +99,14 @@ const loadTasks = async () => {
 }
 
 const updateStatus = async (task: any) => {
-  const update = { status: task.status }
-  
+  const update: any = { status: task.status }
+
   if (task.status === 'IN PROGRESS') {
-      update.due_date = new Date().toLocaleDateString()
+    update.due_date = new Date().toLocaleDateString()
   } else if (task.status === 'TO DO') {
-      update.due_date = ''
+    update.due_date = ''
   }
-  
+
   await TodoRepository.update(task.id, update)
   await loadTasks()
 }
@@ -111,11 +129,11 @@ const removeTask = async (id: number) => {
   await loadTasks()
 }
 
-const getStatusClass = (status) => {
-  const map = {
-    'TO DO': 'status-todo',
-    'IN PROGRESS': 'status-inprogress',
-    'DONE': 'status-done',
+const getStatusClass = (status: string) => {
+  const map: Record<string, string> = {
+    'TO DO': 'todo',
+    'IN PROGRESS': 'progress',
+    'DONE': 'done',
   }
   return map[status] || ''
 }

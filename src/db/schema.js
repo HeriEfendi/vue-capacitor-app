@@ -41,7 +41,7 @@ export async function seedDatabase() {
         price: Math.floor(Math.random() * 100000) + 20000,
         stock: Math.floor(Math.random() * 100) + 10,
         description: `Deskripsi produk makanan ${i}. Ini adalah produk unggulan dari UMKM kami.`,
-        image: `https://placehold.co/200x150/random`,
+        image: '404',
         categoryId: 1,
         featured: 0 // 0 means not featured by default
       });

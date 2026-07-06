@@ -340,3 +340,207 @@ ion-header {
   border-radius: 8px !important;
 }
 
+/* Reusable mobile app surface */
+.app-page {
+  --background: linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%);
+}
+
+.app-header,
+.app-toolbar {
+  --background: #ecf3fd !important;
+  background: #ecf3fd !important;
+  color: #1f2937;
+}
+
+.app-hero {
+  padding: 16px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.app-hero-title {
+  padding: 0;
+  color: #1f2937;
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.app-hero-subtitle {
+  margin: 8px 0 0;
+  max-width: 34rem;
+  color: #64748b;
+  font-size: .92rem;
+  line-height: 1.45;
+}
+
+.app-content-wrap {
+  padding: 14px 6px 24px;
+}
+
+.app-action-row,
+.filter-chip-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 8px 12px;
+  scrollbar-width: none;
+}
+
+.app-action-row::-webkit-scrollbar,
+.filter-chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-card {
+  margin: 0 8px 14px;
+  overflow: hidden;
+  border-radius: 22px !important;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, .08) !important;
+  backdrop-filter: blur(12px);
+}
+
+.mobile-card-header {
+  padding-bottom: 8px;
+}
+
+.mobile-card-top,
+.mobile-card-footer,
+.metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobile-card-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  margin-top: 8px;
+  color: #0f172a;
+}
+
+.mobile-card-subtitle {
+  margin-top: 6px;
+  font-size: .92rem;
+  color: #64748b;
+  white-space: normal;
+}
+
+.metric-row {
+  margin: 10px 0;
+  font-size: .94rem;
+}
+
+.metric-label {
+  color: #64748b;
+}
+
+.metric-value {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.chip-btn {
+  --border-radius: 999px !important;
+  flex: 0 0 auto;
+  min-height: 36px;
+  font-weight: 700;
+}
+
+.icon-btn {
+  --border-radius: 14px !important;
+  height: 36px;
+  width: 36px;
+}
+
+.stat-card {
+  padding: 14px;
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #0f172a;
+}
+
+.stat-green { background: linear-gradient(135deg, #dcfce7 0%, #ecfdf5 100%); }
+.stat-red { background: linear-gradient(135deg, #fee2e2 0%, #fff1f2 100%); }
+.stat-blue { background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%); }
+.stat-purple { background: linear-gradient(135deg, #ede9fe 0%, #f5f3ff 100%); }
+.stat-amber { background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%); }
+
+.stat-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stat-value {
+  margin-top: 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 800;
+}
+
+.pill-badge.todo { background: #e0e7ff; color: #3730a3; }
+.pill-badge.progress { background: #ffedd5; color: #9a3412; }
+.pill-badge.done { background: #dcfce7; color: #166534; }
+.pill-badge.highest, .pill-badge.high { background: #fee2e2; color: #991b1b; }
+.pill-badge.medium { background: #fef3c7; color: #92400e; }
+.pill-badge.low { background: #dbeafe; color: #1d4ed8; }
+
+.empty-state,
+.loading-state {
+  padding: 44px 16px;
+  text-align: center;
+  color: #64748b;
+}
+
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  color: #1f2937;
+  font-size: .88rem;
+  font-weight: 800;
+}
+
+.app-control {
+  --background: #f8fbff;
+  --border-color: #dbeafe;
+  --border-radius: 14px;
+  --padding-start: 12px;
+  min-height: 44px;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  background: #f8fbff;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 8px 14px;
+}

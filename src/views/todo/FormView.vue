@@ -1,100 +1,98 @@
 <template>
-  <form @submit.prevent="emitSave">
-    <!-- Title -->
-    <div class="mb-3">
+  <form class="todo-form" @submit.prevent="emitSave">
+    <section class="mobile-card form-section">
       <label class="form-label fw-semibold">Task Title / Work Description <span class="text-danger">*</span></label>
       <input
         v-model="localForm.title"
         type="text"
-        class="form-control"
+        class="form-control app-control"
         placeholder="Deskripsi pekerjaan..."
         required
       />
-    </div>
+    </section>
 
-    <!-- Assignee & Reporter -->
-    <div class="row mb-3">
-      <div class="col-md-6 mb-3 mb-md-0">
-        <label class="form-label fw-semibold">Assignee</label>
-        <select v-model="localForm.assignee_id" class="form-select">
-          <option :value="null">-- Pilih Assignee --</option>
-          <option v-for="user in users" :key="user.id" :value="user.id">
-            {{ user.name }}
-          </option>
-        </select>
+    <section class="mobile-card form-section">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Assignee</label>
+          <select v-model="localForm.assignee_id" class="form-select app-control">
+            <option :value="null">-- Pilih Assignee --</option>
+            <option v-for="user in users" :key="user.id" :value="user.id">
+              {{ user.name }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Reporter</label>
+          <select v-model="localForm.reporter_id" class="form-select app-control">
+            <option :value="null">-- Pilih Reporter --</option>
+            <option v-for="user in users" :key="user.id" :value="user.id">
+              {{ user.name }}
+            </option>
+          </select>
+        </div>
       </div>
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Reporter</label>
-        <select v-model="localForm.reporter_id" class="form-select">
-          <option :value="null">-- Pilih Reporter --</option>
-          <option v-for="user in users" :key="user.id" :value="user.id">
-            {{ user.name }}
-          </option>
-        </select>
-      </div>
-    </div>
+    </section>
 
-    <!-- Story Points / Priority / Status -->
-    <div class="row mb-3">
-      <div class="col-4">
-        <label class="form-label fw-semibold">Story Points</label>
-        <input
-          v-model.number="localForm.story_points"
-          type="number"
-          min="1"
-          max="100"
-          class="form-control"
-          required
-        />
+    <section class="mobile-card form-section">
+      <div class="row g-3">
+        <div class="col-4">
+          <label class="form-label fw-semibold">Points</label>
+          <input
+            v-model.number="localForm.story_points"
+            type="number"
+            min="1"
+            max="100"
+            class="form-control app-control"
+            required
+          />
+        </div>
+        <div class="col-4">
+          <label class="form-label fw-semibold">Priority</label>
+          <select v-model="localForm.priority" class="form-select app-control">
+            <option>Highest</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label class="form-label fw-semibold">Status</label>
+          <select v-model="localForm.status" class="form-select app-control">
+            <option>TO DO</option>
+            <option>IN PROGRESS</option>
+            <option>DONE</option>
+          </select>
+        </div>
       </div>
-      <div class="col-4">
-        <label class="form-label fw-semibold">Priority</label>
-        <select v-model="localForm.priority" class="form-select">
-          <option>Highest</option>
-          <option>High</option>
-          <option>Medium</option>
-          <option>Low</option>
-        </select>
-      </div>
-      <div class="col-4">
-        <label class="form-label fw-semibold">Status</label>
-        <select v-model="localForm.status" class="form-select">
-          <option>TO DO</option>
-          <option>IN PROGRESS</option>
-          <option>DONE</option>
-        </select>
-      </div>
-    </div>
+    </section>
 
-    <!-- Due Date & Label -->
-    <div class="row mb-3">
-      <div class="col-md-6 mb-3 mb-md-0">
-        <label class="form-label fw-semibold">Due Date</label>
-        <input v-model="localForm.due_date" type="date" class="form-control" />
+    <section class="mobile-card form-section">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Due Date</label>
+          <input v-model="localForm.due_date" type="date" class="form-control app-control" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Label</label>
+          <input
+            v-model="localForm.label"
+            type="text"
+            class="form-control app-control"
+            placeholder="e.g. env-staging, ui, backend"
+          />
+        </div>
       </div>
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Label</label>
-        <input
-          v-model="localForm.label"
-          type="text"
-          class="form-control"
-          placeholder="e.g. env-staging, ui, backend"
-        />
-      </div>
-    </div>
-    
-    <!-- Description -->
-    <div class="mb-4">
-        <label class="form-label fw-semibold">Description</label>
-        <textarea v-model="localForm.description" class="form-control" style="height: 200px;" placeholder="Tulis detail tugas..."></textarea>
-    </div>
+    </section>
 
-    <!-- Buttons -->
-    <div class="d-flex justify-content-end gap-2">
-      <button type="button" class="btn btn-outline-secondary" @click="$emit('cancel')">Cancel</button>
-      <button type="submit" class="btn btn-primary d-flex align-items-center gap-2">
-        Save Changes
-      </button>
+    <section class="mobile-card form-section">
+      <label class="form-label fw-semibold">Description</label>
+      <textarea v-model="localForm.description" class="form-control app-control description-control" placeholder="Tulis detail tugas..."></textarea>
+    </section>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-action light" @click="$emit('cancel')">Cancel</button>
+      <button type="submit" class="btn btn-action primary">Save Changes</button>
     </div>
   </form>
 </template>
@@ -110,7 +108,7 @@ const localForm = ref({ ...props.task })
 const users = ref<any[]>([])
 
 watch(() => props.task, (newVal) => {
-    localForm.value = { ...newVal }
+  localForm.value = { ...newVal }
 }, { deep: true })
 
 const fetchUsers = async () => {
@@ -118,9 +116,54 @@ const fetchUsers = async () => {
 }
 
 const emitSave = () => {
-    const plainData = JSON.parse(JSON.stringify(localForm.value))
-    emit('save', plainData)
+  const plainData = JSON.parse(JSON.stringify(localForm.value))
+  emit('save', plainData)
 }
 
 onMounted(fetchUsers)
 </script>
+
+<style scoped>
+.todo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-section {
+  margin: 0;
+  padding: 16px;
+}
+
+.form-label {
+  color: #1f2937;
+  font-size: .88rem;
+}
+
+.app-control {
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  background: #f8fbff;
+  min-height: 44px;
+}
+
+.description-control {
+  min-height: 160px;
+}
+
+.form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px 0 4px;
+  background: linear-gradient(180deg, rgba(248,251,255,0), #f8fbff 40%);
+}
+
+.form-actions .btn {
+  min-height: 44px;
+  font-weight: 800;
+}
+</style>

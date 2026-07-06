@@ -31,7 +31,7 @@ export default {
     const title = 'Selamat Datang di UMKM Marketplace'
     const description = 'Temukan produk-produk berkualitas dari UMKM lokal Indonesia'
     const buttonText = 'Mulai Belanja'
-    const heroImage = 'https://placehold.co/600x400'
+    const heroImage = '404'
     const imageAlt = 'Hero Image'
     
     const onShopNow = () => {

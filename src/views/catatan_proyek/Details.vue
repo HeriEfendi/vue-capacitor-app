@@ -1,11 +1,13 @@
+
+
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import * as XLSX from 'xlsx'
+import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
+import { useRoute } from 'vue-router'
 import { initDB } from '@/db'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader } from '@ionic/vue';
 import { addOutline, trashOutline, pencilOutline, closeOutline, cloudUploadOutline, cloudDownloadOutline, listOutline, checkmarkCircleOutline } from 'ionicons/icons';
-import VueApexCharts from "vue3-apexcharts";
+const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
+
 
 interface Transaction {
   id: number
@@ -30,7 +32,7 @@ interface Project {
 }
 
 const route = useRoute()
-const router = useRouter()
+
 
 const project = ref<Project | null>(null)
 const loading = ref(false)
@@ -268,6 +270,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 function handleImport() { fileInput.value?.click() }
 
 async function onFileChange(e: Event) {
+
   const target = e.target as HTMLInputElement
   if (!target.files?.length) return
   const file = target.files[0]
@@ -333,7 +336,8 @@ function getGuideData() {
   ]
 }
 
-function downloadTemplate() {
+async function downloadTemplate() {
+  const XLSX = await import('xlsx');
   const ws = XLSX.utils.aoa_to_sheet([
     ['Tipe', 'Kategori', 'Nominal', 'Tanggal (DD/MM/YYYY)', 'Deskripsi'],
     ['DEPOSIT', 'Modal Awal', 1000000, '01/07/2026', 'Modal Awal'],
@@ -350,8 +354,11 @@ function downloadTemplate() {
   XLSX.writeFile(wb, 'Tamplate Manajemen Proyek.xlsx')
 }
 
-function exportToExcel() {
+async function exportToExcel() {
+  const XLSX = await import('xlsx');
   const data = project.value!.transactions.map(t => ({
+
+
     Tipe: t.type,
     Kategori: t.category,
     Nominal: t.amount,
@@ -526,64 +533,64 @@ onUnmounted(() => clearInterval(interval))
       <div v-else-if="project">
         
 
-        <div class="d-flex flex-wrap gap-2 m-3">
-          <ion-button class="btn-action warning" @click="handleImport"><ion-icon :icon="cloudUploadOutline" slot="start" /> Import</ion-button>
-          <ion-button class="btn-action info" @click="downloadTemplate"><ion-icon :icon="listOutline" slot="start" /> Template</ion-button>
-          <ion-button class="btn-action success" @click="exportToExcel"><ion-icon :icon="cloudDownloadOutline" slot="start" /> Export</ion-button>
-          <ion-button @click="openCreateDialog" class="btn-action primary"><ion-icon :icon="addOutline" slot="start" /> Tambah Transaksi</ion-button>
+        <div class="project-actions d-grid gap-2 m-3 m-md-3">
+          <ion-button class="btn-action warning action-btn" @click="handleImport"><ion-icon :icon="cloudUploadOutline" slot="start" /> Import</ion-button>
+          <ion-button class="btn-action info action-btn" @click="downloadTemplate"><ion-icon :icon="listOutline" slot="start" /> Template</ion-button>
+          <ion-button class="btn-action success action-btn" @click="exportToExcel"><ion-icon :icon="cloudDownloadOutline" slot="start" /> Export</ion-button>
+          <ion-button @click="openCreateDialog" class="btn-action primary action-btn"><ion-icon :icon="addOutline" slot="start" /> Tambah Transaksi</ion-button>
         </div>
 
-        <ion-grid style="--ion-grid-column-padding: 10px;">
-            <ion-row class="ion-align-items-stretch">
-                <ion-col size="6" size-lg="3">
-                    <div class="summary-card shadow-soft" style="background-color: #e8f5e9;">
+        <ion-grid>
+            <ion-row>
+                <ion-col size="6" size-lg="2">
+                    <div class="summary-card summary-card--green shadow-soft">
                         <small class="text-muted">Modal</small>
-                        <div class="fw-bold" style="color: #2e7d32;">{{ formatCurrency((project as any).modal_total || 0) }}</div>
+                        <div class="summary-value summary-value--green">{{ formatCurrency((project as any).modal_total || 0) }}</div>
                     </div>
                 </ion-col>
-                <ion-col size="6" size-lg="3">
-                    <div class="summary-card shadow-soft" style="background-color: #ffebee;">
+                <ion-col size="6" size-lg="2">
+                    <div class="summary-card summary-card--red shadow-soft">
                         <small class="text-muted">Pengeluaran</small>
-                        <div class="fw-bold" style="color: #c62828; ">{{ formatCurrency(project.total_expenses) }}</div>
+                        <div class="summary-value summary-value--red">{{ formatCurrency(project.total_expenses) }}</div>
                     </div>
                 </ion-col>
-                <ion-col size="6" size-lg="3">
-                    <div class="summary-card shadow-soft" style="background-color: #e8f5e9;">
+                <ion-col size="6" size-lg="2">
+                    <div class="summary-card summary-card--green shadow-soft">
                         <small class="text-muted">Penjualan</small>
-                        <div class="fw-bold mb-2" style="color: #2e7d32; ">{{ formatCurrency((project as any).panen_total || 0) }}</div>
+                        <div class="summary-value summary-value--green mb-2">{{ formatCurrency((project as any).panen_total || 0) }}</div>
                         
                         <div class="d-flex justify-content-between align-items-center border-top pt-2">
                             <small class="text-muted">ROI</small>
                             <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ roi }}%</ion-badge>
                         </div>
-                        <div class="fw-bold" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
+                        <div class="summary-profit" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
                     </div>
                 </ion-col>
-                <ion-col size="6" size-lg="3">
-                    <div class="summary-card shadow-soft" style="background-color: #e3f2fd;">
+                <ion-col size="6" size-lg="2">
+                    <div class="summary-card summary-card--blue shadow-soft">
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">Keuntungan</small>
                             <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ Math.round(netProfit / (project as any).panen_total * 100) || 0 }}%</ion-badge>
                         </div>
-                        <div class="fw-bold border-bottom pb-3" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
+                        <div class="summary-profit summary-profit--border" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
                         
                         <small class="text-muted">Sisa Modal</small>
-                        <div class="fw-bold" :style="{ color: getFinancialColor(project.balance) }">{{ formatCurrency(project.balance) }}</div>
+                        <div class="summary-value summary-value--blue">{{ formatCurrency(project.balance) }}</div>
                     </div>
                 </ion-col>
             </ion-row>
         </ion-grid>
 
         <div ref="chartCarousel" class="chart-container m-3">
-            <ion-card class="chart-card">
+            <ion-card class="chart-card chart-card--wide">
               <ion-card-header>
-                <ion-card-title>Arus Kas Keluar per Bulan</ion-card-title>
+                <ion-card-title class="chart-title">Arus Kas Keluar per Bulan</ion-card-title>
               </ion-card-header>
               <VueApexCharts type="bar" :options="barOptions" :series="barSeries" />
             </ion-card>
-            <ion-card class="chart-card me-0">
+            <ion-card class="chart-card chart-card--wide me-0">
               <ion-card-header>
-                <ion-card-title>Pengeluaran per Kategori</ion-card-title>
+                <ion-card-title class="chart-title">Pengeluaran per Kategori</ion-card-title>
               </ion-card-header>
               <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" />
             </ion-card>
@@ -591,49 +598,39 @@ onUnmounted(() => clearInterval(interval))
 
 
 
-        <div class="ion-padding mx-3">
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
-            <ion-card-title>Riwayat Transaksi</ion-card-title>
-            <div class="filter-chips">
-              <ion-button class="btn-action primary" :fill="filterType === 'SEMUA' ? 'solid' : 'outline'" @click="filterType = 'SEMUA'" size="small">Semua <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('SEMUA') }}</ion-badge></ion-button>
-              <ion-button class="btn-action primary" :fill="filterType === 'MODAL' ? 'solid' : 'outline'" @click="filterType = 'MODAL'" size="small">Modal <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('MODAL') }}</ion-badge></ion-button>
-              <ion-button class="btn-action primary" :fill="filterType === 'EXPENSE' ? 'solid' : 'outline'" @click="filterType = 'EXPENSE'" size="small">Pengeluaran <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('EXPENSE') }}</ion-badge></ion-button>
-              <ion-button class="btn-action primary" :fill="filterType === 'PENDAPATAN' ? 'solid' : 'outline'" @click="filterType = 'PENDAPATAN'" size="small">Pendapatan <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('PENDAPATAN') }}</ion-badge></ion-button>
+        <div class="ion-padding mx-3 transaction-section">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <ion-card-title class="section-title">Riwayat Transaksi</ion-card-title>
+            <div class="filter-chips filter-chips--mobile">
+              <ion-button class="btn-action primary chip-btn" fill="solid" @click="filterType = 'SEMUA'" size="small">Semua <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('SEMUA') }}</ion-badge></ion-button>
+              <ion-button class="btn-action primary chip-btn" fill="solid" @click="filterType = 'MODAL'" size="small">Modal <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('MODAL') }}</ion-badge></ion-button>
+              <ion-button class="btn-action primary chip-btn" fill="solid" @click="filterType = 'EXPENSE'" size="small">Pengeluaran <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('EXPENSE') }}</ion-badge></ion-button>
+              <ion-button class="btn-action primary chip-btn" fill="solid" @click="filterType = 'PENDAPATAN'" size="small">Pendapatan <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('PENDAPATAN') }}</ion-badge></ion-button>
             </div>
           </div>
 
-          <div class="overflow-x-auto pb-2">
-            <div class="d-flex flex-column gap-1">
+          <div class="transaction-scroll pb-2">
+            <div class="transaction-list d-flex flex-column gap-1">
               <ion-card v-for="tx in filteredTransactions" :key="tx.id" class="transaction-card">
-                <div class="d-flex align-items-center transaction-inner py-0" :class="tx.type === 'DEPOSIT' ? 'deposit-bg' : 'expense-bg'" style="min-width: max-content;">
-                  <!-- Type -->
-                  <div class="flex-shrink-0" style="width: 60px;">
-                    <span class=" fw-bold" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
+                <div class="transaction-inner d-flex align-items-center" :class="tx.type === 'DEPOSIT' ? 'deposit-bg' : 'expense-bg'">
+                  <div class="transaction-meta">
+                    <span class="fw-bold" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
                       {{ tx.type === 'DEPOSIT' ? '▲ In' : '▼ Out' }}
                     </span>
+                    <small class="text-muted d-block">{{ formatDate(tx.date) }}</small>
                   </div>
-                  <!-- Date -->
-                  <div class="flex-shrink-0" style="width: 100px;">
-                    <span class="text-muted ">{{ formatDate(tx.date) }}</span>
+                  <div class="transaction-main text-truncate px-1">
+                    <div class="fw-bold text-truncate">{{ tx.category }}</div>
+                    <div class="text-muted text-truncate">{{ tx.description || '-' }}</div>
                   </div>
-                  <!-- Category -->
-                  <div class="flex-shrink-0 text-truncate px-2" style="width: 180px;">
-                    <span class="fw-bold ">{{ tx.category }}</span>
-                  </div>
-                  <!-- Description -->
-                  <div class="flex-grow-1 text-truncate px-2" style="min-width: 180px;">
-                    <span class="text-muted ">{{ tx.description || '-' }}</span>
-                  </div>
-                  <!-- Amount -->
-                  <div class="flex-shrink-0 text-end fw-bold" style="width: 120px;" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
+                  <div class="transaction-amount text-end fw-bold" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
                     {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
                   </div>
-                  <!-- Actions -->
-                  <div class="flex-shrink-0 d-flex justify-content-end" style="width: 100px;">
-                    <ion-button fill="clear" expand="block" class="btn-action primary" size="small" @click="openEditDialog(tx)">
+                  <div class="transaction-actions flex-shrink-0 d-flex justify-content-end">
+                    <ion-button fill="clear" class="btn-action primary" @click="openEditDialog(tx)">
                       <ion-icon :icon="pencilOutline" />
                     </ion-button>
-                    <ion-button fill="clear" expand="block" class="btn-action danger" size="small" @click="dialogDeleteTxId = tx.id">
+                    <ion-button fill="clear" class="btn-action danger" @click="dialogDeleteTxId = tx.id">
                       <ion-icon :icon="trashOutline" />
                     </ion-button>
                   </div>
@@ -702,17 +699,145 @@ onUnmounted(() => clearInterval(interval))
   .snap-item { scroll-snap-align: start; }
   .summary-card {
     height: 100%;
+    border-radius: 22px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .summary-card--green { background: linear-gradient(180deg, #f2fbf4 0%, #e8f5e9 100%); }
+  .summary-card--red { background: linear-gradient(180deg, #fff5f5 0%, #ffebee 100%); }
+  .summary-card--blue { background: linear-gradient(180deg, #eff6ff 0%, #e3f2fd 100%); }
+  .summary-grid {
+    --ion-grid-column-padding: 8px;
+    margin-inline: 0;
+  }
+  .summary-value,
+  .summary-profit {
+    font-weight: 800;
+    font-size: 1rem;
+    line-height: 1.15;
+  }
+  .summary-value--green,
+  .summary-value--blue {
+    color: #2e7d32;
+  }
+  .summary-value--red {
+    color: #c62828;
+  }
+  .summary-profit--border {
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding-bottom: 12px;
+    margin-bottom: 10px;
+  }
+  .project-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .action-btn {
+    width: 100%;
+    justify-content: center;
   }
   .chart-container {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     gap: 16px;
-    padding: 0 16px;
   }
   .chart-card {
-    min-width: 90%;
+    flex: 0 0 calc(100% - 8px);
+    min-width: calc(100% - 8px);
+    margin-inline: 0;
     scroll-snap-align: start;
+  }
+  .chart-card--wide {
+    border-radius: 28px;
+    padding-bottom: 8px;
+  }
+  .chart-title {
+    font-size: 1.15rem;
+    line-height: 1.2;
+  }
+  .filter-chips--mobile {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    width: 100%;
+  }
+  .chip-btn {
+    --border-radius: 18px;
+    font-size: 0.72rem;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+  .transaction-scroll {
+    overflow-x: auto;
+    width: 100%;
+  }
+  .transaction-list {
+    box-sizing: border-box;
+    min-width: 560px;
+    width: 100%;
+  }
+  .transaction-card {
+    width: 100%;
+    margin-inline: 0;
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  /* .transaction-card::part(native) {
+    padding-inline: 8px;
+  } */
+  .transaction-inner {
+    padding: 0.5rem 0.4rem 0.5rem 0.5rem;
+    width: 100%;
+    gap: 8px;
+  }
+  .transaction-meta {
+    flex: 0 0 86px;
+    min-width: 86px;
+  }
+  .transaction-actions {
+    gap: 2px;
+    flex: 0 0 76px;
+  }
+  .transaction-main {
+    flex: 0 0 170px;
+    max-width: 170px;
+    min-width: 0;
+  }
+  .transaction-amount {
+    flex: 0 0 150px;
+    min-width: 150px;
+    white-space: nowrap;
+  }
+  .small-badge {
+    --padding-start: 2px;
+    --padding-end: 2px;
+    min-width: 12px;
+    min-height: 12px;
+    font-size: 0.5rem;
+    line-height: 1;
+  }
+  .small-badge::part(native) {
+    padding: 0 3px;
+    min-width: 12px;
+    min-height: 12px;
+    font-size: 0.5rem;
+    line-height: 1;
+  }
+  @media (min-width: 768px) {
+    .project-actions {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .chart-card {
+      flex-basis: calc(50% - 8px);
+      min-width: calc(50% - 8px);
+    }
+    .filter-chips--mobile {
+      overflow-x: visible;
+      flex-wrap: wrap;
+    }
   }
   @media (min-width: 992px) { /* lg breakpoint */
     .chart-container {
@@ -724,43 +849,21 @@ onUnmounted(() => clearInterval(interval))
       min-width: auto;
       width: 100%;
     }
+    .transaction-list {
+      min-width: 100%;
+      padding-right: 0;
+    }
+    .transaction-inner {
+      padding: 0.5rem 0.75rem;
+      gap: 0;
+    }
+    .transaction-main {
+      flex: 1 1 auto;
+      max-width: none;
+    }
   }
   .filter-chips ion-button {
     --border-radius: 20px;
     font-size: 0.8rem;
-  }
-  .transaction-inner {
-    padding: 0.5rem 0.75rem;
-    width: 100%;
-    min-width: max-content;
-  }
-  .deposit-bg {
-    background-color: rgba(var(--ion-color-success-rgb, 46, 204, 113), 0.1);
-  }
-  .expense-bg {
-    background-color: rgba(var(--ion-color-danger-rgb, 231, 76, 60), 0.1);
-  }
-  .text-success {
-    color: var(--ion-color-success);
-  }
-  .text-danger {
-    color: var(--ion-color-danger);
-  }
-  . {
-    font-size: 0.75rem;
-  }
-  .overflow-x-auto {
-    overflow-x: auto;
-  }
-  .transaction-inner {
-    padding: 0.5rem 0.75rem;
-    min-width: max-content;
-  }
-  .small-badge {
-    --padding-start: 4px;
-    --padding-end: 4px;
-    font-size: 0.65rem;
-    min-height: 14px;
-    line-height: 1;
   }
 </style>

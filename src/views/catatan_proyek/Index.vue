@@ -31,7 +31,6 @@ const formNew = ref({ name: '', description: '', status: 'Active' })
 const formEdit = ref({ name: '', description: '', status: 'Active' })
 const submitting = ref(false)
 
-// Summary computed
 const totalDepositsAll = computed(() => projects.value.reduce((acc, p) => acc + p.total_deposits, 0))
 const totalExpensesAll = computed(() => projects.value.reduce((acc, p) => acc + p.total_expenses, 0))
 const totalBalanceAll = computed(() => totalDepositsAll.value - totalExpensesAll.value)
@@ -156,124 +155,363 @@ onMounted(fetchProjects)
 </script>
 
 <template>
-  <ion-page>
-    <ion-header>
-        <ion-toolbar class="ion-padding-horizontal">
-            <ion-title>Manajemen Proyek</ion-title>
-            <ion-title class="text-muted" style="font-size: 0.9rem;">Kelola keuangan semua projek Anda</ion-title>
-            <ion-buttons slot="end">
-                <ion-button class="btn-action primary me-3" @click="dialogCreate = true">
-                    <ion-icon slot="start" :icon="addOutline" /> Add Project
-                </ion-button>
-            </ion-buttons>
-        </ion-toolbar>
+  <ion-page class="project-page">
+    <ion-header class="project-header">
+      <ion-toolbar class="project-toolbar">
+        <div class="hero-shell">
+          <div>
+            <ion-title class="hero-title">Manajemen Proyek</ion-title>
+            <p class="hero-subtitle">Kelola modal, pengeluaran, dan sisa dana dari layar mobile dengan cepat.</p>
+          </div>
+        </div>
+      </ion-toolbar>
     </ion-header>
-    <ion-content class="ion-padding">
 
-        <ion-grid>
-            <ion-row class="p-2">
-                <ion-col size="6">
-                    <div class="summary-card shadow-soft" style="background-color: #e8f5e9;">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <div class="icon-box-small" style="background-color: #c8e6c9; color: #2e7d32;"><ion-icon :icon="walletOutline" /></div>
-                            <small class="text-muted" style="line-height: 1.2;">Total Modal<br>Semua Projek</small>
-                        </div>
-                        <div class="fw-bold" style="color: #2e7d32; font-size: 1.2rem;">{{ formatCurrency(totalDepositsAll) }}</div>
-                    </div>
-                </ion-col>
-                <ion-col size="6">
-                    <div class="summary-card shadow-soft" style="background-color: #ffebee;">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <div class="icon-box-small" style="background-color: #ffcdd2; color: #c62828;"><ion-icon :icon="walletOutline" /></div>
-                            <small class="text-muted" style="line-height: 1.2;">Total Pengeluaran<br>Semua Projek</small>
-                        </div>
-                        <div class="fw-bold" style="color: #c62828; font-size: 1.2rem;">{{ formatCurrency(totalExpensesAll) }}</div>
-                    </div>
-                </ion-col>
-                <ion-col size="12">
-                    <div class="summary-card shadow-soft d-flex align-items-center justify-content-between" style="background-color: #e3f2fd;">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="icon-box-small" style="background-color: #bbdefb; color: #1565c0;"><ion-icon :icon="walletOutline" /></div>
-                            <small class="text-muted">Total Sisa Saldo Semua Projek</small>
-                        </div>
-                        <div class="fw-bold" style="color: #1565c0; font-size: 1.2rem;">{{ formatCurrency(totalBalanceAll) }}</div>
-                    </div>
-                </ion-col>
-            </ion-row>
+    <ion-content class="project-content" fullscreen>
+      <div class="content-wrap">
+        <ion-buttons class="hero-shell hero-actions">
+            <ion-button class="btn-action primary add-project-btn" @click="dialogCreate = true">
+              <ion-icon slot="start" :icon="addOutline" /> Add Project
+            </ion-button>
+        </ion-buttons>
+        
+        <ion-grid class="stats-grid">
+          <ion-row>
+            <ion-col size="6">
+              <div class="summary-card stat-card stat-green">
+                <div class="stat-top">
+                  <div class="icon-box-small"><ion-icon :icon="walletOutline" /></div>
+                  <small>Total Modal<br>Semua Projek</small>
+                </div>
+                <div class="stat-value">{{ formatCurrency(totalDepositsAll) }}</div>
+              </div>
+            </ion-col>
+            <ion-col size="6">
+              <div class="summary-card stat-card stat-red">
+                <div class="stat-top">
+                  <div class="icon-box-small"><ion-icon :icon="cashOutline" /></div>
+                  <small>Total Pengeluaran<br>Semua Projek</small>
+                </div>
+                <div class="stat-value">{{ formatCurrency(totalExpensesAll) }}</div>
+              </div>
+            </ion-col>
+            <ion-col size="12">
+              <div class="summary-card stat-card stat-blue stat-wide">
+                <div class="stat-top">
+                  <div class="icon-box-small"><ion-icon :icon="walletOutline" /></div>
+                  <small>Total Sisa Saldo Semua Projek</small>
+                </div>
+                <div class="stat-value">{{ formatCurrency(totalBalanceAll) }}</div>
+              </div>
+            </ion-col>
+          </ion-row>
         </ion-grid>
 
-        <div v-if="loading" class="ion-text-center ion-padding">
-            <ion-spinner />
+        <div v-if="loading" class="loading-state">
+          <ion-spinner />
+          <p>Memuat projek...</p>
         </div>
 
-        <ion-grid v-else>
-            <ion-row>
-                <ion-col v-for="project in projects" :key="project.id" size="12" size-sm="6" size-lg="4">
-                    <ion-card class="shadow-soft p-4 mt-0 mx-2" style="border-radius: 20px; padding: 16px;" @click="goToDetail(project.id)">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <ion-badge class="badge-status" :color="getStatusColor(project.status)">{{ project.status }}</ion-badge>
-                            <div class="d-flex gap-2">
-                                <ion-button class="btn-action primary" size="small" @click.stop="openEditProject(project)"><ion-icon :icon="pencilOutline" /></ion-button>
-                                <ion-button class="btn-action danger" size="small" @click.stop="dialogDeleteId = project.id"><ion-icon :icon="trashOutline" /></ion-button>
-                            </div>
-                        </div>
-                        <ion-card-title class="fw-bold mb-1">{{ project.name }}</ion-card-title>
-                        <p class="mb-3 text-muted">{{ project.description || 'Tidak ada deskripsi' }}</p>
-                        
-                        <div class="d-flex justify-content-between mb-1 ">
-                            <span class="text-muted">Modal</span>
-                            <span class="text-success fw-bold">{{ formatCurrency(project.total_deposits || 0) }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">Pengeluaran</span>
-                            <span class="text-danger fw-bold">{{ formatCurrency(project.total_expenses || 0) }}</span>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">Sisa Dana</span>
-                            <span :class="`text-${getBalanceColor(project)} fw-bold`">{{ getBalancePercent(project) }}%</span>
-                        </div>
-                        <ion-progress-bar :value="(getBalancePercent(project) || 0)/100" :color="getBalanceColor(project)" class="mb-3 thick-progress" />
-                        
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span :class="`fw-bold fs-5 text-${getBalanceColor(project)}`">{{ formatCurrency(project.balance || 0) }}</span>
-                            <ion-button class="btn-action primary" size="small" @click.stop="goToDetail(project.id)"><ion-icon :icon="arrowForwardOutline" /></ion-button>
-                        </div>
-                    </ion-card>
-                </ion-col>
-            </ion-row>
+        <ion-grid v-else class="project-grid">
+          <ion-row>
+            <ion-col v-for="project in projects" :key="project.id" size="12" size-sm="6" size-lg="4">
+              <ion-card class="project-card" @click="goToDetail(project.id)">
+                <ion-card-header class="project-card-header">
+                  <div class="project-card-top">
+                    <ion-badge class="badge-status" :color="getStatusColor(project.status)">{{ project.status }}</ion-badge>
+                    <div class="project-actions">
+                      <ion-button class="btn-action primary icon-btn" size="small" @click.stop="openEditProject(project)">
+                        <ion-icon :icon="pencilOutline" />
+                      </ion-button>
+                      <ion-button class="btn-action danger icon-btn" size="small" @click.stop="dialogDeleteId = project.id">
+                        <ion-icon :icon="trashOutline" />
+                      </ion-button>
+                    </div>
+                  </div>
+                  <ion-card-title class="project-name">{{ project.name }}</ion-card-title>
+                  <ion-card-subtitle class="project-desc">{{ project.description || 'Tidak ada deskripsi' }}</ion-card-subtitle>
+                </ion-card-header>
+
+                <ion-card-content class="project-card-body">
+                  <div class="metric-row">
+                    <span class="metric-label">Modal</span>
+                    <span class="metric-value text-success">{{ formatCurrency(project.total_deposits || 0) }}</span>
+                  </div>
+                  <div class="metric-row">
+                    <span class="metric-label">Pengeluaran</span>
+                    <span class="metric-value text-danger">{{ formatCurrency(project.total_expenses || 0) }}</span>
+                  </div>
+                  <div class="metric-row">
+                    <span class="metric-label">Sisa Dana</span>
+                    <span :class="`metric-value text-${getBalanceColor(project)}`">{{ getBalancePercent(project) }}%</span>
+                  </div>
+
+                  <ion-progress-bar
+                    :value="(getBalancePercent(project) || 0) / 100"
+                    :color="getBalanceColor(project)"
+                    class="thick-progress"
+                  />
+
+                  <div class="project-footer">
+                    <span :class="`balance-pill text-${getBalanceColor(project)}`">{{ formatCurrency(project.balance || 0) }}</span>
+                    <ion-button class="btn-action primary go-btn" size="small" @click.stop="goToDetail(project.id)">
+                      <ion-icon :icon="arrowForwardOutline" />
+                    </ion-button>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
         </ion-grid>
+      </div>
     </ion-content>
 
-    <!-- Modals -->
-    <ion-modal :is-open="dialogCreate || dialogEdit" @didDismiss="closeModal">
-        <ion-header>
-            <ion-toolbar>
-                <ion-title>{{ dialogEdit ? 'Edit Project' : 'Add Project' }}</ion-title>
-                <ion-buttons slot="end">
-                    <ion-button @click="closeModal"><ion-icon :icon="closeOutline" /></ion-button>
-                </ion-buttons>
-            </ion-toolbar>
-        </ion-header>
-        <ion-content class="ion-padding">
-            <ion-item>
-                <ion-label position="stacked">Nama</ion-label>
-                <ion-input v-model="activeProject.name" />
-            </ion-item>
-            <ion-item>
-                <ion-label position="stacked">Deskripsi</ion-label>
-                <ion-textarea v-model="activeProject.description" />
-            </ion-item>
-            <ion-item>
-                <ion-label position="stacked">Status</ion-label>
-                <ion-select v-model="activeProject.status" interface="popover">
-                    <ion-select-option value="Active">Aktif</ion-select-option>
-                    <ion-select-option value="Completed">Selesai</ion-select-option>
-                    <ion-select-option value="Pending">Tunda</ion-select-option>
-                </ion-select>
-            </ion-item>
-            <ion-button expand="block" @click="dialogEdit ? (updateProject(), closeModal()) : (createProject(), closeModal())" class="ion-margin-top btn-action primary m-4">Simpan</ion-button>
-        </ion-content>
+    <ion-modal :is-open="dialogCreate || dialogEdit" @didDismiss="closeModal" class="project-modal">
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ dialogEdit ? 'Edit Project' : 'Add Project' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click="closeModal"><ion-icon :icon="closeOutline" /></ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding modal-content">
+        <ion-item>
+          <ion-label position="stacked">Nama</ion-label>
+          <ion-input v-model="activeProject.name" />
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Deskripsi</ion-label>
+          <ion-textarea v-model="activeProject.description" />
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Status</ion-label>
+          <ion-select v-model="activeProject.status" interface="popover">
+            <ion-select-option value="Active">Aktif</ion-select-option>
+            <ion-select-option value="Completed">Selesai</ion-select-option>
+            <ion-select-option value="Pending">Tunda</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-button expand="block" @click="dialogEdit ? (updateProject(), closeModal()) : (createProject(), closeModal())" class="ion-margin-top btn-action primary save-btn">Simpan</ion-button>
+      </ion-content>
     </ion-modal>
   </ion-page>
 </template>
+
+<style scoped>
+.project-page {
+  --background: linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%);
+}
+
+.project-header,
+.project-toolbar {
+  --background: transparent;
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  color: #fff;
+}
+
+.hero-shell {
+  padding: 16px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: .72rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  opacity: .75;
+}
+
+.hero-title {
+  padding: 0;
+  color: #1f2937;
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.hero-subtitle {
+  margin: 8px 0 0;
+  max-width: 34rem;
+  color: #64748b;
+  font-size: .92rem;
+  line-height: 1.45;
+}
+
+.add-project-btn {
+  width: 100%;
+  --border-radius: 16px;
+}
+
+.content-wrap {
+  padding: 14px 6px 24px;
+}
+
+.stats-grid {
+  margin-bottom: 10px;
+}
+
+.summary-card,
+.project-card {
+  border-radius: 22px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, .08);
+}
+
+.stat-card {
+  padding: 14px;
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #0f172a;
+}
+
+.stat-green { background: linear-gradient(135deg, #dcfce7 0%, #ecfdf5 100%); }
+.stat-red { background: linear-gradient(135deg, #fee2e2 0%, #fff1f2 100%); }
+.stat-blue { background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%); }
+
+.stat-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-box-small {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.65);
+}
+
+.stat-value {
+  margin-top: 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.loading-state {
+  padding: 44px 0;
+  text-align: center;
+  color: #64748b;
+}
+
+.project-grid {
+  margin-top: 4px;
+}
+
+.project-card {
+  margin: 0 8px 14px;
+  overflow: hidden;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(12px);
+}
+
+.project-card-header {
+  padding-bottom: 8px;
+}
+
+.project-card-top,
+.project-footer,
+.metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.project-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn,
+.go-btn {
+  --border-radius: 14px;
+  height: 36px;
+  width: 36px;
+}
+
+.project-name {
+  font-size: 1.08rem;
+  font-weight: 800;
+  margin-top: 8px;
+}
+
+.project-desc {
+  margin-top: 6px;
+  font-size: .92rem;
+  color: #64748b;
+  white-space: normal;
+}
+
+.project-card-body {
+  padding-top: 0;
+}
+
+.metric-row {
+  margin: 10px 0;
+  font-size: .94rem;
+}
+
+.metric-label {
+  color: #64748b;
+}
+
+.metric-value {
+  font-weight: 800;
+}
+
+.thick-progress {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 12px 0 14px;
+}
+
+.balance-pill {
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.project-footer {
+  margin-top: 4px;
+}
+
+.project-modal::part(content) {
+  border-radius: 24px 24px 0 0;
+}
+
+.modal-content ion-item {
+  --inner-padding-end: 0;
+  margin-bottom: 10px;
+  border-radius: 16px;
+  --background: #f8fafc;
+}
+
+.save-btn {
+  margin-top: 18px;
+}
+
+@media (min-width: 768px) {
+  .hero-shell {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: end;
+  }
+
+  .add-project-btn {
+    width: auto;
+  }
+
+  .content-wrap {
+    padding-inline: 14px;
+  }
+}
+</style>
