@@ -1,5 +1,5 @@
 <template>
-  <ion-header class="mb-2">
+  <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
         <ion-button v-if="!isDashboard" @click="goBack" class="rounded-circle" style="--background: white; --color: black;">
@@ -24,7 +24,7 @@
 import { IonHeader, IonToolbar, IonButtons, IonButton, IonTitle, IonIcon, menuController } from '@ionic/vue';
 import { menu, arrowBack } from 'ionicons/icons';
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 export default {
   name: 'AppHeader',
@@ -33,8 +33,11 @@ export default {
   },
   setup() {
     const route = useRoute();
+    const router = useRouter();
     const isDashboard = computed(() => route ? route.path === '/dashboard' : false)
-    const goBack = () => window.history.back()
+    const goBack = () => {
+      router.back();
+    }
 
     const toggleSidebar = async () => {
       await menuController.toggle();

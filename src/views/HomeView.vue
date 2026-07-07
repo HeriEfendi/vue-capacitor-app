@@ -35,6 +35,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonIcon, IonBadge } from '@ionic/vue';
 import { checkboxOutline, documentTextOutline, walletOutline, basketOutline, personOutline, cashOutline } from 'ionicons/icons';
 
@@ -76,6 +77,7 @@ export default {
       }
     }
 
+    onIonViewWillEnter(fetchCounts)
     onMounted(fetchCounts)
 
     return { menuItems }

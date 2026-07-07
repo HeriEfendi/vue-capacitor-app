@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { initDB } from '@/db'
-import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner } from '@ionic/vue';
-import { addOutline, trashOutline, pencilOutline, arrowForwardOutline, walletOutline, cashOutline, closeOutline, saveOutline } from 'ionicons/icons';
+import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonAlert } from '@ionic/vue';
+import { addOutline, trashOutline, pencilOutline, arrowForwardOutline, walletOutline, cashOutline, closeOutline, saveOutline, trendingUpOutline, trendingDownOutline, pieChartOutline } from 'ionicons/icons';
 
 interface Project {
   id: number
@@ -151,57 +152,55 @@ function closeModal() {
 }
 
 const activeProject = computed(() => dialogEdit.value ? formEdit.value : formNew.value)
-onMounted(fetchProjects)
+onIonViewWillEnter(fetchProjects)
 </script>
 
 <template>
-  <ion-page class="project-page">
-    <ion-header class="project-header">
-      <ion-toolbar class="project-toolbar">
-        <div class="hero-shell">
-          <div>
-            <ion-title class="hero-title">Manajemen Proyek</ion-title>
-            <p class="hero-subtitle">Kelola modal, pengeluaran, dan sisa dana dari layar mobile dengan cepat.</p>
+  <ion-page>
+    <ion-header class="app-header">
+      <ion-toolbar class="app-toolbar">
+        <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <ion-title class="app-hero-title" style="padding: 0;">Manajemen Proyek</ion-title>
+            <ion-buttons style="margin: 0;">
+              <ion-button class="btn-action primary" @click="dialogCreate = true">
+                <ion-icon slot="start" :icon="addOutline" /> Tambah
+              </ion-button>
+            </ion-buttons>
           </div>
+          <p class="app-hero-subtitle" style="margin: 0;">Kelola modal, pengeluaran, dan sisa dana dari layar mobile dengan cepat.</p>
         </div>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="project-content" fullscreen>
-      <div class="content-wrap">
-        <ion-buttons class="hero-shell hero-actions">
-            <ion-button class="btn-action primary add-project-btn" @click="dialogCreate = true">
-              <ion-icon slot="start" :icon="addOutline" /> Add Project
-            </ion-button>
-        </ion-buttons>
-        
-        <ion-grid class="stats-grid">
+    <ion-content fullscreen class="content-wrap">
+        <ion-grid>
           <ion-row>
-            <ion-col size="6">
-              <div class="summary-card stat-card stat-green">
+            <ion-col size="6" size-lg="3">
+              <div class="summary-card summary-card--green shadow-soft">
                 <div class="stat-top">
-                  <div class="icon-box-small"><ion-icon :icon="walletOutline" /></div>
-                  <small>Total Modal<br>Semua Projek</small>
+                  <div class="menu-icon-wrap" style="--accent: #059669; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #059669;"><ion-icon :icon="trendingUpOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
+                  <small>Total Modal <br> Semua Projek</small>
                 </div>
-                <div class="stat-value">{{ formatCurrency(totalDepositsAll) }}</div>
+                <div class="summary-value summary-value--green">{{ formatCurrency(totalDepositsAll) }}</div>
               </div>
             </ion-col>
-            <ion-col size="6">
-              <div class="summary-card stat-card stat-red">
+            <ion-col size="6" size-lg="3">
+              <div class="summary-card summary-card--red shadow-soft">
                 <div class="stat-top">
-                  <div class="icon-box-small"><ion-icon :icon="cashOutline" /></div>
-                  <small>Total Pengeluaran<br>Semua Projek</small>
+                  <div class="menu-icon-wrap" style="--accent: #dc2626; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #dc2626;"><ion-icon :icon="trendingDownOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
+                  <small>Total Pengeluaran <br> Semua Projek</small>
                 </div>
-                <div class="stat-value">{{ formatCurrency(totalExpensesAll) }}</div>
+                <div class="stat-value summary-value--red">{{ formatCurrency(totalExpensesAll) }}</div>
               </div>
             </ion-col>
-            <ion-col size="12">
-              <div class="summary-card stat-card stat-blue stat-wide">
+            <ion-col size="12" size-lg="3">
+              <div class="summary-card summary-card--blue shadow-soft">
                 <div class="stat-top">
-                  <div class="icon-box-small"><ion-icon :icon="walletOutline" /></div>
+                  <div class="menu-icon-wrap" style="--accent: #2563eb; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #2563eb;"><ion-icon :icon="pieChartOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
                   <small>Total Sisa Saldo Semua Projek</small>
                 </div>
-                <div class="stat-value">{{ formatCurrency(totalBalanceAll) }}</div>
+                <div class="stat-value summary-value--blue">{{ formatCurrency(totalBalanceAll) }}</div>
               </div>
             </ion-col>
           </ion-row>
@@ -216,7 +215,7 @@ onMounted(fetchProjects)
           <ion-row>
             <ion-col v-for="project in projects" :key="project.id" size="12" size-sm="6" size-lg="4">
               <ion-card class="project-card" @click="goToDetail(project.id)">
-                <ion-card-header class="project-card-header">
+                <ion-card-header>
                   <div class="project-card-top">
                     <ion-badge class="badge-status" :color="getStatusColor(project.status)">{{ project.status }}</ion-badge>
                     <div class="project-actions">
@@ -254,7 +253,7 @@ onMounted(fetchProjects)
 
                   <div class="project-footer">
                     <span :class="`balance-pill text-${getBalanceColor(project)}`">{{ formatCurrency(project.balance || 0) }}</span>
-                    <ion-button class="btn-action primary go-btn" size="small" @click.stop="goToDetail(project.id)">
+                    <ion-button class="btn-action primary icon-btn" size="small" @click.stop="goToDetail(project.id)">
                       <ion-icon :icon="arrowForwardOutline" />
                     </ion-button>
                   </div>
@@ -263,10 +262,19 @@ onMounted(fetchProjects)
             </ion-col>
           </ion-row>
         </ion-grid>
-      </div>
+        <ion-alert
+          :is-open="dialogDeleteId !== null"
+          header="Konfirmasi Hapus"
+          message="Apakah anda yakin ingin menghapus projek ini?"
+          :buttons="[
+            { text: 'Batal', role: 'cancel', handler: () => dialogDeleteId = null },
+            { text: 'Hapus', role: 'destructive', handler: () => dialogDeleteId !== null && deleteProject(dialogDeleteId) }
+          ]"
+          @didDismiss="dialogDeleteId = null"
+        />
     </ion-content>
 
-    <ion-modal :is-open="dialogCreate || dialogEdit" @didDismiss="closeModal" class="project-modal">
+    <ion-modal :is-open="dialogCreate || dialogEdit" @didDismiss="closeModal">
       <ion-header>
         <ion-toolbar>
           <ion-title>{{ dialogEdit ? 'Edit Project' : 'Add Project' }}</ion-title>
@@ -276,32 +284,38 @@ onMounted(fetchProjects)
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding modal-content">
-        <ion-item>
-          <ion-label position="stacked">Nama</ion-label>
-          <ion-input v-model="activeProject.name" />
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Deskripsi</ion-label>
-          <ion-textarea v-model="activeProject.description" />
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Status</ion-label>
-          <ion-select v-model="activeProject.status" interface="popover">
-            <ion-select-option value="Active">Aktif</ion-select-option>
-            <ion-select-option value="Completed">Selesai</ion-select-option>
-            <ion-select-option value="Pending">Tunda</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-button expand="block" @click="dialogEdit ? (updateProject(), closeModal()) : (createProject(), closeModal())" class="ion-margin-top btn-action primary save-btn">Simpan</ion-button>
+        <div class="form-container mb-4">
+          <div class="form-section">
+            <label class="form-label">Nama</label>
+            <ion-input v-model="activeProject.name" class="form-control app-control" />
+          </div>
+          <div class="form-section">
+            <label class="form-label">Status</label>
+            <ion-select v-model="activeProject.status" interface="popover" class="form-control app-control">
+              <ion-select-option value="Active">Aktif</ion-select-option>
+              <ion-select-option value="Completed">Selesai</ion-select-option>
+              <ion-select-option value="Pending">Tunda</ion-select-option>
+            </ion-select>
+          </div>
+          <div class="form-section">
+            <label class="form-label">Deskripsi</label>
+            <ion-textarea v-model="activeProject.description" class="form-control app-control form-control-textarea" />
+          </div>
+
+        </div>
       </ion-content>
+      <ion-footer>
+        <div class="form-actions">
+          <button type="button" class="btn btn-action light" @click="closeModal">Cancel</button>
+          <button type="button" class="btn btn-action primary" @click="dialogEdit ? (updateProject(), closeModal()) : (createProject(), closeModal())">Save Changes</button>
+        </div>
+      </ion-footer>
     </ion-modal>
+
   </ion-page>
 </template>
 
 <style scoped>
-.project-page {
-  --background: linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%);
-}
 
 .project-header,
 .project-toolbar {
@@ -350,35 +364,6 @@ onMounted(fetchProjects)
   padding: 14px 6px 24px;
 }
 
-.stats-grid {
-  margin-bottom: 10px;
-}
-
-.summary-card,
-.project-card {
-  border-radius: 22px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, .08);
-}
-
-.stat-card {
-  padding: 14px;
-  min-height: 118px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  color: #0f172a;
-}
-
-.stat-green { background: linear-gradient(135deg, #dcfce7 0%, #ecfdf5 100%); }
-.stat-red { background: linear-gradient(135deg, #fee2e2 0%, #fff1f2 100%); }
-.stat-blue { background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%); }
-
-.stat-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .icon-box-small {
   width: 38px;
   height: 38px;
@@ -386,14 +371,6 @@ onMounted(fetchProjects)
   display: grid;
   place-items: center;
   background: rgba(255,255,255,.65);
-}
-
-.stat-value {
-  margin-top: 10px;
-  font-size: 1.05rem;
-  font-weight: 800;
-  line-height: 1.2;
-  word-break: break-word;
 }
 
 .loading-state {
@@ -407,14 +384,11 @@ onMounted(fetchProjects)
 }
 
 .project-card {
-  margin: 0 8px 14px;
+  margin: 0px 8px;
+  padding: 10px;
   overflow: hidden;
   background: rgba(255,255,255,.92);
   backdrop-filter: blur(12px);
-}
-
-.project-card-header {
-  padding-bottom: 8px;
 }
 
 .project-card-top,
@@ -431,13 +405,6 @@ onMounted(fetchProjects)
   gap: 8px;
 }
 
-.icon-btn,
-.go-btn {
-  --border-radius: 14px;
-  height: 36px;
-  width: 36px;
-}
-
 .project-name {
   font-size: 1.08rem;
   font-weight: 800;
@@ -451,12 +418,8 @@ onMounted(fetchProjects)
   white-space: normal;
 }
 
-.project-card-body {
-  padding-top: 0;
-}
-
 .metric-row {
-  margin: 10px 0;
+  margin: 0px;
   font-size: .94rem;
 }
 

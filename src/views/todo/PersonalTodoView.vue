@@ -2,17 +2,16 @@
   <ion-page class="app-page">
     <ion-header class="app-header">
       <ion-toolbar class="app-toolbar">
-        <div class="app-hero">
-          <div>
-            <p class="eyebrow">Personal Tasks</p>
-            <ion-title class="app-hero-title">Personal Todo</ion-title>
-            <p class="app-hero-subtitle">Kelola task pribadi dengan tampilan mobile yang lebih rapi dan konsisten.</p>
+        <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <ion-title class="app-hero-title" style="padding: 0;">Personal Todo</ion-title>
+            <ion-buttons style="margin: 0;">
+              <ion-button class="btn-action primary" @click="dialogVisible = true">
+                <ion-icon slot="start" :icon="addOutline" /> Tambah
+              </ion-button>
+            </ion-buttons>
           </div>
-          <ion-buttons class="app-action-row">
-            <ion-button class="btn-action primary" @click="dialogVisible = true">
-              <ion-icon slot="start" :icon="addOutline" /> Task Baru
-            </ion-button>
-          </ion-buttons>
+          <p class="app-hero-subtitle" style="margin: 0;">Kelola task pribadi dengan tampilan mobile yang lebih rapi dan konsisten.</p>
         </div>
       </ion-toolbar>
     </ion-header>

@@ -1,6 +1,6 @@
 <template>
   <form class="todo-form" @submit.prevent="emitSave">
-    <section class="mobile-card form-section">
+    <section class="form-section">
       <label class="form-label fw-semibold">Task Title / Work Description <span class="text-danger">*</span></label>
       <input
         v-model="localForm.title"
@@ -9,9 +9,6 @@
         placeholder="Deskripsi pekerjaan..."
         required
       />
-    </section>
-
-    <section class="mobile-card form-section">
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label fw-semibold">Assignee</label>
@@ -32,9 +29,7 @@
           </select>
         </div>
       </div>
-    </section>
 
-    <section class="mobile-card form-section">
       <div class="row g-3">
         <div class="col-4">
           <label class="form-label fw-semibold">Points</label>
@@ -65,9 +60,6 @@
           </select>
         </div>
       </div>
-    </section>
-
-    <section class="mobile-card form-section">
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label fw-semibold">Due Date</label>
@@ -83,11 +75,9 @@
           />
         </div>
       </div>
-    </section>
-
-    <section class="mobile-card form-section">
       <label class="form-label fw-semibold">Description</label>
       <textarea v-model="localForm.description" class="form-control app-control description-control" placeholder="Tulis detail tugas..."></textarea>
+
     </section>
 
     <div class="form-actions">
@@ -127,12 +117,7 @@ onMounted(fetchUsers)
 .todo-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.form-section {
-  margin: 0;
-  padding: 16px;
+  gap: 12px;  
 }
 
 .form-label {
@@ -140,30 +125,7 @@ onMounted(fetchUsers)
   font-size: .88rem;
 }
 
-.app-control {
-  border: 1px solid #dbeafe;
-  border-radius: 14px;
-  background: #f8fbff;
-  min-height: 44px;
-}
-
 .description-control {
   min-height: 160px;
-}
-
-.form-actions {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 12px 0 4px;
-  background: linear-gradient(180deg, rgba(248,251,255,0), #f8fbff 40%);
-}
-
-.form-actions .btn {
-  min-height: 44px;
-  font-weight: 800;
 }
 </style>

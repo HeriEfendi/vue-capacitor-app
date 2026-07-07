@@ -14,6 +14,7 @@
             v-for="item in group.items"
             :key="item.path"
             :router-link="item.path"
+            @click="closeMenu"
             router-direction="root"
             lines="none"
             class="sidebar-item"
@@ -44,7 +45,7 @@
 </template>
 
 <script>
-import { IonMenu, IonContent, IonList, IonItem, IonLabel, IonIcon } from '@ionic/vue';
+import { IonMenu, IonContent, IonList, IonItem, IonLabel, IonIcon, menuController } from '@ionic/vue';
 import { checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline } from 'ionicons/icons';
 
 export default {
@@ -86,12 +87,13 @@ export default {
       },
     ]
 
+    const closeMenu = () => menuController.close()
     const exitApp = () => {
       if (navigator.app && navigator.app.exitApp) navigator.app.exitApp()
       else window.close()
     }
 
-    return { menuGroups, exitApp, logOutOutline }
+    return { menuGroups, exitApp, logOutOutline, closeMenu }
   },
 }
 </script>
@@ -157,7 +159,6 @@ export default {
   margin-bottom: 8px;
   border: 1px solid rgba(15, 23, 42, .06);
   border-radius: 20px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
   overflow: hidden;
 }
 

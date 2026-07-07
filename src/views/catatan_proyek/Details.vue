@@ -1,10 +1,9 @@
-
-
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
+import * as XLSX from 'xlsx'
 import { useRoute } from 'vue-router'
 import { initDB } from '@/db'
-import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader } from '@ionic/vue';
+import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader, IonAlert, IonToast, IonFooter } from '@ionic/vue';
 import { addOutline, trashOutline, pencilOutline, closeOutline, cloudUploadOutline, cloudDownloadOutline, listOutline, checkmarkCircleOutline } from 'ionicons/icons';
 const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
 
@@ -94,7 +93,17 @@ const filteredTransactions = computed(() => {
 })
 
 const netProfit = computed(() => (project.value as any).panen_total - project.value.total_expenses)
-const roi = computed(() => Math.round(netProfit.value / project.value.total_expenses * 100) || 0)
+const roi = computed(() => {
+  const expenses = project.value?.total_expenses || 0
+  if (expenses <= 0) return 0
+  return Math.round((netProfit.value / expenses) * 100) || 0
+})
+
+const profitPercent = computed(() => {
+  const sales = (project.value as any).panen_total || 0
+  if (sales <= 0) return 0
+  return Math.round((netProfit.value / sales) * 100) || 0
+})
 
 function getFinancialColor(value: number, positiveColor = '#1565c0') {
   return value < 0 ? '#c62828' : positiveColor
@@ -276,48 +285,78 @@ async function onFileChange(e: Event) {
   const file = target.files[0]
   const reader = new FileReader()
   reader.onload = (ev) => {
-    const data = new Uint8Array(ev.target?.result as ArrayBuffer)
-    const workbook = XLSX.read(data, { type: 'array' })
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-    const json = XLSX.utils.sheet_to_json(sheet) as any[]
-    
-    const newTransactions: Transaction[] = json.map((row: any) => ({
-      id: Date.now() + Math.random(),
-      project_id: project.value!.id,
-      type: row['Tipe'] === 'DEPOSIT' ? 'DEPOSIT' : 'EXPENSE',
-      category: row['Kategori'],
-      amount: row['Nominal'],
-      date: parseDate(row['Tanggal (DD/MM/YYYY)'] || row['Tanggal']),
-      description: row['Deskripsi'] || ''
-    }))
+    try {
+      const data = new Uint8Array(ev.target?.result as ArrayBuffer)
+      const workbook = XLSX.read(data, { type: 'array' })
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const json = XLSX.utils.sheet_to_json(sheet) as any[]
+      
+      const validCategories = [...categories.DEPOSIT_MODAL, ...categories.DEPOSIT_PENDAPATAN, ...categories.EXPENSE]
+      const newTransactions: Transaction[] = json.map((row: any, index: number) => {
+        const rowNumber = index + 2
+        const type = String(row['Tipe'] || '').trim()
+        const category = String(row['Kategori'] || '').trim()
+        const amount = Number(row['Nominal'])
+        const rawDate = row['Tanggal (DD/MM/YYYY)'] || row['Tanggal']
 
-    if (project.value) {
-      (async () => {
-        try {
-          project.value!.transactions.push(...newTransactions)
-          const db = await initDB()
-          const p = await db.get('projects', project.value!.id)
-          if (p) {
-              p.transactions = project.value!.transactions
-              p.total_deposits = p.transactions.filter(t => t.type === 'DEPOSIT').reduce((acc, t) => acc + t.amount, 0)
-              p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0)
-              p.balance = p.total_deposits - p.total_expenses
-              
-              const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
-              (p as any).modal_total = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-              (p as any).panen_total = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-
-              await db.put('projects', JSON.parse(JSON.stringify(p)))
-              showSnackbar('Transaksi berhasil diimpor!', 'success')
-              fetchProject()
-          } else {
-              throw new Error('Projek tidak ditemukan')
-          }
-        } catch (e) {
-          console.error(e)
-          showSnackbar('Gagal menyimpan transaksi impor', 'error')
+        if (type !== 'DEPOSIT' && type !== 'EXPENSE') {
+          throw new Error(`Baris ${rowNumber}: Tipe harus DEPOSIT atau EXPENSE`)
         }
-      })()
+        if (!validCategories.includes(category)) {
+          throw new Error(`Baris ${rowNumber}: Kategori tidak valid`)
+        }
+        if (!Number.isFinite(amount) || amount <= 0) {
+          throw new Error(`Baris ${rowNumber}: Nominal harus angka lebih dari 0`)
+        }
+        if (!rawDate) {
+          throw new Error(`Baris ${rowNumber}: Tanggal wajib diisi`)
+        }
+
+        return {
+          id: Date.now() + Math.random(),
+          project_id: project.value!.id,
+          type,
+          category,
+          amount,
+          date: parseDate(rawDate),
+          description: row['Deskripsi'] || ''
+        }
+      })
+
+      if (project.value) {
+        (async () => {
+          let success = false;
+          try {
+            if (!project.value) throw new Error('Projek tidak ditemukan')
+            const newTxs = [...project.value!.transactions, ...newTransactions];
+            const db = await initDB()
+            const p = await db.get('projects', project.value!.id)
+            if (!p) throw new Error('Projek tidak ditemukan di database')
+            
+            p.transactions = newTxs;
+            p.total_deposits = p.transactions.filter(t => t.type === 'DEPOSIT').reduce((acc, t) => acc + t.amount, 0)
+            p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0)
+            p.balance = p.total_deposits - p.total_expenses
+            
+            const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
+            (p as any).modal_total = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+            (p as any).panen_total = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+
+            await db.put('projects', JSON.parse(JSON.stringify(p)))
+            await fetchProject()
+            success = true;
+          } catch (e) {
+            console.error(e)
+            showSnackbar('Gagal menyimpan: ' + (e as Error).message, 'error')
+          }
+          if (success) {
+            showSnackbar('Transaksi berhasil diimpor!', 'success')
+          }
+        })()
+      }
+    } catch (e) {
+      console.error(e)
+      showSnackbar('Gagal memproses file: ' + (e as Error).message, 'error')
     }
   }
   reader.readAsArrayBuffer(file)
@@ -513,15 +552,17 @@ onUnmounted(() => clearInterval(interval))
 
 <template>
   <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>
-          <div>
-            {{ project?.name || 'Detail Proyek' }}
+    <ion-header class="app-header">
+      <ion-toolbar class="app-toolbar">
+        <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <ion-title class="app-hero-title" style="padding: 0;">
+              {{ project?.name || 'Detail Proyek' }}
+            </ion-title>
             <ion-badge v-if="project" class="badge-status" :color="getStatusColor(project.status)">{{ project.status }}</ion-badge>
           </div>
-          <div class="text-muted" style="font-size: 0.8rem; margin-top: 4px;">{{ project?.description || 'Tidak ada deskripsi.' }}</div>
-        </ion-title>
+          <p class="app-hero-subtitle" style="margin: 0;">{{ project?.description || 'Tidak ada deskripsi.' }}</p>
+        </div>
       </ion-toolbar>
     </ion-header>
 
@@ -542,19 +583,19 @@ onUnmounted(() => clearInterval(interval))
 
         <ion-grid>
             <ion-row>
-                <ion-col size="6" size-lg="2">
+                <ion-col size="6" size-lg="3">
                     <div class="summary-card summary-card--green shadow-soft">
                         <small class="text-muted">Modal</small>
                         <div class="summary-value summary-value--green">{{ formatCurrency((project as any).modal_total || 0) }}</div>
                     </div>
                 </ion-col>
-                <ion-col size="6" size-lg="2">
+                <ion-col size="6" size-lg="3">
                     <div class="summary-card summary-card--red shadow-soft">
                         <small class="text-muted">Pengeluaran</small>
                         <div class="summary-value summary-value--red">{{ formatCurrency(project.total_expenses) }}</div>
                     </div>
                 </ion-col>
-                <ion-col size="6" size-lg="2">
+                <ion-col size="6" size-lg="3">
                     <div class="summary-card summary-card--green shadow-soft">
                         <small class="text-muted">Penjualan</small>
                         <div class="summary-value summary-value--green mb-2">{{ formatCurrency((project as any).panen_total || 0) }}</div>
@@ -566,11 +607,11 @@ onUnmounted(() => clearInterval(interval))
                         <div class="summary-profit" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
                     </div>
                 </ion-col>
-                <ion-col size="6" size-lg="2">
+                <ion-col size="6" size-lg="3">
                     <div class="summary-card summary-card--blue shadow-soft">
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">Keuntungan</small>
-                            <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ Math.round(netProfit / (project as any).panen_total * 100) || 0 }}%</ion-badge>
+                            <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ profitPercent }}%</ion-badge>
                         </div>
                         <div class="summary-profit summary-profit--border" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
                         
@@ -595,10 +636,8 @@ onUnmounted(() => clearInterval(interval))
               <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" />
             </ion-card>
         </div>
-
-
-
-        <div class="ion-padding mx-3 transaction-section">
+        
+        <div class="ion-padding mx-3 transaction-section mb-3">
           <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
             <ion-card-title class="section-title">Riwayat Transaksi</ion-card-title>
             <div class="filter-chips filter-chips--mobile">
@@ -623,14 +662,14 @@ onUnmounted(() => clearInterval(interval))
                     <div class="fw-bold text-truncate">{{ tx.category }}</div>
                     <div class="text-muted text-truncate">{{ tx.description || '-' }}</div>
                   </div>
-                  <div class="transaction-amount text-end fw-bold" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
+                  <div class="transaction-amount text-end fw-bold me-2" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
                     {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
                   </div>
                   <div class="transaction-actions flex-shrink-0 d-flex justify-content-end">
-                    <ion-button fill="clear" class="btn-action primary" @click="openEditDialog(tx)">
+                    <ion-button class="btn-action primary icon-btn" size="small" @click="openEditDialog(tx)">
                       <ion-icon :icon="pencilOutline" />
                     </ion-button>
-                    <ion-button fill="clear" class="btn-action danger" @click="dialogDeleteTxId = tx.id">
+                    <ion-button class="btn-action danger icon-btn" size="small" @click="dialogDeleteTxId = tx.id">
                       <ion-icon :icon="trashOutline" />
                     </ion-button>
                   </div>
@@ -652,6 +691,16 @@ onUnmounted(() => clearInterval(interval))
       <div v-else class="d-flex justify-content-center align-items-center h-100">
         Proyek tidak ditemukan.
       </div>
+      <ion-alert
+        :is-open="dialogDeleteTxId !== null"
+        header="Konfirmasi Hapus"
+        message="Apakah anda yakin ingin menghapus transaksi ini?"
+        :buttons="[
+          { text: 'Batal', role: 'cancel', handler: () => dialogDeleteTxId = null },
+          { text: 'Hapus', role: 'destructive', handler: () => dialogDeleteTxId !== null && deleteTransaction(dialogDeleteTxId) }
+        ]"
+        @didDismiss="dialogDeleteTxId = null"
+      />
     </ion-content>
 
     <!-- Dialogs -->
@@ -664,27 +713,53 @@ onUnmounted(() => clearInterval(interval))
                 </ion-buttons>
             </ion-toolbar>
         </ion-header>
-        <ion-content class="ion-padding">
-            <ion-item>
-                <ion-label position="stacked">Tipe</ion-label>
-                <ion-select v-model="formTx.type" interface="popover">
-                    <ion-select-option value="DEPOSIT">Modal/Pendapatan</ion-select-option>
-                    <ion-select-option value="EXPENSE">Pengeluaran</ion-select-option>
-                </ion-select>
-            </ion-item>
-            <ion-item>
-                <ion-label position="stacked">Kategori</ion-label>
-                <ion-select v-model="formTx.category" interface="popover">
-                    <ion-select-option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</ion-select-option>
-                </ion-select>
-            </ion-item>
-            <ion-item>
-                <ion-label position="stacked">Nominal</ion-label>
-                <ion-input type="number" v-model.number="formTx.amount" />
-            </ion-item>
-            <ion-button expand="block" @click="saveTransaction" class="ion-margin-top">Simpan</ion-button>
+        <ion-content class="ion-padding modal-content">
+            <div class="form-container">
+                <div class="form-section">
+                    <label class="form-label">Tipe</label>
+                    <ion-select v-model="formTx.type" interface="popover" class="form-control app-control">
+                        <ion-select-option value="DEPOSIT">Modal/Pendapatan</ion-select-option>
+                        <ion-select-option value="EXPENSE">Pengeluaran</ion-select-option>
+                    </ion-select>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">Kategori</label>
+                    <ion-select v-model="formTx.category" interface="popover" class="form-control app-control">
+                        <ion-select-option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</ion-select-option>
+                    </ion-select>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">Nominal</label>
+                    <ion-input type="number" v-model.number="formTx.amount" class="form-control app-control" />
+                </div>
+                <div class="form-section">
+                    <label class="form-label">Deskripsi</label>
+                    <ion-textarea v-model="formTx.description" class="form-control app-control form-control-textarea" />
+                </div>
+            </div>
         </ion-content>
+        <ion-footer>
+            <div class="form-actions">
+                <button type="button" class="btn btn-action light" @click="closeDialog">Cancel</button>
+                <button type="button" class="btn btn-action primary" @click="saveTransaction">Save Changes</button>
+            </div>
+        </ion-footer>
     </ion-modal>
+
+    <ion-toast
+        :is-open="snackbar.show"
+        :message="snackbar.text"
+        :class="snackbar.color === 'success' ? 'toast-success' : 'toast-error'"
+        :style="{
+          '--background': snackbar.color === 'success' ? 'rgba(34, 197, 94, 0.9)' : 'rgba(239, 68, 68, 0.9)',
+          '--color': snackbar.color === 'success' ? '#fff' : '#fff',
+          '--border-radius': '14px',
+          '--box-shadow': '0 10px 30px rgba(15, 23, 42, 0.12)'
+        }"
+        position="top"
+        duration="5000"
+        @didDismiss="snackbar.show = false"
+    />
   </ion-page>
 </template>
 
@@ -697,39 +772,7 @@ onUnmounted(() => clearInterval(interval))
   }
   .snap-container { scroll-snap-type: x mandatory; }
   .snap-item { scroll-snap-align: start; }
-  .summary-card {
-    height: 100%;
-    border-radius: 22px;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .summary-card--green { background: linear-gradient(180deg, #f2fbf4 0%, #e8f5e9 100%); }
-  .summary-card--red { background: linear-gradient(180deg, #fff5f5 0%, #ffebee 100%); }
-  .summary-card--blue { background: linear-gradient(180deg, #eff6ff 0%, #e3f2fd 100%); }
-  .summary-grid {
-    --ion-grid-column-padding: 8px;
-    margin-inline: 0;
-  }
-  .summary-value,
-  .summary-profit {
-    font-weight: 800;
-    font-size: 1rem;
-    line-height: 1.15;
-  }
-  .summary-value--green,
-  .summary-value--blue {
-    color: #2e7d32;
-  }
-  .summary-value--red {
-    color: #c62828;
-  }
-  .summary-profit--border {
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-    padding-bottom: 12px;
-    margin-bottom: 10px;
-  }
+  
   .project-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -764,19 +807,13 @@ onUnmounted(() => clearInterval(interval))
     padding-bottom: 2px;
     width: 100%;
   }
-  .chip-btn {
-    --border-radius: 18px;
-    font-size: 0.72rem;
-    white-space: nowrap;
-    flex: 0 0 auto;
-  }
   .transaction-scroll {
     overflow-x: auto;
     width: 100%;
   }
   .transaction-list {
     box-sizing: border-box;
-    min-width: 560px;
+    min-width: 540px;
     width: 100%;
   }
   .transaction-card {
@@ -816,14 +853,14 @@ onUnmounted(() => clearInterval(interval))
     --padding-end: 2px;
     min-width: 12px;
     min-height: 12px;
-    font-size: 0.5rem;
+    font-size: 0.6rem;
     line-height: 1;
   }
   .small-badge::part(native) {
     padding: 0 3px;
     min-width: 12px;
     min-height: 12px;
-    font-size: 0.5rem;
+    font-size: 0.6rem;
     line-height: 1;
   }
   @media (min-width: 768px) {

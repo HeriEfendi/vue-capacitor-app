@@ -274,13 +274,6 @@ ion-header {
   box-shadow: none !important; 
 }
 
-.summary-card {
-  padding: 16px;
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 .icon-box {
   width: 40px;
   height: 40px;
@@ -345,15 +338,13 @@ ion-header {
   --background: linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%);
 }
 
-.app-header,
-.app-toolbar {
+.app-header {
   --background: #ecf3fd !important;
   background: #ecf3fd !important;
   color: #1f2937;
 }
-
 .app-hero {
-  padding: 16px 16px 18px;
+  padding: 12px 16px 5px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -444,14 +435,12 @@ ion-header {
 }
 
 .chip-btn {
-  --border-radius: 999px !important;
   flex: 0 0 auto;
   min-height: 36px;
   font-weight: 700;
 }
 
 .icon-btn {
-  --border-radius: 14px !important;
   height: 36px;
   width: 36px;
 }
@@ -532,10 +521,10 @@ ion-header {
   --border-color: #dbeafe;
   --border-radius: 14px;
   --padding-start: 12px;
-  min-height: 44px;
   border: 1px solid #dbeafe;
   border-radius: 14px;
   background: #f8fbff;
+  min-height: 44px;
 }
 
 .summary-grid {
@@ -543,4 +532,79 @@ ion-header {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   padding: 0 8px 14px;
+}
+
+.summary-card {
+  min-height: 100px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  border-radius: 22px;
+  padding: 14px 16px;
+  margin: 0px 5px 0px;
+  gap: 16px;
+}
+
+  .summary-card--green { background: linear-gradient(180deg, #f2fbf4 0%, #e8f5e9 100%); }
+  .summary-card--red { background: linear-gradient(180deg, #fff5f5 0%, #ffebee 100%); }
+  .summary-card--blue { background: linear-gradient(180deg, #eff6ff 0%, #e3f2fd 100%); }
+  .summary-grid {
+    --ion-grid-column-padding: 8px;
+    margin-inline: 0;
+  }
+  .summary-value,
+  .summary-profit {
+    font-weight: 800;
+    font-size: 1rem;
+    line-height: 1.15;
+  }
+  .summary-value--green {
+    color: #2e7d32;
+  }
+  .summary-value--red {
+    color: #c62828;
+  }
+  .summary-value--blue {
+    color: #1976d2;
+  }
+  .summary-value--orange {
+    color: #ef6c00;
+  }
+  .summary-value--purple {
+    color: #7b1fa2;
+  }
+  .summary-value--teal {
+    color: #00796b;
+  }
+  .summary-value--indigo {
+    color: #303f9f;
+  }
+.form-container { display: flex; flex-direction: column; gap: 12px; }
+.form-section {
+  margin: 0px;
+  padding: 0px 20px;
+}
+.form-label { color: #1f2937; font-size: .88rem; font-weight: 600; margin-bottom: 4px; }
+.form-control-textarea { min-height: 160px; padding: 12px; }
+.form-actions {
+  position: sticky;
+  padding: 0 !important;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: #ecf3fd !important;
+  box-shadow: none;
+}
+
+ion-footer {
+  box-shadow: none !important;
+}
+
+.form-actions .btn {
+  min-height: 40px;
+  font-weight: 500;
 }
