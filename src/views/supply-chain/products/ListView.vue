@@ -61,17 +61,24 @@
           <ion-col v-for="product in filteredProducts" :key="product.id" size="6" size-sm="4" size-md="3">
             <div class="mobile-card h-100 d-flex flex-column justify-content-between p-2">
               <div>
-                <div class="position-relative text-center rounded-3 bg-light overflow-hidden mb-2" style="height: 120px; display: grid; place-items: center;">
-                  <img 
-                    :src="product.imageURL" 
-                    :alt="product.name" 
-                    style="max-width: 100%; max-height: 100%; object-fit: cover;" 
+                <div class="position-relative text-center rounded-3 overflow-hidden mb-2 product-img-wrap">
+                  <!-- Gambar dari Filesystem -->
+                  <img
+                    v-if="product.imageURL"
+                    :src="product.imageURL"
+                    :alt="product.name"
+                    class="product-img"
                   />
+                  <!-- Placeholder CSS jika belum ada gambar -->
+                  <div v-else class="product-img-placeholder">
+                    <ion-icon :icon="basketOutline" style="font-size:2rem;" />
+                  </div>
                   <!-- Featured Badge -->
                   <span v-if="product.featured === 1" class="badge bg-warning text-dark position-absolute top-0 start-0 m-1" style="font-size: 0.65rem;">
                     Unggulan
                   </span>
                 </div>
+
 
                 <div class="px-1">
                   <!-- Category name -->
@@ -125,6 +132,7 @@ import { useRouter } from 'vue-router'
 import { ProductRepository, CategoryRepository } from '../../../db/repositories'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonButtons, IonBackButton, IonAlert, toastController } from '@ionic/vue';
 import { addOutline, trashOutline, createOutline, basketOutline } from 'ionicons/icons';
+import { readProductImage } from '../../../composables/useProductImage';
 
 export default {
   name: 'ProductsListView',
@@ -144,18 +152,22 @@ export default {
       return cat ? cat.name : 'Tanpa Kategori'
     }
 
+
     const fetchData = async () => {
       categories.value = await CategoryRepository.getAll()
       const data = await ProductRepository.getAll()
-      data.forEach(product => {
+      // Load gambar dari Filesystem secara async (h_dev/product/product_XX.webp)
+      await Promise.all(data.map(async (product) => {
         if (product.image) {
-          product.imageURL = typeof product.image === 'string' ? product.image : URL.createObjectURL(product.image)
+          // Coba baca dari Capacitor Filesystem
+          product.imageURL = await readProductImage(product.image)
         } else {
-          product.imageURL = 'https://via.placeholder.com/200x150?text=No+Image'
+          product.imageURL = null
         }
-      })
+      }))
       products.value = data
     }
+
 
     const filteredProducts = computed(() => {
       return products.value.filter(product => {
@@ -210,3 +222,26 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.product-img-wrap {
+  height: 120px;
+  background: #f0edff;
+  display: grid;
+  place-items: center;
+}
+.product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.product-img-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #b0a0e0;
+  width: 100%;
+  height: 100%;
+}
+</style>
