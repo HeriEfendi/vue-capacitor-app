@@ -46,7 +46,7 @@
 
 <script>
 import { IonMenu, IonContent, IonList, IonItem, IonLabel, IonIcon, menuController } from '@ionic/vue';
-import { checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline, timeOutline, cartOutline } from 'ionicons/icons';
+import { checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline, timeOutline, cartOutline, layersOutline } from 'ionicons/icons';
 
 export default {
   name: 'AppSidebar',
@@ -75,6 +75,7 @@ export default {
         title: 'Supply Chain',
         items: [
           { label: 'Kasir (POS)', path: '/cashier', icon: cartOutline, desc: 'Penjualan & Kasir', accent: '#10b981' },
+          { label: 'Manajemen Stok', path: '/stock', icon: layersOutline, desc: 'Monitor & atur stok', accent: '#8b5cf6' },
           { label: 'Produk Jadi', path: '/products', icon: basketOutline, desc: 'Stok produk', accent: '#ea580c' },
           { label: 'Kategori', path: '/categories', icon: listOutline, desc: 'Master kategori', accent: '#475569' },
         ],

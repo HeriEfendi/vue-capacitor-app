@@ -571,7 +571,7 @@
 
 <script>
 import { ref, onMounted, computed, defineAsyncComponent } from 'vue'
-import { ProductRepository, CategoryRepository, salesRepo } from '../../db/repositories'
+import { ProductRepository, CategoryRepository, salesRepo, stockMutationsRepo } from '../../db/repositories'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonAlert, toastController } from '@ionic/vue';
 import { addOutline, removeOutline, trashOutline, cartOutline, basketOutline, printOutline, downloadOutline, calendarOutline, documentTextOutline } from 'ionicons/icons';
 import * as XLSX from 'xlsx';
@@ -718,14 +718,7 @@ export default {
         }
       }
 
-      // Deduct stock
-      for (const item of cart.value) {
-        const prod = await ProductRepository.getById(item.id)
-        const newStock = prod.stock - item.quantity
-        await ProductRepository.update(item.id, { ...prod, stock: newStock })
-      }
-
-      // Save transaction
+      // Save transaction first
       const saleRecord = {
         items: cart.value.map(c => ({
           productId: c.id,
@@ -746,6 +739,22 @@ export default {
 
       const savedSale = await salesRepo.add(saleRecord)
       activeSale.value = savedSale
+
+      // Deduct stock and log mutation
+      for (const item of cart.value) {
+        const prod = await ProductRepository.getById(item.id)
+        const newStock = prod.stock - item.quantity
+        await ProductRepository.update(item.id, { ...prod, stock: newStock })
+
+        await stockMutationsRepo.add({
+          productId: item.id,
+          type: 'sale',
+          changeQuantity: -item.quantity,
+          beforeStock: prod.stock,
+          afterStock: newStock,
+          notes: `Penjualan POS INV-${savedSale.id}`
+        })
+      }
 
       // Clear POS cart states
       cart.value = []

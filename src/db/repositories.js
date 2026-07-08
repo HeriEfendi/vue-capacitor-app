@@ -77,5 +77,6 @@ export const incomesRepo = createRepo('incomes');
 export const expensesRepo = createRepo('expenses');
 export const dailyLedgerRepo = createRepo('dailyLedger');
 export const salesRepo = createRepo('sales');
+export const stockMutationsRepo = createRepo('stockMutations');
 
 

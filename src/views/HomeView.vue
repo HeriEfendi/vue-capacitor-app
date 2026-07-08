@@ -37,7 +37,7 @@
 import { ref, onMounted } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonIcon, IonBadge } from '@ionic/vue';
-import { checkboxOutline, documentTextOutline, walletOutline, basketOutline, personOutline, cashOutline, timeOutline, cartOutline } from 'ionicons/icons';
+import { checkboxOutline, documentTextOutline, walletOutline, basketOutline, personOutline, cashOutline, timeOutline, cartOutline, layersOutline } from 'ionicons/icons';
 
 export default {
   name: 'HomeView',
@@ -52,6 +52,7 @@ export default {
       { name: 'Pengeluaran', path: '/expenses', icon: cashOutline, count: 0, description: 'Keluar dana', accent: '#d97706' },
       { name: 'Tabungan', path: '/capital', icon: walletOutline, count: 0, description: 'Modal usaha', accent: '#d97706' },
       { name: 'Kasir (POS)', path: '/cashier', icon: cartOutline, count: 0, description: 'Penjualan & Kasir', accent: '#10b981' },
+      { name: 'Manajemen Stok', path: '/stock', icon: layersOutline, count: 0, description: 'Monitor & atur stok', accent: '#8b5cf6' },
       { name: 'Produk Jadi', path: '/products', icon: basketOutline, count: 0, description: 'Stok produk', accent: '#dc2626' },
       { name: 'Ceklok', path: '/ceklok', icon: timeOutline, count: 0, description: 'Presensi kerja', accent: '#0d9488' },
       { name: 'Profile', path: '/profile', icon: personOutline, count: 0, description: 'Data profil', accent: '#0891b2' },
@@ -67,16 +68,20 @@ export default {
         const transactions = await db.getAll('transactions')
         const ceklokLogs = await db.getAll('ceklok_logs').catch(() => [])
 
-        menuItems.value[0].count = todos.length
-        menuItems.value[1].count = teamTodos.length
-        menuItems.value[2].count = projects.length
-        menuItems.value[3].count = transactions.length
+        menuItems.value[0].count = todos.length           // To Do
+        menuItems.value[1].count = teamTodos.length       // To Do Team
+        menuItems.value[2].count = projects.length        // Manajemen Proyek
+        menuItems.value[3].count = transactions.length    // Pengeluaran
 
         const { capitalCostsRepo, ProductRepository, salesRepo } = await import('../db/repositories')
-        menuItems.value[4].count = (await capitalCostsRepo.getAll()).length
-        menuItems.value[5].count = (await salesRepo.getAll()).length
-        menuItems.value[6].count = (await ProductRepository.getAll()).length
-        menuItems.value[7].count = ceklokLogs.length
+        const allProducts = await ProductRepository.getAll()
+        const lowStockItems = allProducts.filter(p => p.stock <= 5)
+
+        menuItems.value[4].count = (await capitalCostsRepo.getAll()).length  // Tabungan
+        menuItems.value[5].count = (await salesRepo.getAll()).length          // Kasir (POS)
+        menuItems.value[6].count = lowStockItems.length                       // Manajemen Stok (badge = stok tipis)
+        menuItems.value[7].count = allProducts.length                         // Produk Jadi
+        menuItems.value[8].count = ceklokLogs.length                          // Ceklok
       } catch (e) {
         console.error('Gagal memuat count:', e)
       }
