@@ -46,7 +46,7 @@
 
 <script>
 import { IonMenu, IonContent, IonList, IonItem, IonLabel, IonIcon, menuController } from '@ionic/vue';
-import { checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline } from 'ionicons/icons';
+import { checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline, timeOutline } from 'ionicons/icons';
 
 export default {
   name: 'AppSidebar',
@@ -58,6 +58,7 @@ export default {
         items: [
           { label: 'To Do', path: '/todo-personal', icon: checkmarkCircleOutline, desc: 'Task pribadi', accent: '#2563eb' },
           { label: 'To Do Team', path: '/todo', icon: checkmarkCircleOutline, desc: 'Task tim', accent: '#7c3aed' },
+          { label: 'Ceklok', path: '/ceklok', icon: timeOutline, desc: 'Presensi & jam kerja', accent: '#0d9488' },
         ],
       },
       {

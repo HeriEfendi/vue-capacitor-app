@@ -990,3 +990,169 @@ ion-footer {
   border-radius: 16px;
   --background: #f8fafc;
 }
+
+/* ==========================================================================
+   Ceklok - Attendance Tracker
+   ========================================================================== */
+
+/* Color utilities used by Ceklok */
+.text-indigo { color: #4f46e5 !important; }
+.text-teal   { color: #0d9488 !important; }
+.text-amber  { color: #d97706 !important; }
+.bg-indigo   { background-color: #4f46e5 !important; }
+.bg-teal     { background-color: #0d9488 !important; }
+.fw-black    { font-weight: 900 !important; }
+
+/* Custom outline button variants for WFO/WFH/Dinas type selector */
+.btn-outline-teal {
+  border: 1.5px solid #0d9488;
+  color: #0d9488;
+  background: transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 6px 4px;
+  transition: all 160ms ease;
+}
+.btn-outline-teal:hover,
+.btn-outline-teal.active {
+  background: #0d9488;
+  color: white;
+}
+
+/* ── Live clock display ───────────────────────────────────────── */
+.current-time {
+  font-size: clamp(2.4rem, 10vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.current-date {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-top: 4px;
+  text-transform: capitalize;
+}
+
+/* ── Active / Inactive status pill ───────────────────────────── */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+.status-indicator.active {
+  background: #dcfce7;
+  color: #166534;
+}
+.status-indicator.inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+.status-indicator .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  animation: none;
+}
+.status-indicator.active .dot {
+  animation: pulse-dot 1.4s ease infinite;
+  background: #16a34a;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* ── Big Clock-In / Clock-Out Toggle Button ──────────────────── */
+.ceklok-btn {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16);
+  outline: none;
+}
+.ceklok-btn.start {
+  background: linear-gradient(135deg, #0d9488 0%, #2563eb 100%);
+  color: white;
+}
+.ceklok-btn.stop {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+}
+.ceklok-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+}
+.ceklok-btn-icon {
+  font-size: 2.6rem;
+}
+.ceklok-btn-text {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+/* ── Duration counter card ───────────────────────────────────── */
+.duration-counter {
+  text-align: center;
+}
+
+/* ── Riwayat history entry: colored left border variants ─────── */
+.border-teal    { border-color: #0d9488 !important; }
+.border-warning { border-color: #d97706 !important; }
+
+/* ── Mobile card overrides for Ceklok ────────────────────────── */
+.mobile-card .mobile-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.mobile-card-title  { font-size: 1rem;   font-weight: 800; }
+.mobile-card-subtitle { font-size: 0.86rem; color: #64748b; }
+.mobile-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+/* ── IonSegment custom styling ───────────────────────────────── */
+.custom-segment {
+  --background: #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.custom-segment ion-segment-button {
+  --color: #64748b;
+  --color-checked: #0f172a;
+  --indicator-color: white;
+  --indicator-box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+  font-weight: 700;
+  font-size: 0.8rem;
+  min-height: 38px;
+  --border-radius: 10px;
+}
+
+/* ── Progress bar colors ─────────────────────────────────────── */
+.progress-bar.bg-indigo { background-color: #4f46e5 !important; }
+.progress-bar.bg-teal   { background-color: #0d9488 !important; }

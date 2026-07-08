@@ -37,7 +37,7 @@
 import { ref, onMounted } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonIcon, IonBadge } from '@ionic/vue';
-import { checkboxOutline, documentTextOutline, walletOutline, basketOutline, personOutline, cashOutline } from 'ionicons/icons';
+import { checkboxOutline, documentTextOutline, walletOutline, basketOutline, personOutline, cashOutline, timeOutline } from 'ionicons/icons';
 
 export default {
   name: 'HomeView',
@@ -52,6 +52,7 @@ export default {
       { name: 'Pengeluaran', path: '/expenses', icon: cashOutline, count: 0, description: 'Keluar dana', accent: '#d97706' },
       { name: 'Tabungan', path: '/capital', icon: walletOutline, count: 0, description: 'Modal usaha', accent: '#d97706' },
       { name: 'Produk Jadi', path: '/products', icon: basketOutline, count: 0, description: 'Stok produk', accent: '#dc2626' },
+      { name: 'Ceklok', path: '/ceklok', icon: timeOutline, count: 0, description: 'Presensi kerja', accent: '#0d9488' },
       { name: 'Profile', path: '/profile', icon: personOutline, count: 0, description: 'Data profil', accent: '#0891b2' },
     ])
 
@@ -63,6 +64,7 @@ export default {
         const teamTodos = await db.getAll('team_todos')
         const projects = await db.getAll('projects')
         const transactions = await db.getAll('transactions')
+        const ceklokLogs = await db.getAll('ceklok_logs').catch(() => [])
 
         menuItems.value[0].count = todos.length
         menuItems.value[1].count = teamTodos.length
@@ -72,6 +74,7 @@ export default {
         const { capitalCostsRepo, ProductRepository } = await import('../db/repositories')
         menuItems.value[4].count = (await capitalCostsRepo.getAll()).length
         menuItems.value[5].count = (await ProductRepository.getAll()).length
+        menuItems.value[6].count = ceklokLogs.length
       } catch (e) {
         console.error('Gagal memuat count:', e)
       }

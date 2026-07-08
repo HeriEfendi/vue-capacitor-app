@@ -38,6 +38,7 @@ const routes = [
       { path: 'todo', name: 'TodoList', component: () => import('../views/todo/ListView.vue') },
       { path: 'todo/create', name: 'TodoCreate', component: () => import('../views/todo/FormView.vue') },
       { path: 'todo/:id/edit', name: 'TodoEdit', component: () => import('../views/todo/FormView.vue') },
+      { path: 'ceklok', name: 'Ceklok', component: () => import('../views/ceklok/CeklokView.vue') },
       { path: 'profile', name: 'Profile', component: () => import('../views/profile/ProfileView.vue') },
       { path: 'about', name: 'About', component: () => import('../views/AboutView.vue') },
       { path: 'contact', name: 'Contact', component: () => import('../views/ContactView.vue') },

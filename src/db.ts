@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'FinancialAppDB';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 
 export const initDB = async () => {
   return openDB(DB_NAME, DB_VERSION, {
@@ -20,6 +20,12 @@ export const initDB = async () => {
       }
       if (!db.objectStoreNames.contains('transactions')) {
         db.createObjectStore('transactions', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('ceklok_logs')) {
+        db.createObjectStore('ceklok_logs', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('ceklok_settings')) {
+        db.createObjectStore('ceklok_settings', { keyPath: 'key' });
       }
     },
   });
