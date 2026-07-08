@@ -16,6 +16,7 @@ const routes = [
       { path: 'categories', name: 'CategoriesList', component: () => import('../views/supply-chain/categories/ListView.vue') },
       { path: 'categories/create', name: 'CategoryCreate', component: () => import('../views/supply-chain/categories/CreateView.vue') },
       { path: 'categories/:id/edit', name: 'CategoryEdit', component: () => import('../views/supply-chain/categories/EditView.vue') },
+      { path: 'cashier', name: 'Cashier', component: () => import('../views/cashier/CashierView.vue') },
       { path: 'expenses', name: 'ExpensesList', component: () => import('../views/accounting/expenses/ListView.vue') },
       { path: 'expenses/create', name: 'ExpensesCreate', component: () => import('../views/accounting/expenses/FormView.vue') },
       { path: 'expenses/:id/edit', name: 'ExpensesEdit', component: () => import('../views/accounting/expenses/FormView.vue') },

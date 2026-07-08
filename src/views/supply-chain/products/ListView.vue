@@ -1,11 +1,11 @@
 <template>
   <ion-page>
     <ion-header>
-      <ion-toolbar>
+      <ion-toolbar class="header-dark">
         <ion-buttons slot="start">
           <ion-back-button default-href="/dashboard" />
         </ion-buttons>
-        <ion-title>Daftar Produk</ion-title>
+        <ion-title>Manajemen Produk</ion-title>
         <ion-buttons slot="end">
           <ion-button router-link="/products/create">
             <ion-icon slot="icon-only" :icon="addOutline" />
@@ -14,61 +14,199 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content>
-      <ion-grid>
+    <ion-content class="app-content-wrap bg-light">
+      <!-- Search Bar -->
+      <div class="px-3 pt-3">
+        <div class="search-bar-wrap mb-3">
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            class="form-control app-control" 
+            placeholder="Cari nama produk..." 
+          />
+        </div>
+
+        <!-- Category Filter Chips -->
+        <div class="filter-chips--mobile mb-3">
+          <button 
+            type="button" 
+            class="btn btn-action btn-sm me-1"
+            :class="selectedCategory === 'all' ? 'primary' : 'light'"
+            @click="selectedCategory = 'all'"
+          >
+            Semua
+          </button>
+          <button 
+            v-for="cat in categories" 
+            :key="cat.id"
+            type="button" 
+            class="btn btn-action btn-sm me-1"
+            :class="selectedCategory === cat.id ? 'primary' : 'light'"
+            @click="selectedCategory = cat.id"
+          >
+            {{ cat.name }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-if="filteredProducts.length === 0" class="empty-state text-center py-5">
+        <ion-icon :icon="basketOutline" style="font-size: 3rem;" class="text-muted mb-2" />
+        <p class="text-muted">Tidak ada produk ditemukan.</p>
+      </div>
+
+      <!-- Product Grid -->
+      <ion-grid v-else class="menu-grid">
         <ion-row>
-          <ion-col v-for="product in products" :key="product.id" size="12" size-sm="6" size-md="4">
-            <ion-card>
-              <ion-img :src="product.imageURL" :alt="product.name" />
-              <ion-card-header>
-                <ion-card-title>{{ product.name }}</ion-card-title>
-                <ion-card-subtitle>{{ formatPrice(product.price) }}</ion-card-subtitle>
-              </ion-card-header>
-              <ion-card-content>
-                <div class="d-flex justify-content-end">
-                  <ion-button fill="clear" color="medium" router-link="`/products/${product.id}/edit`">
-                    <ion-icon :icon="pencilOutline" />
-                  </ion-button>
-                  <ion-button fill="clear" color="danger" @click="deleteProduct(product.id)">
-                    <ion-icon :icon="trashOutline" />
-                  </ion-button>
+          <ion-col v-for="product in filteredProducts" :key="product.id" size="6" size-sm="4" size-md="3">
+            <div class="mobile-card h-100 d-flex flex-column justify-content-between p-2">
+              <div>
+                <div class="position-relative text-center rounded-3 bg-light overflow-hidden mb-2" style="height: 120px; display: grid; place-items: center;">
+                  <img 
+                    :src="product.imageURL" 
+                    :alt="product.name" 
+                    style="max-width: 100%; max-height: 100%; object-fit: cover;" 
+                  />
+                  <!-- Featured Badge -->
+                  <span v-if="product.featured === 1" class="badge bg-warning text-dark position-absolute top-0 start-0 m-1" style="font-size: 0.65rem;">
+                    Unggulan
+                  </span>
                 </div>
-              </ion-card-content>
-            </ion-card>
+
+                <div class="px-1">
+                  <!-- Category name -->
+                  <span class="badge bg-secondary mb-1" style="font-size: 0.65rem;">{{ getCategoryName(product.categoryId) }}</span>
+                  <h6 class="fw-bold text-dark mb-1 text-truncate" :title="product.name">{{ product.name }}</h6>
+                  <p class="text-indigo fw-bold mb-2" style="font-size: 0.85rem;">{{ formatPrice(product.price) }}</p>
+                </div>
+              </div>
+
+              <div class="px-1 mt-auto">
+                <!-- Stock status badge -->
+                <div class="mb-2">
+                  <span v-if="product.stock === 0" class="badge bg-danger w-100">Habis</span>
+                  <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark w-100">Stok Tipis ({{ product.stock }})</span>
+                  <span v-else class="badge bg-success w-100">Stok: {{ product.stock }}</span>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex justify-content-between border-top pt-2">
+                  <button class="btn btn-light btn-sm text-primary flex-fill me-1 py-1" @click="editProduct(product.id)" title="Edit">
+                    <ion-icon :icon="createOutline" />
+                  </button>
+                  <button class="btn btn-light btn-sm text-danger flex-fill py-1" @click="confirmDelete(product.id)" title="Hapus">
+                    <ion-icon :icon="trashOutline" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </ion-col>
         </ion-row>
       </ion-grid>
+
+      <!-- Delete Alert -->
+      <ion-alert
+        :is-open="deleteId !== null"
+        header="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak bisa dibatalkan."
+        :buttons="[
+          { text: 'Batal', role: 'cancel', handler: () => { deleteId = null } },
+          { text: 'Hapus', role: 'destructive', handler: () => { deleteProduct() } }
+        ]"
+        @didDismiss="deleteId = null"
+      />
     </ion-content>
   </ion-page>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import { ProductRepository } from '../../../db/repositories'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonButtons, IonBackButton, IonImg } from '@ionic/vue';
-import { addOutline, trashOutline, pencilOutline } from 'ionicons/icons';
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { ProductRepository, CategoryRepository } from '../../../db/repositories'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonButtons, IonBackButton, IonAlert, toastController } from '@ionic/vue';
+import { addOutline, trashOutline, createOutline, basketOutline } from 'ionicons/icons';
 
 export default {
   name: 'ProductsListView',
-  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonButtons, IonBackButton, IonImg },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonButtons, IonBackButton, IonAlert },
   setup() {
+    const router = useRouter()
     const products = ref([])
-    const formatPrice = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(price)
+    const categories = ref([])
+    const searchQuery = ref('')
+    const selectedCategory = ref('all')
+    const deleteId = ref(null)
+
+    const formatPrice = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price)
+
+    const getCategoryName = (catId) => {
+      const cat = categories.value.find(c => c.id === catId)
+      return cat ? cat.name : 'Tanpa Kategori'
+    }
+
     const fetchData = async () => {
-      products.value = await ProductRepository.getAll();
-      products.value.forEach(product => {
+      categories.value = await CategoryRepository.getAll()
+      const data = await ProductRepository.getAll()
+      data.forEach(product => {
         if (product.image) {
           product.imageURL = typeof product.image === 'string' ? product.image : URL.createObjectURL(product.image)
         } else {
           product.imageURL = 'https://via.placeholder.com/200x150?text=No+Image'
         }
       })
+      products.value = data
     }
-    const deleteProduct = async (id) => { await ProductRepository.delete(id); fetchData() }
+
+    const filteredProducts = computed(() => {
+      return products.value.filter(product => {
+        const matchesSearch = product.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+        const matchesCategory = selectedCategory.value === 'all' || product.categoryId === selectedCategory.value
+        return matchesSearch && matchesCategory
+      })
+    })
+
+    const editProduct = (id) => {
+      router.push(`/products/${id}/edit`)
+    }
+
+    const confirmDelete = (id) => {
+      deleteId.value = id
+    }
+
+    const deleteProduct = async () => {
+      if (deleteId.value !== null) {
+        await ProductRepository.delete(deleteId.value)
+        const toast = await toastController.create({
+          message: 'Produk berhasil dihapus!',
+          duration: 2000,
+          color: 'success',
+          position: 'top'
+        })
+        await toast.present()
+        deleteId.value = null
+        await fetchData()
+      }
+    }
+
     onMounted(fetchData)
-    return { products, formatPrice, deleteProduct, addOutline, trashOutline, pencilOutline }
+
+    return {
+      products,
+      categories,
+      searchQuery,
+      selectedCategory,
+      filteredProducts,
+      deleteId,
+      formatPrice,
+      getCategoryName,
+      editProduct,
+      confirmDelete,
+      deleteProduct,
+      addOutline,
+      trashOutline,
+      createOutline,
+      basketOutline
+    }
   }
 }
 </script>
-
-

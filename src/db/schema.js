@@ -14,6 +14,17 @@ db.version(1).stores({
   dailyLedger: '++id, createdAt, description, amount, type'
 });
 
+db.version(2).stores({
+  categories: 'id, name',
+  products: '++id, name, price, stock, categoryId, featured',
+  capitalCosts: '++id, createdAt, name, amount',
+  debts: '++id, createdAt, name, amount, dueDate',
+  incomes: '++id, createdAt, name, amount',
+  expenses: '++id, createdAt, name, amount, type',
+  dailyLedger: '++id, createdAt, description, amount, type',
+  sales: '++id, createdAt, totalAmount, paymentMethod, amountPaid, changeAmount, items, notes'
+});
+
 export async function seedDatabase() {
   if (databaseSeeded) {
     return;

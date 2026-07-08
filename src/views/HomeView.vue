@@ -37,7 +37,7 @@
 import { ref, onMounted } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonIcon, IonBadge } from '@ionic/vue';
-import { checkboxOutline, documentTextOutline, walletOutline, basketOutline, personOutline, cashOutline, timeOutline } from 'ionicons/icons';
+import { checkboxOutline, documentTextOutline, walletOutline, basketOutline, personOutline, cashOutline, timeOutline, cartOutline } from 'ionicons/icons';
 
 export default {
   name: 'HomeView',
@@ -51,6 +51,7 @@ export default {
       { name: 'Manajemen Proyek', path: '/catatan_proyek', icon: documentTextOutline, count: 0, description: 'Proyek & kas', accent: '#059669' },
       { name: 'Pengeluaran', path: '/expenses', icon: cashOutline, count: 0, description: 'Keluar dana', accent: '#d97706' },
       { name: 'Tabungan', path: '/capital', icon: walletOutline, count: 0, description: 'Modal usaha', accent: '#d97706' },
+      { name: 'Kasir (POS)', path: '/cashier', icon: cartOutline, count: 0, description: 'Penjualan & Kasir', accent: '#10b981' },
       { name: 'Produk Jadi', path: '/products', icon: basketOutline, count: 0, description: 'Stok produk', accent: '#dc2626' },
       { name: 'Ceklok', path: '/ceklok', icon: timeOutline, count: 0, description: 'Presensi kerja', accent: '#0d9488' },
       { name: 'Profile', path: '/profile', icon: personOutline, count: 0, description: 'Data profil', accent: '#0891b2' },
@@ -71,10 +72,11 @@ export default {
         menuItems.value[2].count = projects.length
         menuItems.value[3].count = transactions.length
 
-        const { capitalCostsRepo, ProductRepository } = await import('../db/repositories')
+        const { capitalCostsRepo, ProductRepository, salesRepo } = await import('../db/repositories')
         menuItems.value[4].count = (await capitalCostsRepo.getAll()).length
-        menuItems.value[5].count = (await ProductRepository.getAll()).length
-        menuItems.value[6].count = ceklokLogs.length
+        menuItems.value[5].count = (await salesRepo.getAll()).length
+        menuItems.value[6].count = (await ProductRepository.getAll()).length
+        menuItems.value[7].count = ceklokLogs.length
       } catch (e) {
         console.error('Gagal memuat count:', e)
       }
