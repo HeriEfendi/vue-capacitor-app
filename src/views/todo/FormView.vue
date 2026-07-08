@@ -1,5 +1,5 @@
 <template>
-  <form class="todo-form" @submit.prevent="emitSave">
+  <form class="form-container" @submit.prevent="emitSave">
     <section class="form-section">
       <label class="form-label fw-semibold">Task Title / Work Description <span class="text-danger">*</span></label>
       <input
@@ -76,7 +76,7 @@
         </div>
       </div>
       <label class="form-label fw-semibold">Description</label>
-      <textarea v-model="localForm.description" class="form-control app-control description-control" placeholder="Tulis detail tugas..."></textarea>
+      <textarea v-model="localForm.description" class="form-control app-control form-control-textarea" placeholder="Tulis detail tugas..."></textarea>
 
     </section>
 
@@ -112,20 +112,3 @@ const emitSave = () => {
 
 onMounted(fetchUsers)
 </script>
-
-<style scoped>
-.todo-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;  
-}
-
-.form-label {
-  color: #1f2937;
-  font-size: .88rem;
-}
-
-.description-control {
-  min-height: 160px;
-}
-</style>

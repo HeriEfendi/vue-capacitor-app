@@ -108,9 +108,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.table th, .table td {
-  vertical-align: middle;
-}
-</style>

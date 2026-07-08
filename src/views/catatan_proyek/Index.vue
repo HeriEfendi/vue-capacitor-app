@@ -173,7 +173,7 @@ onIonViewWillEnter(fetchProjects)
       </ion-toolbar>
     </ion-header>
 
-    <ion-content fullscreen class="content-wrap">
+    <ion-content fullscreen class="app-content-wrap">
         <ion-grid>
           <ion-row>
             <ion-col size="6" size-lg="3">
@@ -211,14 +211,14 @@ onIonViewWillEnter(fetchProjects)
           <p>Memuat projek...</p>
         </div>
 
-        <ion-grid v-else class="project-grid">
+        <ion-grid v-else class="mt-1">
           <ion-row>
             <ion-col v-for="project in projects" :key="project.id" size="12" size-sm="6" size-lg="4">
-              <ion-card class="project-card" @click="goToDetail(project.id)">
+              <ion-card class="mobile-card" @click="goToDetail(project.id)">
                 <ion-card-header>
-                  <div class="project-card-top">
+                  <div class="mobile-card-top">
                     <ion-badge class="badge-status" :color="getStatusColor(project.status)">{{ project.status }}</ion-badge>
-                    <div class="project-actions">
+                    <div class="d-flex gap-2">
                       <ion-button class="btn-action primary icon-btn" size="small" @click.stop="openEditProject(project)">
                         <ion-icon :icon="pencilOutline" />
                       </ion-button>
@@ -227,8 +227,8 @@ onIonViewWillEnter(fetchProjects)
                       </ion-button>
                     </div>
                   </div>
-                  <ion-card-title class="project-name">{{ project.name }}</ion-card-title>
-                  <ion-card-subtitle class="project-desc">{{ project.description || 'Tidak ada deskripsi' }}</ion-card-subtitle>
+                  <ion-card-title class="mobile-card-title">{{ project.name }}</ion-card-title>
+                  <ion-card-subtitle class="mobile-card-subtitle">{{ project.description || 'Tidak ada deskripsi' }}</ion-card-subtitle>
                 </ion-card-header>
 
                 <ion-card-content class="project-card-body">
@@ -251,7 +251,7 @@ onIonViewWillEnter(fetchProjects)
                     class="thick-progress"
                   />
 
-                  <div class="project-footer">
+                  <div class="mobile-card-footer">
                     <span :class="`balance-pill text-${getBalanceColor(project)}`">{{ formatCurrency(project.balance || 0) }}</span>
                     <ion-button class="btn-action primary icon-btn" size="small" @click.stop="goToDetail(project.id)">
                       <ion-icon :icon="arrowForwardOutline" />
@@ -314,167 +314,3 @@ onIonViewWillEnter(fetchProjects)
 
   </ion-page>
 </template>
-
-<style scoped>
-
-.project-header,
-.project-toolbar {
-  --background: transparent;
-  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
-  color: #fff;
-}
-
-.hero-shell {
-  padding: 16px 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.eyebrow {
-  margin: 0 0 6px;
-  font-size: .72rem;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  opacity: .75;
-}
-
-.hero-title {
-  padding: 0;
-  color: #1f2937;
-  font-size: 1.45rem;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.hero-subtitle {
-  margin: 8px 0 0;
-  max-width: 34rem;
-  color: #64748b;
-  font-size: .92rem;
-  line-height: 1.45;
-}
-
-.add-project-btn {
-  width: 100%;
-  --border-radius: 16px;
-}
-
-.content-wrap {
-  padding: 14px 6px 24px;
-}
-
-.icon-box-small {
-  width: 38px;
-  height: 38px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: rgba(255,255,255,.65);
-}
-
-.loading-state {
-  padding: 44px 0;
-  text-align: center;
-  color: #64748b;
-}
-
-.project-grid {
-  margin-top: 4px;
-}
-
-.project-card {
-  margin: 0px 8px;
-  padding: 10px;
-  overflow: hidden;
-  background: rgba(255,255,255,.92);
-  backdrop-filter: blur(12px);
-}
-
-.project-card-top,
-.project-footer,
-.metric-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.project-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.project-name {
-  font-size: 1.08rem;
-  font-weight: 800;
-  margin-top: 8px;
-}
-
-.project-desc {
-  margin-top: 6px;
-  font-size: .92rem;
-  color: #64748b;
-  white-space: normal;
-}
-
-.metric-row {
-  margin: 0px;
-  font-size: .94rem;
-}
-
-.metric-label {
-  color: #64748b;
-}
-
-.metric-value {
-  font-weight: 800;
-}
-
-.thick-progress {
-  height: 10px;
-  border-radius: 999px;
-  overflow: hidden;
-  margin: 12px 0 14px;
-}
-
-.balance-pill {
-  font-size: 1.05rem;
-  font-weight: 900;
-}
-
-.project-footer {
-  margin-top: 4px;
-}
-
-.project-modal::part(content) {
-  border-radius: 24px 24px 0 0;
-}
-
-.modal-content ion-item {
-  --inner-padding-end: 0;
-  margin-bottom: 10px;
-  border-radius: 16px;
-  --background: #f8fafc;
-}
-
-.save-btn {
-  margin-top: 18px;
-}
-
-@media (min-width: 768px) {
-  .hero-shell {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: end;
-  }
-
-  .add-project-btn {
-    width: auto;
-  }
-
-  .content-wrap {
-    padding-inline: 14px;
-  }
-}
-</style>
