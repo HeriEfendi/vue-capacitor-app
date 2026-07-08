@@ -3,7 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { initDB } from '@/db'
-import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonAlert } from '@ionic/vue';
+import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonAlert, IonFooter } from '@ionic/vue';
+import AppToast from '@/components/AppToast.vue';
 import { addOutline, trashOutline, pencilOutline, arrowForwardOutline, walletOutline, cashOutline, closeOutline, saveOutline, trendingUpOutline, trendingDownOutline, pieChartOutline } from 'ionicons/icons';
 
 interface Project {
@@ -49,7 +50,7 @@ function getBalanceColor(project: Project) {
   const pct = getBalancePercent(project)
   if (pct > 50) return 'success'
   if (pct > 20) return 'warning'
-  return 'error'
+  return 'danger'
 }
 
 function getStatusColor(status: string) {
@@ -126,17 +127,22 @@ function openEditProject(p: Project) {
 }
 
 async function updateProject() {
-  if (!editingId.value || !formEdit.value.name.trim()) return
+  
+  if (!editingId.value || !formEdit.value.name.trim()) return;
   submitting.value = true
   try {
     const pIndex = projects.value.findIndex(p => p.id === editingId.value)
     if (pIndex !== -1) {
-      projects.value[pIndex] = { ...projects.value[pIndex], ...formEdit.value }
+      const updatedProject = JSON.parse(JSON.stringify({ ...projects.value[pIndex], ...formEdit.value }));
+      projects.value[pIndex] = updatedProject;
+      projects.value = [...projects.value]; // Force reactivity
       const db = await initDB()
-      await db.put('projects', projects.value[pIndex])
+      await db.put('projects', updatedProject)
       dialogEdit.value = false
       showSnackbar('Projek berhasil diupdate!', 'success')
       closeModal()
+    } else {
+      console.error('Project not found in local state');
     }
   } catch (e) {
     showSnackbar('Gagal mengupdate projek', 'error')
@@ -182,7 +188,7 @@ onIonViewWillEnter(fetchProjects)
                   <div class="menu-icon-wrap" style="--accent: #059669; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #059669;"><ion-icon :icon="trendingUpOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
                   <small>Total Modal <br> Semua Projek</small>
                 </div>
-                <div class="summary-value summary-value--green">{{ formatCurrency(totalDepositsAll) }}</div>
+                <div class="summary-value summary-value--green text-center">{{ formatCurrency(totalDepositsAll) }}</div>
               </div>
             </ion-col>
             <ion-col size="6" size-lg="3">
@@ -191,7 +197,7 @@ onIonViewWillEnter(fetchProjects)
                   <div class="menu-icon-wrap" style="--accent: #dc2626; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #dc2626;"><ion-icon :icon="trendingDownOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
                   <small>Total Pengeluaran <br> Semua Projek</small>
                 </div>
-                <div class="stat-value summary-value--red">{{ formatCurrency(totalExpensesAll) }}</div>
+                <div class="stat-value summary-value--red text-center">{{ formatCurrency(totalExpensesAll) }}</div>
               </div>
             </ion-col>
             <ion-col size="12" size-lg="3">
@@ -200,7 +206,7 @@ onIonViewWillEnter(fetchProjects)
                   <div class="menu-icon-wrap" style="--accent: #2563eb; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #2563eb;"><ion-icon :icon="pieChartOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
                   <small>Total Sisa Saldo Semua Projek</small>
                 </div>
-                <div class="stat-value summary-value--blue">{{ formatCurrency(totalBalanceAll) }}</div>
+                <div class="stat-value summary-value--blue text-center">{{ formatCurrency(totalBalanceAll) }}</div>
               </div>
             </ion-col>
           </ion-row>
@@ -211,7 +217,7 @@ onIonViewWillEnter(fetchProjects)
           <p>Memuat projek...</p>
         </div>
 
-        <ion-grid v-else class="mt-1">
+        <ion-grid v-else>
           <ion-row>
             <ion-col v-for="project in projects" :key="project.id" size="12" size-sm="6" size-lg="4">
               <ion-card class="mobile-card" @click="goToDetail(project.id)">
@@ -246,7 +252,7 @@ onIonViewWillEnter(fetchProjects)
                   </div>
 
                   <ion-progress-bar
-                    :value="(getBalancePercent(project) || 0) / 100"
+                    :value="Math.max(0, (getBalancePercent(project) || 0) / 100)"
                     :color="getBalanceColor(project)"
                     class="thick-progress"
                   />
@@ -262,6 +268,12 @@ onIonViewWillEnter(fetchProjects)
             </ion-col>
           </ion-row>
         </ion-grid>
+        <AppToast 
+          :is-open="snackbar.show" 
+          :message="snackbar.text" 
+          :color="snackbar.color as any" 
+          @dismiss="snackbar.show = false" 
+        />
         <ion-alert
           :is-open="dialogDeleteId !== null"
           header="Konfirmasi Hapus"
@@ -301,13 +313,12 @@ onIonViewWillEnter(fetchProjects)
             <label class="form-label">Deskripsi</label>
             <ion-textarea v-model="activeProject.description" class="form-control app-control form-control-textarea" />
           </div>
-
         </div>
       </ion-content>
       <ion-footer>
-        <div class="form-actions">
-          <button type="button" class="btn btn-action light" @click="closeModal">Cancel</button>
-          <button type="button" class="btn btn-action primary" @click="dialogEdit ? (updateProject(), closeModal()) : (createProject(), closeModal())">Save Changes</button>
+        <div class="form-actions p-3">
+          <button type="button" class="btn btn-action light w-100" @click="closeModal">Cancel</button>
+          <button type="button" class="btn btn-action primary w-100 mt-2" @click="dialogEdit ? updateProject() : createProject()">Save Changes</button>
         </div>
       </ion-footer>
     </ion-modal>

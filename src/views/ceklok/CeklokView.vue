@@ -1,22 +1,24 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-toolbar class="header-dark">
-        <ion-buttons slot="start">
-          <ion-back-button default-href="/dashboard" />
-        </ion-buttons>
-        <ion-title>Ceklok Mandiri</ion-title>
-        <ion-buttons slot="end">
-          <ion-button @click="openSettingsModal">
-            <ion-icon :icon="settingsOutline" />
-          </ion-button>
-        </ion-buttons>
+    <ion-header class="app-header">
+      <ion-toolbar class="app-toolbar">
+        <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <ion-title class="app-hero-title" style="padding: 0;">Ceklok</ion-title>
+            <ion-buttons slot="end">
+              <ion-button @click="openSettingsModal">
+                <ion-icon :icon="settingsOutline" />
+              </ion-button>
+            </ion-buttons>
+          </div>
+          <p class="app-hero-subtitle" style="margin: 0;">Catat waktu hadir dan pulang, serta pantau status presensi harian.</p>
+        </div>
       </ion-toolbar>
-    </ion-header>
+    </ion-header> 
 
     <ion-content class="app-content-wrap">
       <!-- Tabs Segment -->
-      <div class="px-3 pt-3">
+      <div class="px-3 pt-3 mb-3">
         <ion-segment v-model="activeTab" class="custom-segment">
           <ion-segment-button value="presensi">
             <ion-label>Presensi</ion-label>
@@ -33,7 +35,7 @@
       <!-- TAB 1: PRESENSI (Clock In/Out) -->
       <div v-if="activeTab === 'presensi'" class="ion-padding">
         <!-- Live Clock Card -->
-        <div class="mobile-card text-center py-4 mb-4">
+        <div class="mobile-card container-padded text-center py-4 mb-4">
           <div class="current-time">{{ currentTimeStr }}</div>
           <div class="current-date">{{ currentDateStr }}</div>
           <div class="status-indicator mt-2" :class="activeLog ? 'active' : 'inactive'">
@@ -55,7 +57,7 @@
         </div>
 
         <!-- Duration Counter -->
-        <div v-if="activeLog" class="duration-counter mobile-card py-3 mb-4">
+        <div v-if="activeLog" class="duration-counter mobile-card container-padded mb-3">
           <div class="row align-items-center text-center">
             <div class="col-6 border-end">
               <small class="text-muted d-block">Durasi Kerja</small>
@@ -69,7 +71,7 @@
         </div>
 
         <!-- Working Details Form -->
-        <div class="mobile-card p-3 mb-4">
+        <div class="mobile-card container-padded mb-3">
           <h5 class="fw-bold mb-3 text-dark">Detail Pekerjaan</h5>
           
           <div class="form-section mb-3">
@@ -160,8 +162,8 @@
       <!-- TAB 2: DASHBOARD (Stats & Charts) -->
       <div v-if="activeTab === 'dashboard'" class="ion-padding">
         <!-- KPI Row -->
-        <div class="row g-2 mb-4">
-          <div class="col-6">
+        <div class="project-actions d-grid gap-2 m-2">
+          <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Jam Kerja (Minggu Ini)</small>
               <div class="fs-3 fw-black text-indigo mt-1">{{ totalWeekHours.toFixed(1) }} <span class="fs-6 fw-normal">Jam</span></div>
@@ -171,7 +173,7 @@
               <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Target: 40 Jam</small>
             </div>
           </div>
-          <div class="col-6">
+          <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Jam Kerja (Bulan Ini)</small>
               <div class="fs-3 fw-black text-teal mt-1">{{ totalMonthHours.toFixed(1) }} <span class="fs-6 fw-normal">Jam</span></div>
@@ -181,14 +183,14 @@
               <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Target: 160 Jam</small>
             </div>
           </div>
-          <div class="col-6">
+          <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Hari Kerja</small>
               <div class="fs-3 fw-black text-amber mt-1">{{ daysWorkedThisMonth }} <span class="fs-6 fw-normal">Hari</span></div>
               <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Bulan ini</small>
             </div>
           </div>
-          <div class="col-6">
+          <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Rata-rata Harian</small>
               <div class="fs-3 fw-black text-primary mt-1">{{ avgDailyHours.toFixed(1) }} <span class="fs-6 fw-normal">Jam</span></div>
@@ -198,7 +200,7 @@
         </div>
 
         <!-- Weekly Chart -->
-        <div class="mobile-card p-3 mb-4">
+        <div class="mobile-card container-padded mb-3">
           <h6 class="fw-bold text-dark mb-3">Grafik Harian Minggu Ini</h6>
           <div v-if="weeklyChartSeries[0].data.length > 0">
             <VueApexCharts type="bar" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries" />
@@ -209,7 +211,7 @@
         </div>
 
         <!-- Monthly Chart -->
-        <div class="mobile-card p-3 mb-4">
+        <div class="mobile-card container-padded mb-3">
           <h6 class="fw-bold text-dark mb-3">Grafik Mingguan Bulan Ini</h6>
           <div v-if="monthlyChartSeries[0].data.length > 0">
             <VueApexCharts type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
@@ -223,7 +225,7 @@
       <!-- TAB 3: RIWAYAT (History List) -->
       <div v-if="activeTab === 'riwayat'" class="ion-padding">
         <!-- Filter and Export Actions -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mx-3 mb-3">
           <button class="btn btn-action primary btn-sm" @click="openCorrectionModal">
             <ion-icon :icon="addOutline" class="me-1" /> Koreksi Absen
           </button>
@@ -233,7 +235,7 @@
         </div>
 
         <!-- History List -->
-        <div v-if="logs.length === 0" class="text-center py-5 text-muted mobile-card">
+        <div v-if="logs.length === 0" class="text-center py-5 text-muted mobile-card container-padded">
           <ion-icon :icon="calendarOutline" style="font-size: 3rem;" class="mb-2 text-muted" />
           <p>Belum ada riwayat presensi kerja.</p>
         </div>
@@ -242,7 +244,7 @@
           <div 
             v-for="log in logs" 
             :key="log.id" 
-            class="mobile-card p-3 mb-3 border-start border-4"
+            class="mobile-card container-padded mb-3 border-start border-4"
             :class="log.clockOut ? 'border-teal' : 'border-warning'"
           >
             <div class="d-flex justify-content-between align-items-start">
@@ -535,7 +537,7 @@
 import { ref, onMounted, onUnmounted, computed, defineAsyncComponent } from 'vue';
 import { onIonViewWillEnter } from '@ionic/vue';
 import { 
-  IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, 
+  IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonButton,
   IonContent, IonSegment, IonSegmentButton, IonLabel, IonIcon, IonBadge, 
   IonModal, IonAlert 
 } from '@ionic/vue';
@@ -551,7 +553,7 @@ const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
 export default {
   name: 'CeklokView',
   components: {
-    IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, 
+    IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonButton,
     IonContent, IonSegment, IonSegmentButton, IonLabel, IonIcon, IonBadge, 
     IonModal, IonAlert, VueApexCharts
   },
@@ -595,6 +597,26 @@ export default {
       outTime: '17:00',
       notes: '',
       breaks: []
+    });
+
+    const effectiveStartStr = computed(() => {
+      if (!settings.value.workStart) return '08:00';
+      const [h, m] = settings.value.workStart.split(':').map(Number);
+      const tolerance = settings.value.toleranceMinutes || 0;
+      const totalMinutes = (h * 60 + m) - tolerance;
+      const finalH = Math.floor(totalMinutes / 60) % 24;
+      const finalM = totalMinutes % 60;
+      return `${String(finalH).padStart(2, '0')}:${String(finalM).padStart(2, '0')}`;
+    });
+
+    const effectiveEndStr = computed(() => {
+      if (!settings.value.workEnd) return '17:00';
+      const [h, m] = settings.value.workEnd.split(':').map(Number);
+      const tolerance = settings.value.toleranceMinutes || 0;
+      const totalMinutes = (h * 60 + m) + tolerance;
+      const finalH = Math.floor(totalMinutes / 60) % 24;
+      const finalM = totalMinutes % 60;
+      return `${String(finalH).padStart(2, '0')}:${String(finalM).padStart(2, '0')}`;
     });
 
     const deleteId = ref(null);
@@ -826,7 +848,7 @@ export default {
 
         await CeklokRepository.updateLog(activeLog.value.id, {
           clockOut: now.toISOString(),
-          breaks: activeLog.value.breaks,
+          breaks: JSON.parse(JSON.stringify(activeLog.value.breaks)),
           notes: localNotes.value,
           totalWorkHours: totalWorkHours
         });
@@ -1360,7 +1382,9 @@ export default {
       monthlyChartSeries,
       monthlyChartOptions,
       settingsOutline, playOutline, stopOutline, cafeOutline, calendarOutline, 
-      createOutline, trashOutline, downloadOutline, addOutline
+      createOutline, trashOutline, downloadOutline, addOutline,
+      effectiveStartStr,
+      effectiveEndStr
     };
   }
 }

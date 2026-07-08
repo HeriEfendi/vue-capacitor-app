@@ -296,6 +296,7 @@ ion-header {
 
 .thick-progress {
   height: 12px;
+  margin: 12px 0px;
   border-radius: 6px;
 }
 
@@ -349,47 +350,6 @@ ion-header {
 .app-action-row::-webkit-scrollbar,
 .filter-chip-row::-webkit-scrollbar {
   display: none;
-}
-
-.mobile-card {
-  margin: 0 8px 14px;
-  overflow: hidden;
-  border-radius: 22px !important;
-  background: rgba(255,255,255,.94);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, .08) !important;
-  backdrop-filter: blur(12px);
-}
-
-.mobile-card-header {
-  padding-bottom: 8px;
-}
-
-.mobile-card-top,
-.mobile-card-footer,
-.metric-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.mobile-card-title {
-  font-size: 1.08rem;
-  font-weight: 800;
-  margin-top: 8px;
-  color: #0f172a;
-}
-
-.mobile-card-subtitle {
-  margin-top: 6px;
-  font-size: .92rem;
-  color: #64748b;
-  white-space: normal;
-}
-
-.metric-row {
-  margin: 10px 0;
-  font-size: .94rem;
 }
 
 .metric-label {
@@ -504,7 +464,7 @@ ion-header {
 }
 
 .summary-card {
-  min-height: 100px;
+  min-height: 20px;
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(15, 23, 42, 0.06);
   box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
@@ -516,12 +476,16 @@ ion-header {
   border-radius: 22px;
   padding: 14px 16px;
   margin: 0px 5px 0px;
-  gap: 16px;
+  /* gap: 16px; */
 }
 
 .summary-card--green { background: linear-gradient(180deg, #f2fbf4 0%, #e8f5e9 100%); }
 .summary-card--red { background: linear-gradient(180deg, #fff5f5 0%, #ffebee 100%); }
 .summary-card--blue { background: linear-gradient(180deg, #eff6ff 0%, #e3f2fd 100%); }
+.summary-card--orange { background: linear-gradient(180deg, #fffaf0 0%, #fff3e0 100%); }
+.summary-card--purple { background: linear-gradient(180deg, #f3e5f5 0%, #ede7f6 100%); }
+.summary-card--teal { background: linear-gradient(180deg, #e0f2f1 0%, #e0f7fa 100%); }
+.summary-card--indigo { background: linear-gradient(180deg, #e8eaf6 0%, #e8eaf6 100%); }
 
 .summary-value,
 .summary-profit {
@@ -1122,13 +1086,47 @@ ion-footer {
 .border-warning { border-color: #d97706 !important; }
 
 /* ── Mobile card overrides for Ceklok ────────────────────────── */
+.mobile-card {
+  margin: 0 8px 14px;
+  overflow: hidden;
+  border-radius: 22px !important;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, .08) !important;
+  backdrop-filter: blur(12px);
+}
+
+.mobile-card-header {
+  padding-bottom: 8px;
+}
+
+.mobile-card-top,
+.mobile-card-footer,
+.metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobile-card-title {
+  font-size: 1rem;
+  font-weight: 800;
+  margin-top: 8px;
+  color: #0f172a;
+}
+
+.mobile-card-subtitle {
+  margin-top: 6px;
+  font-size: .86rem;
+  color: #64748b;
+  white-space: normal;
+}
+
 .mobile-card .mobile-card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.mobile-card-title  { font-size: 1rem;   font-weight: 800; }
-.mobile-card-subtitle { font-size: 0.86rem; color: #64748b; }
 .mobile-card-footer {
   display: flex;
   align-items: center;
@@ -1156,3 +1154,8 @@ ion-footer {
 /* ── Progress bar colors ─────────────────────────────────────── */
 .progress-bar.bg-indigo { background-color: #4f46e5 !important; }
 .progress-bar.bg-teal   { background-color: #0d9488 !important; }
+/* ── Container padding & spacing ─────────────────────────────── */
+.container-padded {
+  padding: 1rem;
+  margin: 0 1rem;
+}

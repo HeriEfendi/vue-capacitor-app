@@ -30,7 +30,11 @@ async function initializeApp() {
   } catch (error) {
     console.error('Failed to seed database:', error);
   }
-  const app = createApp(App);
+  const app = createApp(App, {
+    compilerOptions: {
+      isCustomElement: (tag) => tag.startsWith('ion-')
+    }
+  });
 
   app.use(IonicVue);
   app.use(store);

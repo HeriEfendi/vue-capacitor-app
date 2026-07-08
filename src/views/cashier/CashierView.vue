@@ -1,17 +1,19 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-toolbar class="header-dark">
-        <ion-buttons slot="start">
-          <ion-back-button default-href="/dashboard" />
-        </ion-buttons>
-        <ion-title>Kasir (POS)</ion-title>
+    <ion-header class="app-header">
+      <ion-toolbar class="app-toolbar">
+        <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <ion-title class="app-hero-title" style="padding: 0;">Kasir (POS)</ion-title>
+          </div>
+          <p class="app-hero-subtitle" style="margin: 0;">Lakukan transaksi penjualan cepat dan pantau arus kas secara real-time.</p>
+        </div>
       </ion-toolbar>
-    </ion-header>
+    </ion-header> 
 
     <ion-content class="app-content-wrap bg-light">
       <!-- Tabs Segment -->
-      <div class="px-3 pt-3">
+      <div class="px-3 pt-3 mb-3">
         <ion-segment v-model="activeTab" class="custom-segment">
           <ion-segment-button value="pos">
             <ion-label>POS / Kasir</ion-label>
@@ -30,7 +32,7 @@
         <div class="row g-3">
           <!-- Left side: Products catalog -->
           <div class="col-12 col-md-7 col-lg-8">
-            <div class="mobile-card p-3 mb-3">
+            <div class="mobile-card container-padded mb-3">
               <input 
                 type="text" 
                 v-model="searchQuery" 
@@ -62,13 +64,13 @@
             </div>
 
             <!-- Products Grid -->
-            <div v-if="filteredProducts.length === 0" class="empty-state text-center py-5 mobile-card">
+            <div v-if="filteredProducts.length === 0" class="empty-state text-center py-5 mobile-card container-padded">
               <ion-icon :icon="basketOutline" style="font-size: 3rem;" class="text-muted mb-2" />
               <p class="text-muted">Tidak ada produk tersedia.</p>
             </div>
 
-            <div v-else class="row g-2">
-              <div v-for="product in filteredProducts" :key="product.id" class="col-6 col-sm-4">
+            <div v-else class="project-actions d-grid gap-2 m-2 mb-0">
+              <div v-for="product in filteredProducts" :key="product.id" class="mb-2">
                 <div 
                   class="mobile-card h-100 p-2 d-flex flex-column justify-content-between cursor-pointer pos-product-card"
                   :class="{ 'opacity-50': product.stock === 0 }"
@@ -97,8 +99,8 @@
           </div>
 
           <!-- Right side: Shopping Cart -->
-          <div class="col-12 col-md-5 col-lg-4">
-            <div class="mobile-card p-3 sticky-cart">
+          <ion-col size="12" size-lg="4" class="my-2">
+            <div class="mobile-card container-padded sticky-cart">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold text-dark mb-0">Keranjang Belanja</h5>
                 <span class="badge bg-indigo">{{ cartCount }} item</span>
@@ -173,7 +175,7 @@
                 </button>
               </div>
             </div>
-          </div>
+          </ion-col>
         </div>
       </div>
 

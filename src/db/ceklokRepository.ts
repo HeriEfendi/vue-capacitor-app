@@ -66,7 +66,7 @@ export const CeklokRepository = {
   async saveSettings(settings: Partial<CeklokSettings>): Promise<CeklokSettings> {
     const db = await initDB();
     const current = await this.getSettings();
-    const updated = { ...current, ...settings, key: 'config' };
+    const updated = JSON.parse(JSON.stringify({ ...current, ...settings, key: 'config' }));
     await db.put('ceklok_settings', updated);
     return updated;
   },

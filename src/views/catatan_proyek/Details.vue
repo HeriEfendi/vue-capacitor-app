@@ -3,7 +3,8 @@ import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue
 import * as XLSX from 'xlsx'
 import { useRoute } from 'vue-router'
 import { initDB } from '@/db'
-import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader, IonAlert, IonToast, IonFooter } from '@ionic/vue';
+import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader, IonAlert, IonFooter } from '@ionic/vue';
+import AppToast from '@/components/AppToast.vue';
 import { addOutline, trashOutline, pencilOutline, closeOutline, cloudUploadOutline, cloudDownloadOutline, listOutline, checkmarkCircleOutline } from 'ionicons/icons';
 const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
 
@@ -118,9 +119,10 @@ function formatDate(d: string) {
 }
 
 function getStatusColor(status: string) {
-  if (status === 'Active') return 'success'
-  if (status === 'Finished') return 'medium'
-  return 'light'
+  if (status === 'Active' || status === 'Aktif') return 'success'
+  if (status === 'Completed' || status === 'Selesai') return 'primary'
+  if (status === 'Pending' || status === 'Tunda') return 'warning'
+  return 'secondary'
 }
 
 async function fetchProject() {
@@ -574,7 +576,7 @@ onUnmounted(() => clearInterval(interval))
       <div v-else-if="project">
         
 
-        <div class="project-actions d-grid gap-2 m-3 m-md-3">
+        <div class="project-actions d-grid gap-2 m-3">
           <ion-button class="btn-action warning action-btn" @click="handleImport"><ion-icon :icon="cloudUploadOutline" slot="start" /> Import</ion-button>
           <ion-button class="btn-action info action-btn" @click="downloadTemplate"><ion-icon :icon="listOutline" slot="start" /> Template</ion-button>
           <ion-button class="btn-action success action-btn" @click="exportToExcel"><ion-icon :icon="cloudDownloadOutline" slot="start" /> Export</ion-button>
@@ -585,23 +587,23 @@ onUnmounted(() => clearInterval(interval))
             <ion-row>
                 <ion-col size="6" size-lg="3">
                     <div class="summary-card summary-card--green shadow-soft">
-                        <small class="text-muted">Modal</small>
+                        <small class="text-muted mb-2">Modal</small>
                         <div class="summary-value summary-value--green">{{ formatCurrency((project as any).modal_total || 0) }}</div>
                     </div>
                 </ion-col>
                 <ion-col size="6" size-lg="3">
                     <div class="summary-card summary-card--red shadow-soft">
-                        <small class="text-muted">Pengeluaran</small>
+                        <small class="text-muted mb-2">Pengeluaran</small>
                         <div class="summary-value summary-value--red">{{ formatCurrency(project.total_expenses) }}</div>
                     </div>
                 </ion-col>
-                <ion-col size="6" size-lg="3">
+                <ion-col size="6" size-lg="3" v-if="(project as any).panen_total > 0">
                     <div class="summary-card summary-card--green shadow-soft">
-                        <small class="text-muted">Penjualan</small>
-                        <div class="summary-value summary-value--green mb-2">{{ formatCurrency((project as any).panen_total || 0) }}</div>
+                        <small class="text-muted mb-2">Penjualan</small>
+                        <div class="summary-value summary-value--green">{{ formatCurrency((project as any).panen_total || 0) }}</div>
                         
-                        <div class="d-flex justify-content-between align-items-center border-top pt-2">
-                            <small class="text-muted">ROI</small>
+                        <div class="d-flex justify-content-between align-items-center border-top mt-2">
+                            <small class="text-muted my-2">ROI</small>
                             <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ roi }}%</ion-badge>
                         </div>
                         <div class="summary-profit" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
@@ -609,20 +611,28 @@ onUnmounted(() => clearInterval(interval))
                 </ion-col>
                 <ion-col size="6" size-lg="3">
                     <div class="summary-card summary-card--blue shadow-soft">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">Keuntungan</small>
-                            <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ profitPercent }}%</ion-badge>
+                        <div v-if="(project as any).panen_total > 0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted mb-2">Keuntungan</small>
+                                <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ profitPercent }}%</ion-badge>
+                            </div>
+                            <div class="summary-profit summary-profit--border mb-2" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
+                            <div class="border-bottom mb-2"></div>
                         </div>
-                        <div class="summary-profit summary-profit--border" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
-                        
-                        <small class="text-muted">Sisa Modal</small>
+                        <small class="text-muted mb-2">Sisa Modal</small>
                         <div class="summary-value summary-value--blue">{{ formatCurrency(project.balance) }}</div>
+                    </div>
+                </ion-col>
+                <ion-col size="6" size-lg="3" v-if="(project as any).panen_total <= 0">
+                    <div class="summary-card summary-card--orange shadow-soft">
+                        <small class="text-muted mb-2">Total Transaksi</small>
+                        <div class="summary-value summary-value--orange">{{ (project.transactions || []).length }}</div>
                     </div>
                 </ion-col>
             </ion-row>
         </ion-grid>
 
-        <div ref="chartCarousel" class="chart-container m-3">
+        <div ref="chartCarousel" class="chart-container mx-3">
             <ion-card class="chart-card chart-card--wide">
               <ion-card-header>
                 <ion-card-title class="chart-title">Arus Kas Keluar per Bulan</ion-card-title>
@@ -637,7 +647,7 @@ onUnmounted(() => clearInterval(interval))
             </ion-card>
         </div>
         
-        <div class="ion-padding mx-3 transaction-section mb-3">
+        <div class="ion-padding m-3 transaction-section">
           <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
             <ion-card-title class="section-title">Riwayat Transaksi</ion-card-title>
             <div class="filter-chips filter-chip-row">
@@ -739,26 +749,18 @@ onUnmounted(() => clearInterval(interval))
             </div>
         </ion-content>
         <ion-footer>
-            <div class="form-actions">
-                <button type="button" class="btn btn-action light" @click="closeDialog">Cancel</button>
-                <button type="button" class="btn btn-action primary" @click="saveTransaction">Save Changes</button>
-            </div>
+          <div class="form-actions p-3">
+            <button type="button" class="btn btn-action light w-100" @click="closeDialog">Cancel</button>
+            <button type="button" class="btn btn-action primary w-100 mt-2" @click="saveTransaction">Save Changes</button>
+          </div>
         </ion-footer>
     </ion-modal>
 
-    <ion-toast
-        :is-open="snackbar.show"
-        :message="snackbar.text"
-        :class="snackbar.color === 'success' ? 'toast-success' : 'toast-error'"
-        :style="{
-          '--background': snackbar.color === 'success' ? 'rgba(34, 197, 94, 0.9)' : 'rgba(239, 68, 68, 0.9)',
-          '--color': snackbar.color === 'success' ? '#fff' : '#fff',
-          '--border-radius': '14px',
-          '--box-shadow': '0 10px 30px rgba(15, 23, 42, 0.12)'
-        }"
-        position="top"
-        duration="5000"
-        @didDismiss="snackbar.show = false"
+    <AppToast 
+        :is-open="snackbar.show" 
+        :message="snackbar.text" 
+        :color="snackbar.color as any" 
+        @dismiss="snackbar.show = false" 
     />
   </ion-page>
 </template>
