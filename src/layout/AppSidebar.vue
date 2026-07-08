@@ -75,7 +75,6 @@ export default {
         title: 'Supply Chain',
         items: [
           { label: 'Produk Jadi', path: '/products', icon: basketOutline, desc: 'Stok produk', accent: '#ea580c' },
-          { label: 'Bahan Baku', path: '/raw-materials', icon: listOutline, desc: 'Material produksi', accent: '#0891b2' },
           { label: 'Kategori', path: '/categories', icon: listOutline, desc: 'Master kategori', accent: '#475569' },
         ],
       },

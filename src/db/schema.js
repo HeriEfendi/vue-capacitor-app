@@ -11,7 +11,6 @@ db.version(1).stores({
   debts: '++id, createdAt, name, amount, dueDate',
   incomes: '++id, createdAt, name, amount',
   expenses: '++id, createdAt, name, amount, type',
-  rawMaterials: '++id, name, unit, stock',
   dailyLedger: '++id, createdAt, description, amount, type'
 });
 
