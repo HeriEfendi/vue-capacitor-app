@@ -2,102 +2,231 @@
   <ion-page class="app-page">
     <ion-header class="app-header">
       <ion-toolbar class="app-toolbar">
-        <div class="app-hero">
-          <div>
-            <p class="eyebrow">Accounting</p>
-            <ion-title class="app-hero-title">Pengeluaran</ion-title>
-            <p class="app-hero-subtitle">Pantau arus keluar harian, mingguan, bulanan, dan tahunan dari layar mobile.</p>
-          </div>
-          <ion-buttons class="app-action-row">
-            <ion-button class="btn-action primary" router-link="/expenses/create">
-              <ion-icon slot="start" :icon="addOutline" /> Pengeluaran Baru
-            </ion-button>
-          </ion-buttons>
-        </div>
+        <ion-title>Pengeluaran</ion-title>
+        <ion-buttons slot="end">
+          <ion-button class="btn-action primary" @click="createExpense">
+            <ion-icon slot="start" :icon="addOutline" /> Tambah
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
+      <ion-segment v-model="activeTab" class="bg-light">
+        <ion-segment-button value="dashboard">
+          <ion-label>Dashboard</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="riwayat">
+          <ion-label>Riwayat</ion-label>
+        </ion-segment-button>
+      </ion-segment>
     </ion-header>
 
     <ion-content class="app-content-wrap">
-      <div class="summary-grid">
-        <ion-card class="summary-card stat-card stat-blue shadow-soft">
-          <div class="stat-top"><div class="icon-box-small">D</div><span>Harian</span></div>
-          <div class="stat-value">{{ formatPrice(summary.daily) }}</div>
-        </ion-card>
-        <ion-card class="summary-card stat-card stat-purple shadow-soft">
-          <div class="stat-top"><div class="icon-box-small">W</div><span>Mingguan</span></div>
-          <div class="stat-value">{{ formatPrice(summary.weekly) }}</div>
-        </ion-card>
-        <ion-card class="summary-card stat-card stat-amber shadow-soft">
-          <div class="stat-top"><div class="icon-box-small">M</div><span>Bulanan</span></div>
-          <div class="stat-value">{{ formatPrice(summary.monthly) }}</div>
-        </ion-card>
-        <ion-card class="summary-card stat-card stat-green shadow-soft">
-          <div class="stat-top"><div class="icon-box-small">Y</div><span>Tahunan</span></div>
-          <div class="stat-value">{{ formatPrice(summary.yearly) }}</div>
-        </ion-card>
+      <!-- DASHBOARD TAB -->
+      <div v-if="activeTab === 'dashboard'" class="ion-padding">
+        <div class="project-actions d-grid gap-2 mb-3">
+          <div class="mb-2">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Hari Ini</small>
+              <div class="fs-4 fw-black text-teal mt-1">{{ formatPrice(summary.daily) }}</div>
+            </div>
+          </div>
+          <div class="mb-2">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Minggu Ini</small>
+              <div class="fs-4 fw-black text-indigo mt-1">{{ formatPrice(summary.weekly) }}</div>
+            </div>
+          </div>
+          <div class="mb-2">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Bulan Ini</small>
+              <div class="fs-4 fw-black text-amber mt-1">{{ formatPrice(summary.monthly) }}</div>
+            </div>
+          </div>
+          <div class="mb-2">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Tahun Ini</small>
+              <div class="fs-4 fw-black text-danger mt-1">{{ formatPrice(summary.yearly) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Chart -->
+        <div class="mobile-card container-padded mb-3">
+          <h6 class="fw-bold text-dark mb-3">Grafik Harian</h6>
+          <div v-if="dailyChartSeries[0].data.length > 0">
+            <VueApexCharts type="bar" height="240" :options="dailyChartOptions" :series="dailyChartSeries" />
+          </div>
+          <div v-else class="text-center py-4 text-muted">Belum ada data harian.</div>
+        </div>
+
+        <!-- Weekly Chart -->
+        <div class="mobile-card container-padded mb-3">
+          <h6 class="fw-bold text-dark mb-3">Grafik Mingguan</h6>
+          <div v-if="weeklyChartSeries[0].data.length > 0">
+            <VueApexCharts type="area" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries" />
+          </div>
+          <div v-else class="text-center py-4 text-muted">Belum ada data mingguan.</div>
+        </div>
+
+        <!-- Monthly Chart -->
+        <div class="mobile-card container-padded mb-3">
+          <h6 class="fw-bold text-dark mb-3">Grafik Bulanan</h6>
+          <div v-if="monthlyChartSeries[0].data.length > 0">
+            <VueApexCharts type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
+          </div>
+          <div v-else class="text-center py-4 text-muted">Belum ada data bulanan.</div>
+        </div>
       </div>
 
-      <div v-if="expenses.length">
-        <ion-card v-for="expense in expenses" :key="expense.id" class="mobile-card">
-          <ion-card-content>
-            <div class="mobile-card-top">
-              <span :class="['pill-badge', 'medium']">{{ expense.category || 'Umum' }}</span>
-              <span class="metric-value">{{ formatPrice(expense.amount) }}</span>
+      <!-- RIWAYAT TAB -->
+      <div v-if="activeTab === 'riwayat'" class="ion-padding">
+        <div v-if="expenses.length">
+          <div v-for="expense in sortedExpenses" :key="expense.id" class="mobile-card p-3 mb-3 border-start border-4 border-primary">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="badge bg-primary">{{ expense.category || 'Umum' }}</span>
+                    <div class="flex-grow-1 text-center fw-bold"><small class="text-muted">{{ formatDate(expense.date) }}</small></div>
+                </div>
+                <span class="text-dark mb-1">{{ expense.description }}</span>
+              </div>
+              <div class="d-flex gap-1 ms-2">
+                <button class="btn btn-light btn-sm text-primary" @click="$router.push(`/expenses/${expense.id}/edit`)" title="Edit">
+                  <ion-icon :icon="createOutline" />
+                </button>
+                <button class="btn btn-light btn-sm text-danger" @click="onDelete(expense.id)" title="Hapus">
+                  <ion-icon :icon="trashOutline" />
+                </button>
+              </div>
             </div>
-            <ion-card-title class="mobile-card-title">{{ expense.description }}</ion-card-title>
-            <ion-card-subtitle class="mobile-card-subtitle">{{ formatDate(expense.date) }}</ion-card-subtitle>
 
-            <div class="mobile-card-footer mt-3">
-              <ion-button class="btn-action light icon-btn" fill="solid" @click="$router.push(`/expenses/${expense.id}/edit`)">
-                <ion-icon :icon="pencilOutline" />
-              </ion-button>
-              <ion-button class="btn-action danger icon-btn" fill="solid" @click="onDelete(expense.id)">
-                <ion-icon :icon="trashOutline" />
-              </ion-button>
+            <div class="d-flex justify-content-between text-dark border-top pt-2 mt-2">
+              <span>Jumlah:</span>
+              <span class="text-primary fw-bold">{{ formatPrice(expense.amount) }}</span>
             </div>
-          </ion-card-content>
-        </ion-card>
+          </div>
+        </div>
+        <div v-else class="text-center py-5 text-muted">Belum ada pengeluaran.</div>
       </div>
-
-      <div v-else class="empty-state">Belum ada pengeluaran.</div>
     </ion-content>
   </ion-page>
 </template>
 
 <script>
-import { onMounted, ref, computed } from 'vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
+import { onIonViewWillEnter, IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardContent, IonCardTitle, IonCardSubtitle, IonButtons, IonSegment, IonSegmentButton, IonLabel } from '@ionic/vue';
+import { addOutline, trashOutline, createOutline } from 'ionicons/icons';
 import { expensesRepo } from '../../../db/repositories'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardContent, IonCardTitle, IonCardSubtitle, IonButtons } from '@ionic/vue';
-import { addOutline, trashOutline, pencilOutline } from 'ionicons/icons';
+import { useRouter } from 'vue-router'
+
+const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
 
 export default {
   name: 'AccountingExpensesListView',
-  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardContent, IonCardTitle, IonCardSubtitle, IonButtons },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardContent, IonCardTitle, IonCardSubtitle, IonButtons, IonSegment, IonSegmentButton, IonLabel, VueApexCharts },
   setup() {
+    const router = useRouter()
+    const activeTab = ref('dashboard')
     const expenses = ref([])
     const fetchAll = async () => { expenses.value = await expensesRepo.getAll() }
     const onDelete = async (id) => { await expensesRepo.delete(id); await fetchAll() }
     const formatPrice = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(price || 0))
-    const formatDate = (d) => d ? new Date(d).toLocaleDateString('id-ID') : '-'
-
-    const startOfDay = (d) => { const x = new Date(d); x.setHours(0,0,0,0); return x }
-    const startOfWeek = (d) => { const x = startOfDay(d); const day = (x.getDay() + 6) % 7; x.setDate(x.getDate() - day); return x }
-    const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1)
-    const startOfYear = (d) => new Date(d.getFullYear(), 0, 1)
+    const formatDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'
 
     const summary = computed(() => {
       const now = new Date()
       const total = (from) => expenses.value.filter(e => new Date(e.date) >= from).reduce((sum, e) => sum + Number(e.amount || 0), 0)
       return {
-        daily: total(startOfDay(now)),
-        weekly: total(startOfWeek(now)),
-        monthly: total(startOfMonth(now)),
-        yearly: total(startOfYear(now)),
+        daily: total(new Date(now.setHours(0,0,0,0))),
+        weekly: total(new Date(now.setDate(now.getDate() - now.getDay()))),
+        monthly: total(new Date(now.getFullYear(), now.getMonth(), 1)),
+        yearly: total(new Date(now.getFullYear(), 0, 1)),
       }
     })
+    
+    const avgDaily = computed(() => {
+        const daysInMonth = new Date().getDate();
+        return summary.value.monthly / daysInMonth;
+    })
 
-    onMounted(fetchAll)
-    return { expenses, onDelete, formatPrice, formatDate, addOutline, trashOutline, pencilOutline, summary }
+    const dailyChartSeries = computed(() => {
+      const data = [];
+      const now = new Date();
+      const start = new Date(now); start.setDate(now.getDate() - now.getDay() + 1); // Monday
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(start); d.setDate(start.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const val = expenses.value.filter(e => e.date.startsWith(dateStr)).reduce((s, e) => s + Number(e.amount), 0);
+        data.push(val);
+      }
+      return [{ name: 'Pengeluaran', data }];
+    });
+
+    const dailyChartOptions = {
+      chart: { toolbar: { show: false }, type: 'bar' },
+      colors: ['#0d9488'],
+      plotOptions: {
+        bar: { borderRadius: 6, columnWidth: '50%', dataLabels: { position: 'top' } }
+      },
+      dataLabels: {
+        enabled: true,
+        formatter: (val) => new Intl.NumberFormat('id-ID').format(val),
+        offsetY: -20,
+      },
+      xaxis: { categories: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] },
+      yaxis: { labels: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } },
+      tooltip: { y: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } }
+    };
+
+    const weeklyChartOptions = {
+        chart: { toolbar: { show: false }, type: 'area' },
+        colors: ['#4f46e5'],
+        xaxis: { categories: ['M-4', 'M-3', 'M-2', 'M-1', 'Minggu Ini'] },
+        yaxis: { labels: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } },
+        tooltip: { y: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } }
+    };
+    
+    const monthlyChartOptions = {
+        chart: { toolbar: { show: false }, type: 'area' },
+        colors: ['#ea580c'],
+        xaxis: { categories: ['B-5', 'B-4', 'B-3', 'B-2', 'B-1', 'Bulan Ini'] },
+        yaxis: { labels: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } },
+        tooltip: { y: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } }
+    };
+
+    const weeklyChartSeries = computed(() => {
+        const data = [];
+        const now = new Date();
+        for (let i = 4; i >= 0; i--) {
+            const start = new Date(); start.setDate(now.getDate() - (i * 7) - now.getDay());
+            const end = new Date(start); end.setDate(start.getDate() + 6);
+            const val = expenses.value.filter(e => {
+                const ed = new Date(e.date);
+                return ed >= start && ed <= end;
+            }).reduce((s, e) => s + Number(e.amount), 0);
+            data.push(val);
+        }
+        return [{ name: 'Mingguan', data }];
+    });
+
+    const monthlyChartSeries = computed(() => {
+        const data = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const val = expenses.value.filter(e => {
+                const ed = new Date(e.date);
+                return ed.getFullYear() === m.getFullYear() && ed.getMonth() === m.getMonth();
+            }).reduce((s, e) => s + Number(e.amount), 0);
+            data.push(val);
+        }
+        return [{ name: 'Bulanan', data }];
+    });
+
+    const createExpense = () => router.push('/expenses/create')
+    const sortedExpenses = computed(() => [...expenses.value].sort((a, b) => b.id - a.id))
+    
+    onIonViewWillEnter(fetchAll)
+    return { activeTab, expenses, sortedExpenses, onDelete, formatPrice, formatDate, addOutline, trashOutline, createOutline, summary, createExpense, dailyChartSeries, dailyChartOptions, weeklyChartSeries, weeklyChartOptions, monthlyChartSeries, monthlyChartOptions, avgDaily }
   }
 }
 </script>

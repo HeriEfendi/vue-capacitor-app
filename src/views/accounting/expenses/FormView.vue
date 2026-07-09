@@ -8,11 +8,6 @@
             <ion-title class="app-hero-title">{{ isEdit ? 'Edit Pengeluaran' : 'Tambah Pengeluaran' }}</ion-title>
             <p class="app-hero-subtitle">Input cepat nominal, kategori, dan tanggal dengan layout mobile yang rapi.</p>
           </div>
-          <ion-buttons class="app-action-row">
-            <ion-button class="btn-action light" router-link="/expenses">
-              <ion-icon slot="start" :icon="chevronBackOutline" /> Kembali
-            </ion-button>
-          </ion-buttons>
         </div>
       </ion-toolbar>
     </ion-header>
@@ -29,7 +24,7 @@
             </div>
             <div class="field-group">
               <label class="field-label">Jumlah</label>
-              <ion-input v-model.number="form.amount" type="number" inputmode="decimal" class="app-control" />
+              <ion-input v-model="form.amount" type="number" inputmode="decimal" class="app-control" />
             </div>
             <div class="field-group">
               <label class="field-label">Tanggal</label>
@@ -52,7 +47,8 @@
 </template>
 
 <script>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { useRoute, useRouter } from 'vue-router'
 import { expensesRepo } from '../../../db/repositories'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonIcon, IonCard, IonCardContent, IonInput } from '@ionic/vue';
@@ -67,9 +63,14 @@ export default {
     const loaded = ref(false)
     const form = ref({ description: '', amount: 0, date: new Date().toISOString().slice(0, 10), category: '' })
     const isEdit = computed(() => Boolean(route.params.id))
+    
+    const resetForm = () => {
+      form.value = { description: '', amount: 0, date: new Date().toISOString().slice(0, 10), category: '' }
+    }
 
     const load = async () => {
       if (!isEdit.value) {
+        resetForm()
         loaded.value = true
         return
       }
@@ -85,13 +86,13 @@ export default {
     }
 
     const onSubmit = async () => {
-      const payload = { ...form.value }
+      const payload = { ...form.value, amount: Number(form.value.amount) }
       if (isEdit.value) await expensesRepo.update(Number(route.params.id), payload)
       else await expensesRepo.add(payload)
-      router.push('/expenses')
+      await router.push('/expenses')
     }
 
-    onMounted(load)
+    onIonViewWillEnter(load)
 
     return { form, onSubmit, loaded, isEdit, chevronBackOutline }
   }

@@ -31,7 +31,7 @@ db.version(3).stores({
   capitalCosts: '++id, createdAt, name, amount',
   debts: '++id, createdAt, name, amount, dueDate',
   incomes: '++id, createdAt, name, amount',
-  expenses: '++id, createdAt, name, amount, type',
+  expenses: '++id, createdAt, description, amount, date, category',
   dailyLedger: '++id, createdAt, description, amount, type',
   sales: '++id, createdAt, totalAmount, paymentMethod, amountPaid, changeAmount, items, notes',
   stockMutations: '++id, productId, type, changeQuantity, beforeStock, afterStock, createdAt, notes'

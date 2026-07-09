@@ -55,7 +55,7 @@ const createRepo = (tableName) => ({
     return db[tableName].bulkAdd(records.map(r => ({ ...r, createdAt: new Date().toISOString() })));
     },
     async update(id, changes) {
-    await db[tableName].update(id, { ...changes, updatedAt: new Date().toISOString() });
+    return await db[tableName].update(id, { ...changes, updatedAt: new Date().toISOString() });
     },
     async delete(id) {
     await db[tableName].delete(id);

@@ -166,7 +166,7 @@
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Jam Kerja (Minggu Ini)</small>
-              <div class="fs-3 fw-black text-indigo mt-1">{{ totalWeekHours.toFixed(1) }} <span class="fs-6 fw-normal">Jam</span></div>
+              <div class="fs-3 fw-black text-indigo mt-1">{{ Math.floor(totalWeekHours) }}.{{ String(Math.round((totalWeekHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
               <div class="progress mt-2" style="height: 6px;">
                 <div class="progress-bar bg-indigo" role="progressbar" :style="{ width: Math.min(100, (totalWeekHours / 40) * 100) + '%' }"></div>
               </div>
@@ -176,7 +176,7 @@
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Jam Kerja (Bulan Ini)</small>
-              <div class="fs-3 fw-black text-teal mt-1">{{ totalMonthHours.toFixed(1) }} <span class="fs-6 fw-normal">Jam</span></div>
+              <div class="fs-3 fw-black text-teal mt-1">{{ Math.floor(totalMonthHours) }}.{{ String(Math.round((totalMonthHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
               <div class="progress mt-2" style="height: 6px;">
                 <div class="progress-bar bg-teal" role="progressbar" :style="{ width: Math.min(100, (totalMonthHours / 160) * 100) + '%' }"></div>
               </div>
@@ -193,7 +193,7 @@
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Rata-rata Harian</small>
-              <div class="fs-3 fw-black text-primary mt-1">{{ avgDailyHours.toFixed(1) }} <span class="fs-6 fw-normal">Jam</span></div>
+              <div class="fs-3 fw-black text-primary mt-1">{{ Math.floor(avgDailyHours) }}.{{ String(Math.round((avgDailyHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
               <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Hari aktif</small>
             </div>
           </div>
@@ -276,7 +276,7 @@
               </div>
               <div class="col-4">
                 <strong>Jam Kerja</strong><br>
-                <span class="fw-bold text-dark">{{ log.totalWorkHours.toFixed(2) }} Jam</span>
+                <span class="fw-bold text-dark">{{ Math.floor(log.totalWorkHours) }}:{{ String(Math.round((log.totalWorkHours % 1) * 60)).padStart(2, '0') }} Jam</span>
               </div>
             </div>
 
@@ -1036,14 +1036,14 @@ export default {
       });
 
       // Calculate working hours
-      let diffMs = 0;
+      let totalWorkHours = 0;
       if (clockOut) {
-        diffMs = new Date(clockOut).getTime() - new Date(clockIn).getTime();
+        const diffMs = new Date(clockOut).getTime() - new Date(clockIn).getTime();
+        const diffMin = Math.round(diffMs / 60000);
         let totalBreakMin = 0;
         processedBreaks.forEach(b => { totalBreakMin += b.durationMinutes; });
-        diffMs = Math.max(0, diffMs - (totalBreakMin * 60000));
+        totalWorkHours = Math.max(0, diffMin - totalBreakMin) / 60;
       }
-      const totalWorkHours = diffMs / 3600000;
 
       const logPayload = {
         date: dateStr,
@@ -1092,7 +1092,7 @@ export default {
           'Jam Masuk': new Date(log.clockIn).toLocaleTimeString('id-ID'),
           'Jam Keluar': log.clockOut ? new Date(log.clockOut).toLocaleTimeString('id-ID') : 'Belum selesai',
           'Daftar Istirahat': breakDesc,
-          'Total Jam Kerja': Number(log.totalWorkHours.toFixed(2)),
+          'Total Jam Kerja': `${Math.floor(log.totalWorkHours)}:${String(Math.round((log.totalWorkHours % 1) * 60)).padStart(2, '0')}`,
           Catatan: log.notes
         };
       });
@@ -1131,8 +1131,12 @@ export default {
     const totalWeekHours = computed(() => {
       const now = new Date();
       const start = getStartOfWeeklyPeriod(now, settings.value.cutoffDay);
+      const end = new Date(start.getTime() + 7 * 86400000);
       return logs.value
-        .filter(log => new Date(log.clockIn) >= start)
+        .filter(log => {
+          const d = new Date(log.clockIn);
+          return d >= start && d < end;
+        })
         .reduce((sum, log) => sum + log.totalWorkHours, 0);
     });
 
@@ -1197,7 +1201,8 @@ export default {
         const d = new Date(start);
         d.setDate(start.getDate() + i);
         const dayName = labels[d.getDay()];
-        days.push({ dateStr: d.toISOString().split('T')[0], label: dayName });
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        days.push({ dateStr: dateStr, label: dayName });
       }
 
       days.forEach(day => {
@@ -1242,7 +1247,9 @@ export default {
         dataLabels: {
           enabled: true,
           formatter: function (val) {
-            return val > 0 ? val + 'h' : '';
+            const h = Math.floor(val);
+            const m = Math.round((val % 1) * 60);
+            return val > 0 ? `${h}.${String(m).padStart(2, '0')}` : '';
           },
           offsetY: -20,
           style: {
@@ -1272,20 +1279,27 @@ export default {
         : getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
       
       // Group by weeks in month (Week 1, Week 2, Week 3, Week 4, Week 5)
-      const data = [0, 0, 0, 0, 0];
       
-      logs.value
-        .filter(log => new Date(log.clockIn) >= start)
-        .forEach(log => {
-          const logDate = new Date(log.clockIn);
-          const diffDays = Math.floor((logDate.getTime() - start.getTime()) / 86400000);
-          const weekIdx = Math.min(4, Math.floor(diffDays / 7));
-          data[weekIdx] += log.totalWorkHours;
-        });
+      const logsInPeriod = logs.value.filter(log => new Date(log.clockIn) >= start);
+      if (logsInPeriod.length === 0) return [{ name: 'Total Jam', data: [0, 0, 0, 0, 0] }];
+
+      // Group logs by week index relative to the *first* week found in the period
+      const weekGroups = new Map();
+      logsInPeriod.forEach(log => {
+        const logDate = new Date(log.clockIn);
+        const weekIdx = Math.floor((logDate.getTime() - start.getTime()) / 86400000 / 7);
+        weekGroups.set(weekIdx, (weekGroups.get(weekIdx) || 0) + log.totalWorkHours);
+      });
+
+      const sortedWeekIndices = Array.from(weekGroups.keys()).sort((a, b) => a - b);
+      const data = [0, 0, 0, 0, 0];
+      sortedWeekIndices.forEach((weekIdx, i) => {
+        if (i < 5) data[i] = weekGroups.get(weekIdx);
+      });
 
       return [{
         name: 'Total Jam',
-        data: data.map(v => Number(v.toFixed(1)))
+        data: data.map(v => Number(v))
       }];
     });
 
@@ -1315,11 +1329,31 @@ export default {
           labels: { style: { colors: '#64748b', fontWeight: 600 } }
         },
         yaxis: {
-          labels: { style: { colors: '#64748b' } }
+          labels: { 
+            style: { colors: '#64748b' },
+            formatter: (val) => val.toFixed(0)
+          }
         },
         grid: {
           borderColor: '#e2e8f0',
           strokeDashArray: 4
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: function (val) {
+            const h = Math.floor(val);
+            const m = Math.round((val % 1) * 60);
+            return val > 0 ? `${h}.${String(m).padStart(2, '0')}` : '';
+          },
+        },
+        tooltip: {
+          y: {
+            formatter: function (val) {
+              const h = Math.floor(val);
+              const m = Math.round((val % 1) * 60);
+              return `${h}.${String(m).padStart(2, '0')}`;
+            }
+          }
         }
       };
     });

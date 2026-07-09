@@ -49,12 +49,12 @@ export default {
       { name: 'To Do', path: '/todo-personal', icon: checkboxOutline, count: 0, description: 'Tugas pribadi', accent: '#2563eb' },
       { name: 'To Do Team', path: '/todo', icon: checkboxOutline, count: 0, description: 'Kerja tim', accent: '#7c3aed' },
       { name: 'Manajemen Proyek', path: '/catatan_proyek', icon: documentTextOutline, count: 0, description: 'Proyek & kas', accent: '#059669' },
-      { name: 'Pengeluaran', path: '/expenses', icon: cashOutline, count: 0, description: 'Keluar dana', accent: '#d97706' },
-      { name: 'Tabungan', path: '/capital', icon: walletOutline, count: 0, description: 'Modal usaha', accent: '#d97706' },
-      { name: 'Kasir (POS)', path: '/cashier', icon: cartOutline, count: 0, description: 'Penjualan & Kasir', accent: '#10b981' },
-      { name: 'Manajemen Stok', path: '/stock', icon: layersOutline, count: 0, description: 'Monitor & atur stok', accent: '#8b5cf6' },
-      { name: 'Produk Jadi', path: '/products', icon: basketOutline, count: 0, description: 'Stok produk', accent: '#dc2626' },
       { name: 'Ceklok', path: '/ceklok', icon: timeOutline, count: 0, description: 'Presensi kerja', accent: '#0d9488' },
+      { name: 'Pengeluaran', path: '/expenses', icon: cashOutline, count: 0, description: 'Keluar dana', accent: '#d97706' },
+      { name: 'Kasir (POS)', path: '/cashier', icon: cartOutline, count: 0, description: 'Penjualan & Kasir', accent: '#10b981' },
+      { name: 'Tabungan', path: '/capital', icon: walletOutline, count: 0, description: 'Modal usaha', accent: '#d97706' },
+      { name: 'Produk', path: '/products', icon: basketOutline, count: 0, description: 'Stok produk', accent: '#dc2626' },
+      { name: 'Manajemen Stok', path: '/stock', icon: layersOutline, count: 0, description: 'Monitor & atur stok', accent: '#8b5cf6' },
       { name: 'Profile', path: '/profile', icon: personOutline, count: 0, description: 'Data profil', accent: '#0891b2' },
     ])
 
@@ -71,17 +71,17 @@ export default {
         menuItems.value[0].count = todos.length           // To Do
         menuItems.value[1].count = teamTodos.length       // To Do Team
         menuItems.value[2].count = projects.length        // Manajemen Proyek
-        menuItems.value[3].count = transactions.length    // Pengeluaran
+        menuItems.value[3].count = ceklokLogs.length      // Ceklok
+        menuItems.value[4].count = transactions.length    // Pengeluaran
 
         const { capitalCostsRepo, ProductRepository, salesRepo } = await import('../db/repositories')
         const allProducts = await ProductRepository.getAll()
         const lowStockItems = allProducts.filter(p => p.stock <= 5)
 
-        menuItems.value[4].count = (await capitalCostsRepo.getAll()).length  // Tabungan
         menuItems.value[5].count = (await salesRepo.getAll()).length          // Kasir (POS)
-        menuItems.value[6].count = lowStockItems.length                       // Manajemen Stok (badge = stok tipis)
-        menuItems.value[7].count = allProducts.length                         // Produk Jadi
-        menuItems.value[8].count = ceklokLogs.length                          // Ceklok
+        menuItems.value[6].count = (await capitalCostsRepo.getAll()).length  // Tabungan
+        menuItems.value[7].count = allProducts.length                         // Produk
+        menuItems.value[8].count = lowStockItems.length                       // Manajemen Stok (badge = stok tipis)
       } catch (e) {
         console.error('Gagal memuat count:', e)
       }
