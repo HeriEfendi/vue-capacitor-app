@@ -1,4 +1,4 @@
-package com.heri.projectapp;
+package com.heri.projectapprealis;
 
 import com.getcapacitor.BridgeActivity;
 

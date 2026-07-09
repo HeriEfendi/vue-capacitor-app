@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.heri.projectapp"
+    namespace = "com.heri.projectapprealis"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.heri.projectapp"
+        applicationId "com.heri.projectapprealis"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
