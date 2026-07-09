@@ -18,7 +18,8 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true // Mengaktifkan pengecil kode
+            shrinkResources true // Mengaktifkan penghapus aset tidak terpakai
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
