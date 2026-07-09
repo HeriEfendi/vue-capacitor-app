@@ -43,14 +43,4 @@ npm run dev
 npm run build
 npx cap copy
 npx cap open android
-
-npm run build
-npx cap sync android
-cd android
-./gradlew assembleDebug
-
-npm run build
-npx cap build android --androidreleasetype=APK
-
-/home/lenovo/www/vue-capacitor-app/android/app/build/outputs/apk/debug
 ```
