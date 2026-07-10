@@ -157,10 +157,11 @@
                   @click="product.stock > 0 && addToCart(product)"
                 >
                   <div>
-                    <div class="text-center rounded-3 bg-light overflow-hidden mb-2 position-relative" style="height: 100px; display: grid; place-items: center;">
-                      <img :src="product.imageURL" :alt="product.name" style="max-width: 100%; max-height: 100%; object-fit: cover;" />
-                      <span v-if="product.stock === 0" class="badge bg-danger position-absolute top-0 end-0 m-1">Habis</span>
-                      <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark position-absolute top-0 end-0 m-1">Sisa {{ product.stock }}</span>
+                    <div class="position-relative text-center rounded-3 overflow-hidden mb-2" style="height: 100px; background: #f0edff;">
+                      <img v-if="product.imageURL" :src="product.imageURL" class="w-100 h-100" style="object-fit: cover;" />
+                      <div v-else class="d-flex h-100 align-items-center justify-content-center text-muted"><ion-icon :icon="basketOutline" style="font-size:2rem;" /></div>
+                      <span v-if="product.stock === 0" class="badge bg-danger position-absolute top-0 start-0 m-1">Habis</span>
+                      <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark position-absolute top-0 start-0 m-1">Sisa {{ product.stock }}</span>
                     </div>
                     <div class="px-1 text-start">
                       <h6 class="fw-bold text-dark mb-1 text-truncate" :title="product.name">{{ product.name }}</h6>
@@ -578,6 +579,7 @@ import { ref, onMounted, computed, defineAsyncComponent } from 'vue'
 import { ProductRepository, CategoryRepository, salesRepo, stockMutationsRepo } from '../../db/repositories'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonAlert, toastController } from '@ionic/vue';
 import { addOutline, removeOutline, trashOutline, cartOutline, basketOutline, printOutline, downloadOutline, calendarOutline, documentTextOutline } from 'ionicons/icons';
+import { readProductImage } from '../../composables/useProductImage';
 import * as XLSX from 'xlsx';
 
 const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
@@ -621,13 +623,13 @@ export default {
     const loadData = async () => {
       categories.value = await CategoryRepository.getAll()
       const data = await ProductRepository.getAll()
-      data.forEach(p => {
+      await Promise.all(data.map(async (p) => {
         if (p.image) {
-          p.imageURL = typeof p.image === 'string' ? p.image : URL.createObjectURL(p.image)
+          p.imageURL = await readProductImage(p.image)
         } else {
-          p.imageURL = 'https://via.placeholder.com/200x150?text=No+Image'
+          p.imageURL = null
         }
-      })
+      }))
       products.value = data
       salesHistory.value = (await salesRepo.getAll()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     }

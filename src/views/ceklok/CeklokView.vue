@@ -212,7 +212,10 @@
 
         <!-- Monthly Chart -->
         <div class="mobile-card container-padded mb-3">
-          <h6 class="fw-bold text-dark mb-3">Grafik Mingguan Bulan Ini</h6>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-dark mb-0">Grafik Mingguan Bulan Ini</h6>
+            <span class="badge bg-light text-muted border small">{{ currentPeriodRange }}</span>
+          </div>
           <div v-if="monthlyChartSeries[0].data.length > 0">
             <VueApexCharts type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
           </div>
@@ -1189,6 +1192,20 @@ export default {
       return result;
     };
 
+    const currentPeriodRange = computed(() => {
+      const now = new Date();
+      if (settings.value.cutoffType === 'weekly') {
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        return `1 ${firstDay.toLocaleString('id-ID', { month: 'short' })} - ${lastDay.getDate()} ${lastDay.toLocaleString('id-ID', { month: 'short' })}`;
+      } else {
+        const start = getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
+        const end = new Date(start.getTime());
+        end.setMonth(end.getMonth() + 1);
+        return `${start.getDate() + 1} ${start.toLocaleString('id-ID', { month: 'short' })} - ${start.getDate()} ${end.toLocaleString('id-ID', { month: 'short' })}`;
+      }
+    });
+
     // Charts Config & Series
     const weeklyChartSeries = computed(() => {
       const now = new Date();
@@ -1417,6 +1434,7 @@ export default {
       weeklyChartOptions,
       monthlyChartSeries,
       monthlyChartOptions,
+      currentPeriodRange,
       settingsOutline, playOutline, stopOutline, cafeOutline, calendarOutline, 
       createOutline, trashOutline, downloadOutline, addOutline,
       effectiveStartStr,

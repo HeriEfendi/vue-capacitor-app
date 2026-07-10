@@ -1,16 +1,18 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button default-href="/dashboard" />
-        </ion-buttons>
-        <ion-title>Manajemen Produk</ion-title>
-        <ion-buttons slot="end">
-          <ion-button router-link="/products/create">
-            <ion-icon slot="icon-only" :icon="addOutline" />
-          </ion-button>
-        </ion-buttons>
+    <ion-header class="app-header">
+      <ion-toolbar class="app-toolbar">
+        <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <ion-title style="padding: 0; font-size: 1.25rem;">Manajemen Produk</ion-title>
+            <ion-buttons style="margin: 0;">
+              <ion-button class="btn-action primary" @click="openCreate">
+                <ion-icon slot="start" :icon="addOutline" /> Tambah
+              </ion-button>
+            </ion-buttons>
+          </div>
+          <p style="margin: 0; font-size: 0.85rem; color: #6c757d;">Kelola daftar produk, stok, dan kategori untuk operasional bisnis Anda.</p>
+        </div>
       </ion-toolbar>
     </ion-header>
 
@@ -56,60 +58,35 @@
       </div>
 
       <!-- Product Grid -->
-      <ion-grid v-else class="menu-grid">
-        <ion-row>
-          <ion-col v-for="product in filteredProducts" :key="product.id" size="6" size-sm="4" size-md="3">
-            <div class="mobile-card h-100 d-flex flex-column justify-content-between p-2">
-              <div>
-                <div class="position-relative text-center rounded-3 overflow-hidden mb-2 product-img-wrap">
-                  <!-- Gambar dari Filesystem -->
-                  <img
-                    v-if="product.imageURL"
-                    :src="product.imageURL"
-                    :alt="product.name"
-                    class="product-img"
-                  />
-                  <!-- Placeholder CSS jika belum ada gambar -->
-                  <div v-else class="product-img-placeholder">
-                    <ion-icon :icon="basketOutline" style="font-size:2rem;" />
-                  </div>
-                  <!-- Featured Badge -->
-                  <span v-if="product.featured === 1" class="badge bg-warning text-dark position-absolute top-0 start-0 m-1" style="font-size: 0.65rem;">
-                    Unggulan
-                  </span>
-                </div>
-
-
-                <div class="px-1">
-                  <!-- Category name -->
-                  <span class="badge bg-secondary mb-1" style="font-size: 0.65rem;">{{ getCategoryName(product.categoryId) }}</span>
-                  <h6 class="fw-bold text-dark mb-1 text-truncate" :title="product.name">{{ product.name }}</h6>
-                  <p class="text-indigo fw-bold mb-2" style="font-size: 0.85rem;">{{ formatPrice(product.price) }}</p>
-                </div>
+      <div class="p-2">
+        <div class="row g-1">
+          <div v-for="product in filteredProducts" :key="product.id" class="col-6 col-sm-4 col-md-3 mb-3">
+            <div class="mobile-card h-100 p-2 d-flex flex-column">
+              <div class="position-relative text-center rounded-3 overflow-hidden mb-2" style="height: 100px; background: #f0edff;">
+                <img v-if="product.imageURL" :src="product.imageURL" class="w-100 h-100" style="object-fit: cover;" />
+                <div v-else class="d-flex h-100 align-items-center justify-content-center text-muted"><ion-icon :icon="basketOutline" style="font-size:2rem;" /></div>
+                <span v-if="product.featured === 1" class="badge bg-warning text-dark position-absolute top-0 start-0 m-1" style="font-size: 0.6rem;">Unggulan</span>
               </div>
-
-              <div class="px-1 mt-auto">
-                <!-- Stock status badge -->
+              <div class="flex-grow-1">
+                <span class="badge bg-secondary mb-1" style="font-size: 0.6rem;">{{ getCategoryName(product.categoryId) }}</span>
+                <h6 class="fw-bold mb-1 text-truncate" style="font-size: 0.85rem;">{{ product.name }}</h6>
+                <p class="text-indigo fw-bold mb-2" style="font-size: 0.8rem;">{{ formatPrice(product.price) }}</p>
+              </div>
+              <div class="border-top pt-2 mt-auto">
                 <div class="mb-2">
-                  <span v-if="product.stock === 0" class="badge bg-danger w-100">Habis</span>
-                  <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark w-100">Stok Tipis ({{ product.stock }})</span>
-                  <span v-else class="badge bg-success w-100">Stok: {{ product.stock }}</span>
+                    <span v-if="product.stock === 0" class="badge bg-danger w-100">Habis</span>
+                    <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark w-100" style="font-size: 0.7rem;">Stok: {{ product.stock }}</span>
+                    <span v-else class="badge bg-success w-100" style="font-size: 0.7rem;">Stok: {{ product.stock }}</span>
                 </div>
-
-                <!-- Actions -->
-                <div class="d-flex justify-content-between border-top pt-2">
-                  <button class="btn btn-light btn-sm text-primary flex-fill me-1 py-1" @click="editProduct(product.id)" title="Edit">
-                    <ion-icon :icon="createOutline" />
-                  </button>
-                  <button class="btn btn-light btn-sm text-danger flex-fill py-1" @click="confirmDelete(product.id)" title="Hapus">
-                    <ion-icon :icon="trashOutline" />
-                  </button>
+                <div class="d-flex gap-1">
+                  <button class="btn btn-light btn-sm flex-fill text-primary" @click="openEdit(product)"><ion-icon :icon="createOutline" /></button>
+                  <button class="btn btn-light btn-sm flex-fill text-danger" @click="confirmDelete(product.id)"><ion-icon :icon="trashOutline" /></button>
                 </div>
               </div>
             </div>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+          </div>
+        </div>
+      </div>
 
       <!-- Delete Alert -->
       <ion-alert
@@ -122,23 +99,31 @@
         ]"
         @didDismiss="deleteId = null"
       />
+
+      <ProductModal 
+        :is-open="dialogCreate || dialogEdit" 
+        :is-edit="dialogEdit"
+        :product="activeProduct"
+        :categories="categories"
+        @close="closeModal"
+        @save="saveProduct"
+      />
     </ion-content>
   </ion-page>
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed, toRaw } from 'vue'
 import { ProductRepository, CategoryRepository } from '../../../db/repositories'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonButtons, IonBackButton, IonAlert, toastController } from '@ionic/vue';
-import { addOutline, trashOutline, createOutline, basketOutline } from 'ionicons/icons';
-import { readProductImage } from '../../../composables/useProductImage';
+import { addOutline, trashOutline, createOutline, basketOutline, closeOutline } from 'ionicons/icons';
+import { readProductImage, saveProductImageFromBase64, deleteProductImage } from '../../../composables/useProductImage';
+import ProductModal from './ProductModal.vue';
 
 export default {
   name: 'ProductsListView',
-  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonButtons, IonBackButton, IonAlert },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonButtons, IonBackButton, IonAlert, ProductModal },
   setup() {
-    const router = useRouter()
     const products = ref([])
     const categories = ref([])
     const searchQuery = ref('')
@@ -152,14 +137,11 @@ export default {
       return cat ? cat.name : 'Tanpa Kategori'
     }
 
-
     const fetchData = async () => {
       categories.value = await CategoryRepository.getAll()
       const data = await ProductRepository.getAll()
-      // Load gambar dari Filesystem secara async (h_dev/product/product_XX.webp)
       await Promise.all(data.map(async (product) => {
         if (product.image) {
-          // Coba baca dari Capacitor Filesystem
           product.imageURL = await readProductImage(product.image)
         } else {
           product.imageURL = null
@@ -168,7 +150,6 @@ export default {
       products.value = data
     }
 
-
     const filteredProducts = computed(() => {
       return products.value.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -176,14 +157,6 @@ export default {
         return matchesSearch && matchesCategory
       })
     })
-
-    const editProduct = (id) => {
-      router.push(`/products/${id}/edit`)
-    }
-
-    const confirmDelete = (id) => {
-      deleteId.value = id
-    }
 
     const deleteProduct = async () => {
       if (deleteId.value !== null) {
@@ -202,6 +175,62 @@ export default {
 
     onMounted(fetchData)
 
+    const dialogCreate = ref(false)
+    const dialogEdit = ref(false)
+    const activeProduct = ref({ name: '', price: 0, stock: 0, categoryId: null })
+
+    const openCreate = () => {
+        activeProduct.value = { name: '', price: 0, stock: 0, categoryId: categories.value[0]?.id || null }
+        dialogCreate.value = true
+    }
+
+    const openEdit = (product) => {
+        activeProduct.value = { ...product }
+        dialogEdit.value = true
+    }
+
+    const confirmDelete = (id) => {
+      deleteId.value = id
+    }
+
+    const closeModal = () => {
+        dialogCreate.value = false
+        dialogEdit.value = false
+    }
+
+    const showToast = async (message, color = 'danger') => {
+        const toast = await toastController.create({
+            message,
+            duration: 2000,
+            color,
+            position: 'top'
+        })
+        await toast.present()
+    }
+
+    const saveProduct = async (product) => {
+        try {
+            const rawProduct = toRaw(product)
+            
+            // Handle image
+            if (rawProduct.pendingBase64) {
+                if (rawProduct.image) await deleteProductImage(rawProduct.image)
+                rawProduct.image = await saveProductImageFromBase64(rawProduct.pendingBase64, rawProduct.id || Date.now())
+                delete rawProduct.pendingBase64
+            }
+
+            if (dialogCreate.value) await ProductRepository.add(rawProduct)
+            else await ProductRepository.update(rawProduct.id, rawProduct)
+            
+            await showToast('Produk berhasil disimpan!', 'success')
+            closeModal()
+            await fetchData()
+        } catch (e) {
+            console.error('Error saving product:', e)
+            await showToast('Gagal menyimpan produk.')
+        }
+    }
+
     return {
       products,
       categories,
@@ -209,9 +238,15 @@ export default {
       selectedCategory,
       filteredProducts,
       deleteId,
+      dialogCreate,
+      dialogEdit,
+      activeProduct,
       formatPrice,
       getCategoryName,
-      editProduct,
+      openCreate,
+      openEdit,
+      closeModal,
+      saveProduct,
       confirmDelete,
       deleteProduct,
       addOutline,

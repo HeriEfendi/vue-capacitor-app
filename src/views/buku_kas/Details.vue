@@ -95,15 +95,15 @@ const filteredTransactions = computed(() => {
 
 const netProfit = computed(() => (project.value as any).panen_total - project.value.total_expenses)
 const roi = computed(() => {
-  const expenses = project.value?.total_expenses || 0
-  if (expenses <= 0) return 0
-  return Math.round((netProfit.value / expenses) * 100) || 0
+  const modal = (project.value as any)?.modal_total || 0
+  if (modal <= 0) return 0
+  return Math.floor((netProfit.value / modal) * 100) || 0
 })
 
 const profitPercent = computed(() => {
   const sales = (project.value as any).panen_total || 0
   if (sales <= 0) return 0
-  return Math.round((netProfit.value / sales) * 100) || 0
+  return Math.floor((netProfit.value / sales) * 100) || 0
 })
 
 function getFinancialColor(value: number, positiveColor = '#1565c0') {
@@ -230,9 +230,9 @@ async function deleteTransaction(id: number) {
             
             p.balance = p.total_deposits - p.total_expenses;
 
-            await db.put('projects', projects[projectIndex]);
-            await fetchProject();
             dialogDeleteTxId.value = null;
+            await db.put('projects', projects[projectIndex]);
+            project.value = JSON.parse(JSON.stringify(projects[projectIndex]));
             showSnackbar('Transaksi berhasil dihapus', 'success');
         }
     } catch {
@@ -599,14 +599,19 @@ onUnmounted(() => clearInterval(interval))
                 </ion-col>
                 <ion-col size="6" size-lg="3" v-if="(project as any).panen_total > 0">
                     <div class="summary-card summary-card--green shadow-soft">
-                        <small class="text-muted mb-2">Penjualan</small>
+                        <small class="text-muted mb-2">Pendapatan</small>
                         <div class="summary-value summary-value--green">{{ formatCurrency((project as any).panen_total || 0) }}</div>
                         
-                        <div class="d-flex justify-content-between align-items-center border-top mt-2">
-                            <small class="text-muted my-2">ROI</small>
-                            <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ roi }}%</ion-badge>
+                        <div class="d-flex justify-content-between align-items-center border-top mt-2 pt-2">
+                            <div class="d-flex flex-column align-items-start">
+                                <small class="text-muted mb-2">Margin</small>
+                                <span class="summary-value" :class="profitPercent >= 0 ? 'summary-value--green' : 'summary-value--red'">{{ profitPercent }}%</span>
+                            </div>
+                            <div class="d-flex flex-column align-items-end">
+                                <small class="text-muted mb-2">ROI</small>
+                                <span class="summary-value" :class="roi >= 0 ? 'summary-value--green' : 'summary-value--red'">{{ roi }}%</span>
+                            </div>
                         </div>
-                        <div class="summary-profit" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
                     </div>
                 </ion-col>
                 <ion-col size="6" size-lg="3">
@@ -614,12 +619,12 @@ onUnmounted(() => clearInterval(interval))
                         <div v-if="(project as any).panen_total > 0">
                             <div class="d-flex justify-content-between align-items-center">
                                 <small class="text-muted mb-2">Keuntungan</small>
-                                <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ profitPercent }}%</ion-badge>
+                                <!-- <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ profitPercent }}%</ion-badge> -->
                             </div>
                             <div class="summary-profit summary-profit--border mb-2" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
                             <div class="border-bottom mb-2"></div>
                         </div>
-                        <small class="text-muted mb-2">Sisa Modal</small>
+                        <small class="text-muted mb-2">Sisa Saldo</small>
                         <div class="summary-value summary-value--blue">{{ formatCurrency(project.balance) }}</div>
                     </div>
                 </ion-col>
@@ -660,7 +665,8 @@ onUnmounted(() => clearInterval(interval))
 
           <div class="transaction-scroll pb-2">
             <div class="transaction-list d-flex flex-column gap-1">
-              <ion-card v-for="tx in filteredTransactions" :key="tx.id" class="transaction-card">
+              <template v-for="tx in filteredTransactions" :key="tx.id">
+                <ion-card class="transaction-card">
                 <div class="transaction-inner d-flex align-items-center" :class="tx.type === 'DEPOSIT' ? 'deposit-bg' : 'expense-bg'">
                   <div class="transaction-meta">
                     <span class="fw-bold" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
@@ -685,6 +691,7 @@ onUnmounted(() => clearInterval(interval))
                   </div>
                 </div>
               </ion-card>
+              </template>
             </div>
           </div>
           
@@ -737,6 +744,10 @@ onUnmounted(() => clearInterval(interval))
                     <select v-model="formTx.category" class="form-control app-control">
                         <option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</option>
                     </select>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">Tanggal</label>
+                    <input type="date" v-model="formTx.date" class="form-control app-control"/>
                 </div>
                 <div class="form-section">
                     <label class="form-label">Nominal</label>

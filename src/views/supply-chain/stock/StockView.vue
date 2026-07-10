@@ -102,7 +102,8 @@
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center gap-3" style="max-width: 70%;">
                 <div class="rounded bg-light overflow-hidden flex-shrink-0" style="width: 50px; height: 50px; display: grid; place-items: center;">
-                  <img :src="prod.imageURL" :alt="prod.name" style="max-width: 100%; max-height: 100%; object-fit: cover;" />
+                  <img v-if="prod.imageURL" :src="prod.imageURL" :alt="prod.name" style="max-width: 100%; max-height: 100%; object-fit: cover;" />
+                  <ion-icon v-else :icon="basketOutline" style="font-size: 1.5rem; color: #adb5bd;" />
                 </div>
                 <div>
                   <h6 class="fw-bold text-dark mb-1 text-truncate">{{ prod.name }}</h6>
@@ -256,7 +257,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { ProductRepository, CategoryRepository, stockMutationsRepo } from '../../../db/repositories'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, toastController } from '@ionic/vue';
-import { basketOutline, addOutline, removeOutline, downloadOutline, calendarOutline } from 'ionicons/icons';
+import { basketOutline, addOutline, removeOutline, downloadOutline, calendarOutline, documentTextOutline } from 'ionicons/icons';
+import { readProductImage } from '../../../composables/useProductImage';
 import * as XLSX from 'xlsx';
 
 export default {
@@ -299,13 +301,13 @@ export default {
     const loadData = async () => {
       categories.value = await CategoryRepository.getAll()
       const data = await ProductRepository.getAll()
-      data.forEach(p => {
+      await Promise.all(data.map(async (p) => {
         if (p.image) {
-          p.imageURL = typeof p.image === 'string' ? p.image : URL.createObjectURL(p.image)
+          p.imageURL = await readProductImage(p.image)
         } else {
-          p.imageURL = 'https://via.placeholder.com/200x150?text=No+Image'
+          p.imageURL = null
         }
-      })
+      }))
       products.value = data
       mutations.value = (await stockMutationsRepo.getAll()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     }
@@ -467,6 +469,7 @@ export default {
       getMutationBadgeClass,
       formatDateTime,
       exportExcel,
+      readProductImage,
       basketOutline,
       addOutline,
       removeOutline,
