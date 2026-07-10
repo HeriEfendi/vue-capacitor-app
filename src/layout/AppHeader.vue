@@ -1,57 +1,52 @@
 <template>
-  <CHeader position="sticky" :class="[{ 'header-dark': isDark }]">
-    <CContainer fluid class="d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center">
-        <CHeaderToggler class="ps-1" @click="toggleSidebar">
-          <CIcon icon="cil-menu" size="lg" />
-        </CHeaderToggler>
-        <CHeaderBrand class="ms-2" to="/dashboard">
-          <img src="/icon-192.png" alt="Logo" width="24" height="24" class="me-2" />
-          H DEV
-        </CHeaderBrand>
-      </div>
-      <div class="d-flex align-items-center gap-2">
-        <span class="small text-secondary d-none d-md-inline">{{ isDark ? 'Dark' : 'Light' }} Mode</span>
-        <CFormSwitch color="dark" :checked="isDark" @change="toggleTheme" />
-      </div>
-    </CContainer>
-  </CHeader>
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button v-if="!isDashboard" @click="goBack" class="rounded-circle" style="--background: white; --color: black;">
+          <ion-icon slot="icon-only" :icon="arrowBack" />
+        </ion-button>
+      </ion-buttons>
+      <ion-title class="ion-text-center justify-content-center">
+        <router-link to="/" class="rounded-pill d-flex align-items-center justify-content-center" style="height: 46px; width: 60vw; font-weight: 700; font-size: 0.9rem; color: #333; background: rgba(255, 255, 255, 0.8); box-shadow: 0 1px 2px rgba(0,0,0,0.05); text-decoration: none; margin: 0 auto;">
+          HDEV MOBILE
+        </router-link>
+      </ion-title>
+      <ion-buttons slot="end">
+        <ion-button @click="toggleSidebar" class="rounded-circle" style="--background: white; --color: black;">
+          <ion-icon slot="icon-only" :icon="menu" />
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
 </template>
 
 <script>
-import { CContainer, CHeader, CHeaderBrand, CHeaderToggler, CFormSwitch } from '@coreui/vue'
-import CIcon from '@coreui/icons-vue'
-import { cilMenu } from '@coreui/icons'
-import { computed, onMounted, watchEffect } from 'vue'
-import { useStore } from 'vuex'
+import { IonHeader, IonToolbar, IonButtons, IonButton, IonTitle, IonIcon, menuController } from '@ionic/vue';
+import { menu, arrowBack } from 'ionicons/icons';
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 export default {
   name: 'AppHeader',
   components: {
-    CContainer,
-    CHeader,
-    CHeaderBrand,
-    CHeaderToggler,
-    CFormSwitch,
-    CIcon,
+    IonHeader, IonToolbar, IonButtons, IonButton, IonTitle, IonIcon
   },
   setup() {
-    const store = useStore()
-    const isDark = computed(() => store.state.theme === 'dark')
-    const toggleSidebar = () => {
-      store.commit('toggleSidebar')
+    const route = useRoute();
+    const router = useRouter();
+    const isDashboard = computed(() => route ? route.path === '/dashboard' : false)
+    const goBack = () => {
+      router.back();
     }
-    const toggleTheme = () => {
-      store.commit('toggleTheme')
+
+    const toggleSidebar = async () => {
+      await menuController.toggle();
     }
     
-    // Sync to document element
-    watchEffect(() => {
-      document.documentElement.setAttribute('data-theme', store.state.theme)
-    })
-    
-    return { cilMenu, isDark, toggleTheme, toggleSidebar }
+    return { menu, arrowBack, isDashboard, goBack, toggleSidebar }
   },
 }
 </script>
+
+
 

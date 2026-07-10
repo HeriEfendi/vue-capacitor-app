@@ -10,16 +10,24 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
+    "@capacitor/camera": "^8.2.0",
     "@capacitor/core": "^8.4.1",
+    "@capacitor/filesystem": "^8.1.2",
     "@coreui/coreui": "^5.4.1",
     "@coreui/icons": "^3.0.1",
     "@coreui/icons-vue": "^2.2.0",
     "@coreui/vue": "^5.5.0",
     "@fortawesome/fontawesome-free": "^7.0.0",
+    "@ionic/pwa-elements": "^3.4.0",
+    "@ionic/vue": "^8.8.13",
+    "@ionic/vue-router": "^8.8.13",
     "@popperjs/core": "^2.11.8",
     "apexcharts": "^5.15.2",
     "bootstrap": "^5.3.7",
     "dexie": "^4.0.11",
+    "idb": "^8.0.3",
+    "ionicons": "^8.0.13",
+    "pulltorefreshjs": "^0.1.22",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1",
     "vue3-apexcharts": "^1.11.1",
@@ -28,6 +36,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.4.1",
+    "@types/pulltorefreshjs": "^0.1.7",
     "@vitejs/plugin-vue": "^6.0.1",
     "vite": "^7.1.0"
   }

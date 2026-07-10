@@ -1,46 +1,38 @@
 <template>
-  <div class="container py-4" v-if="loaded">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="m-0">Edit Utang</h5>
-      <CButton color="secondary" @click="$router.push('/debts')">Kembali</CButton>
-    </div>
-    <CCard>
-      <CCardBody>
-        <CForm @submit.prevent="onSubmit">
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <CFormLabel for="lender">Pemberi Utang</CFormLabel>
-              <CFormInput id="lender" v-model="form.lender" required />
-            </div>
-            <div class="col-md-4 mb-3">
-              <CFormLabel for="amount">Jumlah</CFormLabel>
-              <CFormInput type="number" id="amount" v-model.number="form.amount" required />
-            </div>
-            <div class="col-md-4 mb-3">
-              <CFormLabel for="due">Jatuh Tempo</CFormLabel>
-              <CFormInput type="date" id="due" v-model="form.dueDate" required />
-            </div>
-            <div class="col-md-4 mb-3">
-              <CFormLabel for="status">Status</CFormLabel>
-              <CFormInput id="status" v-model="form.status" placeholder="Belum Lunas / Lunas" required />
-            </div>
-          </div>
-          <CButton type="submit" color="primary">Simpan Perubahan</CButton>
-        </CForm>
-      </CCardBody>
-    </CCard>
-  </div>
+  <ion-page v-if="loaded">
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start"><ion-back-button default-href="/debts" /></ion-buttons>
+        <ion-title>Edit Utang</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+        <ion-list>
+            <ion-item><ion-label position="stacked">Pemberi Utang</ion-label><ion-input v-model="form.lender" /></ion-item>
+            <ion-item><ion-label position="stacked">Jumlah</ion-label><ion-input type="number" v-model.number="form.amount" /></ion-item>
+            <ion-item><ion-label position="stacked">Jatuh Tempo</ion-label><ion-input type="date" v-model="form.dueDate" /></ion-item>
+            <ion-item>
+                <ion-label position="stacked">Status</ion-label>
+                <ion-select v-model="form.status" interface="popover">
+                    <ion-select-option value="Belum Lunas">Belum Lunas</ion-select-option>
+                    <ion-select-option value="Lunas">Lunas</ion-select-option>
+                </ion-select>
+            </ion-item>
+        </ion-list>
+        <ion-button expand="block" class="ion-margin-top" @click="onSubmit">Simpan Perubahan</ion-button>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { debtsRepo } from '../../../db/repositories'
-import { CButton, CCard, CCardBody, CForm, CFormInput, CFormLabel } from '@coreui/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, IonItem, IonLabel, IonInput, IonList, IonSelect, IonSelectOption } from '@ionic/vue';
 
 export default {
   name: 'AccountingDebtsEditView',
-  components: { CButton, CCard, CCardBody, CForm, CFormInput, CFormLabel },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, IonItem, IonLabel, IonInput, IonList, IonSelect, IonSelectOption },
   setup() {
     const route = useRoute()
     const router = useRouter()

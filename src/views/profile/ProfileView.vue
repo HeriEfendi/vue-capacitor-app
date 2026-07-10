@@ -1,286 +1,131 @@
 <template>
-  <div class="container py-5" style="max-width:900px">
-
-    <!-- Header Card -->
-    <CCard class="mb-4 overflow-hidden">
-      <div class="profile-banner"></div>
-      <CCardBody class="position-relative pt-0">
-        <div class="d-flex flex-column flex-md-row align-items-md-end gap-4 mt-n4">
-          <!-- Avatar -->
-          <div class="profile-avatar-wrapper flex-shrink-0">
-            <img
-              src="https://i.pravatar.cc/160?img=33"
-              alt="Foto Profil"
-              class="profile-avatar rounded-circle border border-4 border-white shadow"
-              width="120"
-              height="120"
-            />
-          </div>
-          <!-- Bio -->
-          <div class="flex-grow-1 pb-1">
-            <h3 class="fw-black mb-1">Ahmad Heri Efendi</h3>
-            <p class="text-primary fw-semibold mb-2">Full-Stack Web Developer (IT Programmer)</p>
-            <div class="d-flex flex-wrap gap-2">
-              <span class="badge rounded-pill bg-indigo text-white">
-                <i class="fab fa-laravel me-1"></i>Laravel
-              </span>
-              <span class="badge rounded-pill bg-success">
-                <i class="fab fa-vuejs me-1"></i>Vue 3
-              </span>
-              <span class="badge rounded-pill bg-primary">
-                <i class="fas fa-database me-1"></i>MariaDB
-              </span>
-              <span class="badge rounded-pill" style="background:#7c3aed;color:white">
-                <i class="fas fa-server me-1"></i>Redis
-              </span>
-              <span class="badge rounded-pill bg-dark">
-                <i class="fab fa-linux me-1"></i>Linux
-              </span>
-              <span class="badge rounded-pill bg-warning text-dark">
-                <i class="fab fa-android me-1"></i>Capacitor
-              </span>
+  <ion-page class="app-page">
+    <ion-header class="app-header">
+      <ion-toolbar class="app-toolbar">
+        <div class="app-hero profile-hero">
+          <div class="profile-head">
+            <img src="/profil.jpg" alt="Foto Profil Ahmad Heri Efendi" class="profile-avatar" />
+            <div>
+              <p class="eyebrow">Profile</p>
+              <ion-title class="app-hero-title">Ahmad Heri Efendi</ion-title>
+              <p class="app-hero-subtitle">Full-Stack Web Developer • ERP • Mobile-first business tools</p>
             </div>
           </div>
-          <!-- Contact buttons -->
-          <div class="d-flex gap-2 flex-shrink-0">
-            <a href="mailto:heri@example.com" class="btn btn-outline-primary btn-sm">
-              <i class="fas fa-envelope me-1"></i>Email
-            </a>
-            <a href="https://github.com" target="_blank" class="btn btn-dark btn-sm">
-              <i class="fab fa-github me-1"></i>GitHub
-            </a>
-          </div>
+          <ion-buttons class="app-action-row">
+            <ion-button class="btn-action primary" href="mailto:hheri58@gmail.com">
+              <ion-icon slot="start" :icon="mailOutline" /> Email
+            </ion-button>
+            <ion-button class="btn-action dark" href="https://github.com/HeriEfendi" target="_blank">
+              <ion-icon slot="start" :icon="logoGithub" /> GitHub
+            </ion-button>
+          </ion-buttons>
         </div>
-      </CCardBody>
-    </CCard>
+      </ion-toolbar>
+    </ion-header>
 
-    <div class="row g-4">
-      <!-- Kolom Kiri -->
-      <div class="col-12 col-md-7">
-        <!-- Tentang Saya -->
-        <CCard class="mb-4">
-          <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-user-circle me-2 text-primary"></i>Tentang Saya
-            </h6>
-            <p class="text-secondary mb-0" style="line-height:1.8">
-              Seorang <strong>IT Programmer</strong> dengan pengalaman lebih dari 5 tahun dalam
-              pengembangan aplikasi web, software ERP, dan sistem internal perusahaan. Mahir
-              dalam memanfaatkan <strong>Laravel</strong>, <strong>Vue.js</strong>,
-              <strong>MariaDB</strong>, dan <strong>Redis</strong> untuk membangun solusi
-              yang skalabel dan berkinerja tinggi. Saat ini mengembangkan aplikasi
-              mobile dengan <strong>Capacitor</strong> untuk Android.
-            </p>
-          </CCardBody>
-        </CCard>
-
-        <!-- Pendidikan -->
-        <CCard class="mb-4">
-          <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-graduation-cap me-2 text-primary"></i>Pendidikan
-            </h6>
-            <div class="d-flex gap-3">
-              <div class="edu-icon">
-                <i class="fas fa-university text-primary fa-lg"></i>
-              </div>
-              <div>
-                <div class="fw-semibold">Teknik Informatika</div>
-                <div class="text-muted small">Universitas Contoh · 2016 – 2020</div>
-                <div class="text-secondary small mt-1">GPA 3.75 / 4.00</div>
-              </div>
-            </div>
-          </CCardBody>
-        </CCard>
-
-        <!-- Pengalaman Kerja -->
-        <CCard>
-          <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-briefcase me-2 text-primary"></i>Pengalaman Kerja
-            </h6>
-            <div class="timeline">
-              <div class="timeline-item" v-for="exp in experiences" :key="exp.company">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content ms-3">
-                  <div class="fw-bold">{{ exp.role }}</div>
-                  <div class="text-primary small fw-semibold">{{ exp.company }}</div>
-                  <div class="text-muted small">{{ exp.period }}</div>
-                  <p class="text-secondary small mt-1 mb-0">{{ exp.desc }}</p>
-                </div>
-              </div>
-            </div>
-          </CCardBody>
-        </CCard>
+    <ion-content class="app-content-wrap">
+      <div class="summary-grid">
+        <ion-card v-for="stat in stats" :key="stat.label" class="summary-card stat-card shadow-soft" :class="stat.color">
+          <div class="stat-top">
+            <div class="icon-box-small">{{ stat.icon }}</div>
+            <span>{{ stat.label }}</span>
+          </div>
+          <div class="stat-value">{{ stat.val }}</div>
+        </ion-card>
       </div>
 
-      <!-- Kolom Kanan -->
-      <div class="col-12 col-md-5">
-        <!-- Skills -->
-        <CCard class="mb-4">
-          <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-code me-2 text-primary"></i>Technical Skills
-            </h6>
-            <div v-for="skill in skills" :key="skill.name" class="mb-3">
-              <div class="d-flex justify-content-between small fw-semibold mb-1">
-                <span>{{ skill.name }}</span>
-                <span class="text-muted">{{ skill.level }}%</span>
-              </div>
-              <div class="progress" style="height:8px;border-radius:10px">
-                <div
-                  class="progress-bar"
-                  :style="`width:${skill.level}%;background:${skill.color}`"
-                  style="border-radius:10px"
-                ></div>
+      <ion-card class="mobile-card profile-card">
+        <ion-card-header class="mobile-card-header">
+          <span class="pill-badge done">Tentang Saya</span>
+          <ion-card-title class="mobile-card-title">Developer yang fokus ke sistem bisnis</ion-card-title>
+          <ion-card-subtitle class="mobile-card-subtitle">
+            IT Programmer dengan {{ years }}+ tahun pengalaman dalam pengembangan web, ERP, dan sistem korporat.
+            Fokus pada Laravel, Vue.js, MariaDB, Redis, dan aplikasi mobile berbasis Capacitor.
+          </ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="skill-chips">
+            <span v-for="skill in skills.slice(0, 4)" :key="skill.name" class="pill-badge medium">{{ skill.name }}</span>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="mobile-card">
+        <ion-card-header class="mobile-card-header">
+          <span class="pill-badge progress">Experience</span>
+          <ion-card-title class="mobile-card-title">Riwayat Kerja</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="timeline">
+            <div v-for="exp in experiences" :key="exp.company" class="timeline-item">
+              <span class="timeline-dot"></span>
+              <div class="timeline-content">
+                <div class="mobile-card-top">
+                  <h3>{{ exp.role }}</h3>
+                  <span class="pill-badge low">{{ exp.period }}</span>
+                </div>
+                <p class="company">{{ exp.company }}</p>
+                <p class="desc">{{ exp.desc }}</p>
               </div>
             </div>
-          </CCardBody>
-        </CCard>
+          </div>
+        </ion-card-content>
+      </ion-card>
 
-        <!-- Info Kontak -->
-        <CCard class="mb-4">
-          <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-address-card me-2 text-primary"></i>Informasi
-            </h6>
-            <ul class="list-unstyled mb-0">
-              <li class="mb-2">
-                <i class="fas fa-map-marker-alt text-muted me-2 fa-fw"></i>
-                <span class="small">Indonesia</span>
-              </li>
-              <li class="mb-2">
-                <i class="fas fa-envelope text-muted me-2 fa-fw"></i>
-                <span class="small">heri@example.com</span>
-              </li>
-              <li class="mb-2">
-                <i class="fas fa-globe text-muted me-2 fa-fw"></i>
-                <span class="small">portfolio.example.com</span>
-              </li>
-              <li>
-                <i class="fab fa-github text-muted me-2 fa-fw"></i>
-                <span class="small">github.com/heri-efendi</span>
-              </li>
-            </ul>
-          </CCardBody>
-        </CCard>
-
-        <!-- Statistik -->
-        <CCard>
-          <CCardBody>
-            <h6 class="fw-bold text-uppercase text-muted mb-3">
-              <i class="fas fa-chart-bar me-2 text-primary"></i>Statistik
-            </h6>
-            <div class="row g-3 text-center">
-              <div class="col-6">
-                <div class="stat-card p-3 rounded-3" style="background:#e8eaf6">
-                  <div class="fs-3 fw-black text-indigo">5+</div>
-                  <div class="small text-muted">Tahun Exp.</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="stat-card p-3 rounded-3" style="background:#e8f5e9">
-                  <div class="fs-3 fw-black text-success">20+</div>
-                  <div class="small text-muted">Projects</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="stat-card p-3 rounded-3" style="background:#fff3e0">
-                  <div class="fs-3 fw-black text-warning">10+</div>
-                  <div class="small text-muted">Clients</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="stat-card p-3 rounded-3" style="background:#fce4ec">
-                  <div class="fs-3 fw-black" style="color:#c2185b">3</div>
-                  <div class="small text-muted">Mobile Apps</div>
-                </div>
-              </div>
+      <ion-card class="mobile-card">
+        <ion-card-header class="mobile-card-header">
+          <span class="pill-badge todo">Skills</span>
+          <ion-card-title class="mobile-card-title">Tech Stack</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div v-for="skill in skills" :key="skill.name" class="skill-row">
+            <div class="metric-row">
+              <span class="metric-label"><ion-icon :icon="skill.icon" /> {{ skill.name }}</span>
+              <span class="metric-value">{{ skill.level }}%</span>
             </div>
-          </CCardBody>
-        </CCard>
-      </div>
-    </div>
-  </div>
+            <ion-progress-bar :value="skill.level / 100" class="thick-progress skill-progress" />
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
 import { ref } from 'vue'
-import { CCard, CCardBody } from '@coreui/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonBadge, IonProgressBar, IonButtons } from '@ionic/vue';
+import { mailOutline, logoGithub, logoLaravel, logoVue, serverOutline, logoAndroid, terminalOutline } from 'ionicons/icons';
 
 export default {
   name: 'ProfileView',
-  components: { CCard, CCardBody },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonBadge, IonProgressBar, IonButtons },
   setup() {
     const skills = ref([
-      { name: 'Laravel / PHP', level: 90, color: '#ff4500' },
-      { name: 'Vue.js / Nuxt', level: 88, color: '#42b883' },
-      { name: 'MariaDB / MySQL', level: 85, color: '#1a6faf' },
-      { name: 'Redis / Queue', level: 75, color: '#dc382d' },
-      { name: 'Capacitor / Android', level: 65, color: '#3ddc84' },
-      { name: 'Linux / DevOps', level: 72, color: '#fcc624' },
+      { name: 'Laravel / PHP', level: 90, icon: logoLaravel },
+      { name: 'Vue.js / Nuxt', level: 88, icon: logoVue },
+      { name: 'MariaDB / MySQL', level: 85, icon: serverOutline },
+      { name: 'Redis / Queue', level: 75, icon: serverOutline },
+      { name: 'Capacitor / Android', level: 65, icon: logoAndroid },
+      { name: 'Linux / DevOps', level: 72, icon: terminalOutline },
     ])
 
     const experiences = ref([
-      {
-        role: 'Full-Stack Developer',
-        company: 'PT. Teknologi Maju',
-        period: '2022 – Sekarang',
-        desc: 'Membangun sistem ERP internal berbasis Laravel + Vue.js dengan Redis untuk caching.',
-      },
-      {
-        role: 'Web Developer',
-        company: 'CV. Digital Kreatif',
-        period: '2020 – 2022',
-        desc: 'Mengembangkan aplikasi web UMKM dan marketplace lokal.',
-      },
-      {
-        role: 'Junior Programmer',
-        company: 'Startup ABC',
-        period: '2019 – 2020',
-        desc: 'Internship pengembangan fitur backend PHP dan integrasi API.',
-      },
+      { role: 'Information Technology Programmer', company: 'Kotakin Group', period: '2023 - Present', desc: 'Maintenance & development ERP features, internal APIs, & system performance.' },
+      { role: 'Information Technology Programmer', company: 'PT Lestari Mulia Sentosa', period: '2022 - 2023', desc: 'System migration (Delphi/PHP to Laravel) & database management.' },
+      { role: 'IT Programmer & IT Support', company: 'PT Omega Mas', period: '2019 - 2022', desc: 'System migration (VB.Net to Web), network administration, & technical support.' },
     ])
 
-    return { skills, experiences }
+    const now = new Date()
+    const years = now.getFullYear() - 2019 - (now.getMonth() < 7 ? 1 : 0)
+
+    const stats = ref([
+      { label: 'Tahun Exp.', val: years + '+', icon: 'XP', color: 'stat-blue' },
+      { label: 'Projects', val: '20+', icon: 'PR', color: 'stat-green' },
+      { label: 'Clients', val: '10+', icon: 'CL', color: 'stat-purple' },
+      { label: 'Mobile Apps', val: '3', icon: 'AP', color: 'stat-amber' },
+    ])
+
+    return { skills, experiences, stats, years, mailOutline, logoGithub }
   }
 }
 </script>
-
-<style scoped>
-.profile-banner {
-  height: 120px;
-  background: linear-gradient(135deg, #3949ab 0%, #5c6bc0 50%, #7e57c2 100%);
-}
-.profile-avatar {
-  object-fit: cover;
-}
-.bg-indigo { background-color: #3949ab !important; }
-.text-indigo { color: #3949ab !important; }
-
-/* Timeline */
-.timeline { position: relative; }
-.timeline-item {
-  display: flex;
-  align-items: flex-start;
-  padding-bottom: 20px;
-  position: relative;
-}
-.timeline-item:not(:last-child)::before {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 14px;
-  width: 2px;
-  height: calc(100% - 10px);
-  background: #e0e0e0;
-}
-.timeline-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #3949ab;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-</style>

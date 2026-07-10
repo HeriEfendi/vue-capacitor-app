@@ -1,28 +1,19 @@
 <template>
-  <div class="d-flex wrapper">
+  <ion-page>
     <AppSidebar />
-    <div class="wrapper d-flex flex-column min-vh-100 bg-light flex-grow-1">
-      <AppHeader />
-      <div class="body flex-grow-1 px-3" router-view>
-        <CContainer lg>
-          <router-view />
-        </CContainer>
+    <AppHeader />
+    <ion-content id="main-content">
+      <div class="ion-padding">
+        <ion-router-outlet />
       </div>
-      <AppFooter />
-    </div>
-    <div
-      v-if="$store.state.sidebarVisible"
-      class="sidebar-overlay d-lg-none"
-      @click="$store.commit('updateSidebarVisible', false)"
-    ></div>
-  </div>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
-import { CContainer } from '@coreui/vue'
+import { IonPage, IonContent, IonRouterOutlet } from '@ionic/vue';
 import AppHeader from './AppHeader.vue'
 import AppSidebar from './AppSidebar.vue'
-import AppFooter from './AppFooter.vue'
 import { computed, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
@@ -32,8 +23,9 @@ export default {
   components: {
     AppHeader,
     AppSidebar,
-    AppFooter,
-    CContainer,
+    IonPage,
+    IonContent,
+    IonRouterOutlet
   },
   setup() {
     const store = useStore()

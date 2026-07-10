@@ -1,132 +1,54 @@
 <template>
-  <div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h4 class="mb-0 fw-bold">User Management</h4>
-        <small class="text-muted">Manage team members, assignees, and task reporters.</small>
-      </div>
-      <button class="btn btn-primary d-flex align-items-center gap-2" @click="openCreateDialog">
-        <i class="fas fa-user-plus"></i>
-        Add User
-      </button>
-    </div>
+  <ion-page>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>User Management</ion-title>
+        <ion-buttons slot="end">
+            <ion-button @click="openCreateDialog"><ion-icon slot="icon-only" :icon="addOutline" /></ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
 
-    <!-- Loading -->
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status"></div>
-    </div>
+    <ion-content class="ion-padding">
+        <div v-if="loading" class="ion-text-center"><ion-spinner /></div>
+        <ion-list v-else>
+            <ion-item v-for="user in users" :key="user.id">
+                <ion-avatar slot="start"><ion-img :src="user.avatar || `https://i.pravatar.cc/150?u=${user.email}`" /></ion-avatar>
+                <ion-label>
+                    <h2>{{ user.name }}</h2>
+                    <p>{{ user.email }}</p>
+                    <p class="small text-muted">Joined: {{ formatDate(user.created_at) }}</p>
+                </ion-label>
+                <ion-button slot="end" fill="clear" color="danger" @click="deleteUser(user.id)"><ion-icon slot="icon-only" :icon="trashOutline" /></ion-button>
+            </ion-item>
+        </ion-list>
+    </ion-content>
 
-    <!-- Table -->
-    <CCard v-else>
-      <CCardBody class="p-0">
-        <CTable hover responsive class="mb-0">
-          <CTableHead class="table-light">
-            <CTableRow>
-              <CTableHeaderCell style="width:60px">Avatar</CTableHeaderCell>
-              <CTableHeaderCell>Name</CTableHeaderCell>
-              <CTableHeaderCell>Email</CTableHeaderCell>
-              <CTableHeaderCell>Joined</CTableHeaderCell>
-              <CTableHeaderCell class="text-center" style="width:80px">Actions</CTableHeaderCell>
-            </CTableRow>
-          </CTableHead>
-          <CTableBody>
-            <CTableRow v-for="user in users" :key="user.id" class="align-middle">
-              <CTableDataCell>
-                <img
-                  :src="user.avatar || `https://i.pravatar.cc/150?u=${user.email}`"
-                  :alt="user.name"
-                  class="rounded-circle border"
-                  width="36"
-                  height="36"
-                  style="object-fit: cover;"
-                />
-              </CTableDataCell>
-              <CTableDataCell class="fw-semibold">{{ user.name }}</CTableDataCell>
-              <CTableDataCell class="text-muted">{{ user.email }}</CTableDataCell>
-              <CTableDataCell class="text-muted small">{{ formatDate(user.created_at) }}</CTableDataCell>
-              <CTableDataCell class="text-center">
-                <button
-                  class="btn btn-sm btn-outline-danger"
-                  @click="deleteUser(user.id)"
-                  title="Hapus User"
-                >
-                  <i class="fas fa-trash-alt"></i>
-                </button>
-              </CTableDataCell>
-            </CTableRow>
-            <CTableRow v-if="users.length === 0">
-              <CTableDataCell colspan="5" class="text-center py-5 text-muted">
-                <i class="fas fa-users fa-2x mb-2 d-block"></i>
-                No users found.
-              </CTableDataCell>
-            </CTableRow>
-          </CTableBody>
-        </CTable>
-      </CCardBody>
-    </CCard>
-
-    <!-- Create User Modal -->
-    <CModal :visible="createDialog" @close="createDialog = false" backdrop="static" size="sm">
-      <CModalHeader>
-        <CModalTitle class="fw-bold">Create New User</CModalTitle>
-      </CModalHeader>
-      <CModalBody>
-        <form @submit.prevent="saveUser" id="create-user-form">
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
-            <input
-              v-model="newUser.name"
-              type="text"
-              class="form-control"
-              placeholder="Full Name"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
-            <input
-              v-model="newUser.email"
-              type="email"
-              class="form-control"
-              placeholder="user@example.com"
-              required
-            />
-          </div>
-        </form>
-      </CModalBody>
-      <CModalFooter>
-        <button type="button" class="btn btn-outline-secondary" @click="createDialog = false">Cancel</button>
-        <button
-          type="submit"
-          form="create-user-form"
-          class="btn btn-primary d-flex align-items-center gap-2"
-          :disabled="saving"
-        >
-          <span v-if="saving" class="spinner-border spinner-border-sm"></span>
-          Save User
-        </button>
-      </CModalFooter>
-    </CModal>
-  </div>
+    <ion-modal :is-open="createDialog" @didDismiss="createDialog = false">
+        <ion-header>
+            <ion-toolbar>
+                <ion-title>Create User</ion-title>
+                <ion-buttons slot="end"><ion-button @click="createDialog = false"><ion-icon :icon="closeOutline" /></ion-button></ion-buttons>
+            </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+            <ion-item><ion-label position="stacked">Name</ion-label><ion-input v-model="newUser.name" /></ion-item>
+            <ion-item><ion-label position="stacked">Email</ion-label><ion-input type="email" v-model="newUser.email" /></ion-item>
+            <ion-button expand="block" class="ion-margin-top" :disabled="saving" @click="saveUser">Save User</ion-button>
+        </ion-content>
+    </ion-modal>
+  </ion-page>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue'
-import {
-  CCard, CCardBody, CTable, CTableHead, CTableBody, CTableRow,
-  CTableHeaderCell, CTableDataCell, CModal, CModalHeader, CModalTitle,
-  CModalBody, CModalFooter
-} from '@coreui/vue'
-import { UsersRepository } from '../../db/localStorage'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, IonItem, IonLabel, IonList, IonAvatar, IonImg, IonModal, IonSpinner, IonIcon } from '@ionic/vue';
+import { addOutline, trashOutline, closeOutline } from 'ionicons/icons';
+import { UsersRepository } from '@/db/usersRepository'
 
 export default {
   name: 'UsersListView',
-  components: {
-    CCard, CCardBody, CTable, CTableHead, CTableBody, CTableRow,
-    CTableHeaderCell, CTableDataCell, CModal, CModalHeader, CModalTitle,
-    CModalBody, CModalFooter
-  },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, IonItem, IonLabel, IonList, IonAvatar, IonImg, IonModal, IonSpinner, IonIcon },
   setup() {
     const users = ref([])
     const loading = ref(false)
@@ -134,10 +56,10 @@ export default {
     const createDialog = ref(false)
     const newUser = ref({ name: '', email: '' })
 
-    const fetchUsers = () => {
+    const fetchUsers = async () => {
       loading.value = true
       try {
-        users.value = UsersRepository.getAll()
+        users.value = await UsersRepository.getAll()
       } finally {
         loading.value = false
       }
@@ -148,7 +70,7 @@ export default {
       createDialog.value = true
     }
 
-    const saveUser = () => {
+    const saveUser = async () => {
       if (!newUser.value.name || !newUser.value.email) return
       // Check duplicate email
       const existing = users.value.find(u => u.email === newUser.value.email)
@@ -158,18 +80,18 @@ export default {
       }
       saving.value = true
       try {
-        UsersRepository.add(newUser.value)
-        fetchUsers()
+        await UsersRepository.add(newUser.value)
+        await fetchUsers()
         createDialog.value = false
       } finally {
         saving.value = false
       }
     }
 
-    const deleteUser = (id) => {
+    const deleteUser = async (id) => {
       if (confirm('Yakin ingin menghapus user ini? Task yang terkait akan kehilangan assignee/reporter.')) {
-        UsersRepository.delete(id)
-        fetchUsers()
+        await UsersRepository.delete(id)
+        await fetchUsers()
       }
     }
 
@@ -186,9 +108,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.table th, .table td {
-  vertical-align: middle;
-}
-</style>

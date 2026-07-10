@@ -60,8 +60,10 @@ export default {
   background-color: #ffffff; /* White background */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Softer shadow */
   padding: 1rem 0;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  width: 100%;
   z-index: 1030;
 }
 

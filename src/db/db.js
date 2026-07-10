@@ -9,7 +9,6 @@ appDatabase.version(1).stores({
   debts: '++id, date, creditor, amount, note, status',
   incomes: '++id, date, source, amount, note',
   expenses: '++id, date, category, amount, note',
-  rawMaterials: '++id, date, name, quantity, unit, unitPrice, totalCost, note',
   products: '++id, date, name, quantity, unit, unitCost, totalCost, note',
   dailyLedger: '++id, date, type, amount, note',
 })

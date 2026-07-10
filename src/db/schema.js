@@ -1,29 +1,86 @@
 import Dexie from 'dexie';
 
-export const db = new Dexie('umkm_marketplace');
+export const db = new Dexie('FinancialAppDB');
 
-let databaseSeeded = false;
+// We define all stores under version 6.
+// If the database does not exist or is at version 5 (created by raw idb),
+// Dexie will upgrade it to version 6 and create the missing stores.
+db.version(6).stores({
+  // Existing FinancialAppDB stores (from native IndexedDB)
+  projects: 'id',
+  todos: 'id',
+  team_todos: 'id',
+  users: 'id',
+  transactions: 'id',
+  ceklok_logs: 'id',
+  ceklok_settings: 'key',
 
-db.version(1).stores({
+  // Merged umkm_marketplace stores (from Dexie)
   categories: 'id, name',
   products: '++id, name, price, stock, categoryId, featured',
   capitalCosts: '++id, createdAt, name, amount',
   debts: '++id, createdAt, name, amount, dueDate',
   incomes: '++id, createdAt, name, amount',
-  expenses: '++id, createdAt, name, amount, type',
-  rawMaterials: '++id, name, unit, stock',
-  dailyLedger: '++id, createdAt, description, amount, type'
+  expenses: '++id, createdAt, description, amount, date, category',
+  dailyLedger: '++id, createdAt, description, amount, type',
+  sales: '++id, createdAt, totalAmount, paymentMethod, amountPaid, changeAmount, items, notes',
+  stockMutations: '++id, productId, type, changeQuantity, beforeStock, afterStock, createdAt, notes'
 });
+
+let databaseSeeded = false;
 
 export async function seedDatabase() {
   if (databaseSeeded) {
     return;
   }
 
-  // Clear existing data from tables before seeding
-  await db.categories.clear();
-  await db.products.clear();
+  // 1. One-time data migration from the old umkm_marketplace database if it exists
+  try {
+    const oldDbExists = await Dexie.exists('umkm_marketplace');
+    if (oldDbExists) {
+      console.log('Migrating data from umkm_marketplace to FinancialAppDB...');
+      const oldDb = new Dexie('umkm_marketplace');
+      oldDb.version(3).stores({
+        categories: 'id, name',
+        products: '++id, name, price, stock, categoryId, featured',
+        capitalCosts: '++id, createdAt, name, amount',
+        debts: '++id, createdAt, name, amount, dueDate',
+        incomes: '++id, createdAt, name, amount',
+        expenses: '++id, createdAt, description, amount, date, category',
+        dailyLedger: '++id, createdAt, description, amount, type',
+        sales: '++id, createdAt, totalAmount, paymentMethod, amountPaid, changeAmount, items, notes',
+        stockMutations: '++id, productId, type, changeQuantity, beforeStock, afterStock, createdAt, notes'
+      });
+      
+      await oldDb.open();
+      
+      // Copy data from all tables in the old database to our new database
+      for (const table of oldDb.tables) {
+        const data = await table.toArray();
+        if (data.length > 0) {
+          console.log(`Copying ${data.length} records for table ${table.name}...`);
+          await db.table(table.name).bulkPut(data);
+        }
+      }
+      
+      await oldDb.close();
+      await Dexie.delete('umkm_marketplace');
+      console.log('Migration completed and umkm_marketplace database deleted.');
+    }
+  } catch (err) {
+    console.error('Failed to migrate data from umkm_marketplace:', err);
+  }
 
+  // 2. Safe seeding: Check if categories already exist to prevent wiping user data on refresh
+  const categoryCount = await db.categories.count();
+  if (categoryCount > 0) {
+    databaseSeeded = true;
+    return;
+  }
+
+  // Seeding initial categories and dummy products
+  console.log('Seeding initial categories and products into FinancialAppDB...');
+  
   const categories = [
     { id: 1, name: 'Makanan' },
     { id: 2, name: 'Minuman' },
@@ -41,7 +98,7 @@ export async function seedDatabase() {
         price: Math.floor(Math.random() * 100000) + 20000,
         stock: Math.floor(Math.random() * 100) + 10,
         description: `Deskripsi produk makanan ${i}. Ini adalah produk unggulan dari UMKM kami.`,
-        image: `https://placehold.co/200x150/random`,
+        image: '404',
         categoryId: 1,
         featured: 0 // 0 means not featured by default
       });
@@ -53,5 +110,5 @@ export async function seedDatabase() {
   await db.products.bulkAdd(products);
 
   databaseSeeded = true;
+  console.log('Database seeding successfully completed.');
 }
-
