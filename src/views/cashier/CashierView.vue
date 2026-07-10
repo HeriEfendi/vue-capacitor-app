@@ -29,78 +29,11 @@
 
       <!-- TAB 1: POS / KASIR -->
       <div v-if="activeTab === 'pos'" class="ion-padding">
-        <div class="row g-3">
-          <!-- Left side: Products catalog -->
-          <div class="col-12 col-md-7 col-lg-8">
-            <div class="mobile-card container-padded mb-3">
-              <input 
-                type="text" 
-                v-model="searchQuery" 
-                class="form-control app-control mb-3" 
-                placeholder="Cari produk..." 
-              />
 
-              <!-- Category filter chips -->
-              <div class="filter-chips--mobile">
-                <button 
-                  type="button" 
-                  class="btn btn-action btn-sm me-1"
-                  :class="selectedCategory === 'all' ? 'primary' : 'light'"
-                  @click="selectedCategory = 'all'"
-                >
-                  Semua
-                </button>
-                <button 
-                  v-for="cat in categories" 
-                  :key="cat.id"
-                  type="button" 
-                  class="btn btn-action btn-sm me-1"
-                  :class="selectedCategory === cat.id ? 'primary' : 'light'"
-                  @click="selectedCategory = cat.id"
-                >
-                  {{ cat.name }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Products Grid -->
-            <div v-if="filteredProducts.length === 0" class="empty-state text-center py-5 mobile-card container-padded">
-              <ion-icon :icon="basketOutline" style="font-size: 3rem;" class="text-muted mb-2" />
-              <p class="text-muted">Tidak ada produk tersedia.</p>
-            </div>
-
-            <div v-else class="project-actions d-grid gap-2 m-2 mb-0">
-              <div v-for="product in filteredProducts" :key="product.id" class="mb-2">
-                <div 
-                  class="mobile-card h-100 p-2 d-flex flex-column justify-content-between cursor-pointer pos-product-card"
-                  :class="{ 'opacity-50': product.stock === 0 }"
-                  @click="product.stock > 0 && addToCart(product)"
-                >
-                  <div>
-                    <div class="text-center rounded-3 bg-light overflow-hidden mb-2 position-relative" style="height: 100px; display: grid; place-items: center;">
-                      <img :src="product.imageURL" :alt="product.name" style="max-width: 100%; max-height: 100%; object-fit: cover;" />
-                      <span v-if="product.stock === 0" class="badge bg-danger position-absolute top-0 end-0 m-1">Habis</span>
-                      <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark position-absolute top-0 end-0 m-1">Sisa {{ product.stock }}</span>
-                    </div>
-                    <div class="px-1 text-start">
-                      <h6 class="fw-bold text-dark mb-1 text-truncate" :title="product.name">{{ product.name }}</h6>
-                      <span class="text-muted small d-block mb-1">{{ getCategoryName(product.categoryId) }}</span>
-                    </div>
-                  </div>
-                  <div class="px-1 d-flex justify-content-between align-items-center mt-auto">
-                    <span class="text-indigo fw-bold" style="font-size: 0.85rem;">{{ formatPrice(product.price) }}</span>
-                    <button class="btn btn-action success btn-sm p-1 d-flex align-items-center" :disabled="product.stock === 0">
-                      <ion-icon :icon="addOutline" style="font-size: 1rem;" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <div class="row g-1">
           <!-- Right side: Shopping Cart -->
-          <ion-col size="12" size-lg="4" class="my-2">
-            <div class="mobile-card container-padded sticky-cart">
+          <ion-col size="12" size-lg="4" class="mt-3">
+            <div class="mobile-card container-padded">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold text-dark mb-0">Keranjang Belanja</h5>
                 <span class="badge bg-indigo">{{ cartCount }} item</span>
@@ -176,6 +109,75 @@
               </div>
             </div>
           </ion-col>
+
+          <!-- Left side: Products catalog -->
+          <ion-col size="12" size-lg="8">
+            <div class="mobile-card container-padded mb-3">
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                class="form-control app-control mb-3" 
+                placeholder="Cari produk..." 
+              />
+
+              <!-- Category filter chips -->
+              <div class="filter-chips--mobile">
+                <button 
+                  type="button" 
+                  class="btn btn-action btn-sm me-1"
+                  :class="selectedCategory === 'all' ? 'primary' : 'light'"
+                  @click="selectedCategory = 'all'"
+                >
+                  Semua
+                </button>
+                <button 
+                  v-for="cat in categories" 
+                  :key="cat.id"
+                  type="button" 
+                  class="btn btn-action btn-sm me-1"
+                  :class="selectedCategory === cat.id ? 'primary' : 'light'"
+                  @click="selectedCategory = cat.id"
+                >
+                  {{ cat.name }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div v-if="filteredProducts.length === 0" class="empty-state text-center py-5 mobile-card container-padded">
+              <ion-icon :icon="basketOutline" style="font-size: 3rem;" class="text-muted mb-2" />
+              <p class="text-muted">Tidak ada produk tersedia.</p>
+            </div>
+
+            <div v-else class="project-actions d-grid gap-2 m-2 mb-0">
+              <div v-for="product in filteredProducts" :key="product.id" class="mb-2">
+                <div 
+                  class="mobile-card h-100 p-2 d-flex flex-column justify-content-between cursor-pointer pos-product-card"
+                  :class="{ 'opacity-50': product.stock === 0 }"
+                  @click="product.stock > 0 && addToCart(product)"
+                >
+                  <div>
+                    <div class="text-center rounded-3 bg-light overflow-hidden mb-2 position-relative" style="height: 100px; display: grid; place-items: center;">
+                      <img :src="product.imageURL" :alt="product.name" style="max-width: 100%; max-height: 100%; object-fit: cover;" />
+                      <span v-if="product.stock === 0" class="badge bg-danger position-absolute top-0 end-0 m-1">Habis</span>
+                      <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark position-absolute top-0 end-0 m-1">Sisa {{ product.stock }}</span>
+                    </div>
+                    <div class="px-1 text-start">
+                      <h6 class="fw-bold text-dark mb-1 text-truncate" :title="product.name">{{ product.name }}</h6>
+                      <span class="text-muted small d-block mb-1">{{ getCategoryName(product.categoryId) }}</span>
+                    </div>
+                  </div>
+                  <div class="px-1 d-flex justify-content-between align-items-center mt-auto">
+                    <span class="text-indigo fw-bold" style="font-size: 0.85rem;">{{ formatPrice(product.price) }}</span>
+                    <button class="btn btn-action success btn-sm p-1 d-flex align-items-center" :disabled="product.stock === 0">
+                      <ion-icon :icon="addOutline" style="font-size: 1rem;" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ion-col>
+
         </div>
       </div>
 
@@ -307,7 +309,7 @@
     <!-- CHECKOUT PAYMENT MODAL -->
     <ion-modal ref="checkoutModal" :is-open="checkoutModalVisible" @didDismiss="checkoutModalVisible = false">
       <ion-header>
-        <ion-toolbar class="header-dark">
+        <ion-toolbar>
           <ion-title>Pembayaran POS</ion-title>
           <ion-buttons slot="end">
             <ion-button @click="checkoutModalVisible = false">Batal</ion-button>
@@ -395,7 +397,7 @@
     <!-- DETAILED RECEIPT / STRUK MODAL -->
     <ion-modal ref="receiptModal" :is-open="receiptModalVisible" @didDismiss="receiptModalVisible = false">
       <ion-header>
-        <ion-toolbar class="header-dark">
+        <ion-toolbar>
           <ion-title>Struk Penjualan</ion-title>
           <ion-buttons slot="end">
             <ion-button @click="receiptModalVisible = false">Tutup</ion-button>

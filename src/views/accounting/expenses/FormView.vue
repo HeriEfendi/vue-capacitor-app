@@ -4,7 +4,6 @@
       <ion-toolbar class="app-toolbar">
         <div class="app-hero">
           <div>
-            <p class="eyebrow">Accounting</p>
             <ion-title class="app-hero-title">{{ isEdit ? 'Edit Pengeluaran' : 'Tambah Pengeluaran' }}</ion-title>
             <p class="app-hero-subtitle">Input cepat nominal, kategori, dan tanggal dengan layout mobile yang rapi.</p>
           </div>
@@ -15,24 +14,24 @@
     <ion-content class="app-content-wrap">
       <div v-if="!loaded" class="loading-state">Memuat data...</div>
 
-      <ion-card v-else class="mobile-card">
+      <ion-card v-else class="mobile-card mx-3">
         <ion-card-content>
           <div class="form-stack">
             <div class="field-group">
               <label class="field-label">Deskripsi</label>
-              <ion-input v-model="form.description" placeholder="Deskripsi pengeluaran" class="app-control" />
+              <input type="text" v-model="form.description" class="form-control app-control" placeholder="Deskripsi pengeluaran" />
             </div>
             <div class="field-group">
               <label class="field-label">Jumlah</label>
-              <ion-input v-model="form.amount" type="number" inputmode="decimal" class="app-control" />
+              <input type="number" v-model.number="form.amount" class="form-control app-control" placeholder="0" />
             </div>
             <div class="field-group">
               <label class="field-label">Tanggal</label>
-              <ion-input v-model="form.date" type="date" class="app-control" />
+              <input type="date" v-model="form.date" class="form-control app-control" />
             </div>
             <div class="field-group">
               <label class="field-label">Kategori</label>
-              <ion-input v-model="form.category" placeholder="Kategori" class="app-control" />
+              <input type="text" v-model="form.category" class="form-control app-control" placeholder="Kategori" />
             </div>
           </div>
 

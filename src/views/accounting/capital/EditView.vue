@@ -8,9 +8,9 @@
     </ion-header>
     <ion-content class="ion-padding">
         <ion-list>
-            <ion-item><ion-label position="stacked">Sumber</ion-label><ion-input v-model="form.source" /></ion-item>
-            <ion-item><ion-label position="stacked">Jumlah</ion-label><ion-input type="number" v-model.number="form.amount" /></ion-item>
-            <ion-item><ion-label position="stacked">Tanggal</ion-label><ion-input type="date" v-model="form.date" /></ion-item>
+            <ion-item><ion-label position="stacked">Sumber</ion-label><input type="text" v-model="form.source" /></ion-item>
+            <ion-item><ion-label position="stacked">Jumlah</ion-label><input type="number" v-model.number="form.amount" /></ion-item>
+            <ion-item><ion-label position="stacked">Tanggal</ion-label><input type="date" v-model="form.date" /></ion-item>
         </ion-list>
         <ion-button expand="block" class="ion-margin-top" @click="onSubmit">Simpan Perubahan</ion-button>
     </ion-content>

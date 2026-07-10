@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <ion-header>
-      <ion-toolbar class="header-dark">
+      <ion-toolbar>
         <ion-buttons slot="start">
           <ion-back-button default-href="/products" />
         </ion-buttons>
@@ -30,7 +30,7 @@
           <div class="row mb-3">
             <div class="col-6">
               <div class="field-group">
-                <label class="field-label">Harga (IDR)</label>
+                <label class="field-label">Harga (IDR)</label> 
                 <input type="number" v-model.number="newProduct.price" class="form-control app-control" placeholder="0" />
               </div>
             </div>

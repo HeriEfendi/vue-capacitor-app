@@ -99,7 +99,7 @@ export const CeklokRepository = {
     const db = await initDB();
     const log = await db.get('ceklok_logs', id);
     if (!log) return null;
-    const updated = { ...log, ...changes, id };
+    const updated = JSON.parse(JSON.stringify({ ...log, ...changes, id }));
     await db.put('ceklok_logs', updated);
     return updated as CeklokLog;
   },

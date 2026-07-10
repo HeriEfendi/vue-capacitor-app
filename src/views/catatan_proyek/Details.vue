@@ -727,24 +727,24 @@ onUnmounted(() => clearInterval(interval))
             <div class="form-container">
                 <div class="form-section">
                     <label class="form-label">Tipe</label>
-                    <ion-select v-model="formTx.type" interface="popover" class="form-control app-control">
-                        <ion-select-option value="DEPOSIT">Modal/Pendapatan</ion-select-option>
-                        <ion-select-option value="EXPENSE">Pengeluaran</ion-select-option>
-                    </ion-select>
+                    <select v-model="formTx.type" class="form-control app-control">
+                        <option value="DEPOSIT">Modal/Pendapatan</option>
+                        <option value="EXPENSE">Pengeluaran</option>
+                    </select>
                 </div>
                 <div class="form-section">
                     <label class="form-label">Kategori</label>
-                    <ion-select v-model="formTx.category" interface="popover" class="form-control app-control">
-                        <ion-select-option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</ion-select-option>
-                    </ion-select>
+                    <select v-model="formTx.category" class="form-control app-control">
+                        <option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</option>
+                    </select>
                 </div>
                 <div class="form-section">
                     <label class="form-label">Nominal</label>
-                    <ion-input type="number" v-model.number="formTx.amount" class="form-control app-control" />
+                    <input type="number" v-model.number="formTx.amount" class="form-control app-control"/>
                 </div>
                 <div class="form-section">
                     <label class="form-label">Deskripsi</label>
-                    <ion-textarea v-model="formTx.description" class="form-control app-control form-control-textarea" />
+                    <input type="text" v-model="formTx.description" class="form-control app-control form-control-textarea" />
                 </div>
             </div>
         </ion-content>

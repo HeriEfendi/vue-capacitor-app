@@ -299,19 +299,19 @@ onIonViewWillEnter(fetchProjects)
         <div class="form-container mb-4">
           <div class="form-section">
             <label class="form-label">Nama</label>
-            <ion-input v-model="activeProject.name" class="form-control app-control" />
+            <input type="text" v-model="activeProject.name" class="form-control app-control" />
           </div>
           <div class="form-section">
             <label class="form-label">Status</label>
-            <ion-select v-model="activeProject.status" interface="popover" class="form-control app-control">
-              <ion-select-option value="Active">Aktif</ion-select-option>
-              <ion-select-option value="Completed">Selesai</ion-select-option>
-              <ion-select-option value="Pending">Tunda</ion-select-option>
-            </ion-select>
+            <select v-model="activeProject.status" class="form-control app-control">
+              <option value="Active">Aktif</option>
+              <option value="Completed">Selesai</option>
+              <option value="Pending">Tunda</option>
+            </select>
           </div>
           <div class="form-section">
             <label class="form-label">Deskripsi</label>
-            <ion-textarea v-model="activeProject.description" class="form-control app-control form-control-textarea" />
+            <input type="text" v-model="activeProject.description" class="form-control app-control form-control-textarea" />
           </div>
         </div>
       </ion-content>

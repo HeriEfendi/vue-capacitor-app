@@ -70,11 +70,11 @@
       <ion-content class="ion-padding">
         <ion-item>
           <ion-label position="stacked">Title</ion-label>
-          <ion-input v-model="newTask.title" placeholder="Task title..." />
+          <input v-model="newTask.title" class="form-control app-control" placeholder="Task title..." />
         </ion-item>
         <ion-item>
           <ion-label position="stacked">Target</ion-label>
-          <ion-input v-model="newTask.target_time" placeholder="2 days" />
+          <input v-model="newTask.target_time" class="form-control app-control" placeholder="2 days" />
         </ion-item>
         <ion-button expand="block" class="ion-margin-top btn-action primary" @click="addTask">Save Todo</ion-button>
       </ion-content>

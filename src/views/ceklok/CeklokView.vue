@@ -18,7 +18,7 @@
 
     <ion-content class="app-content-wrap">
       <!-- Tabs Segment -->
-      <div class="px-3 pt-3 mb-3">
+      <div class="p-3">
         <ion-segment v-model="activeTab" class="custom-segment">
           <ion-segment-button value="presensi">
             <ion-label>Presensi</ion-label>
@@ -302,7 +302,7 @@
     <!-- SETTINGS MODAL -->
     <ion-modal ref="settingsModal" :is-open="settingsModalVisible" @didDismiss="settingsModalVisible = false">
       <ion-header>
-        <ion-toolbar class="header-dark">
+        <ion-toolbar>
           <ion-title>Pengaturan Presensi</ion-title>
           <ion-buttons slot="end">
             <ion-button @click="settingsModalVisible = false">Batal</ion-button>
@@ -445,7 +445,7 @@
     <!-- MANUAL / EDIT CORRECTION MODAL -->
     <ion-modal ref="correctionModal" :is-open="correctionModalVisible" @didDismiss="correctionModalVisible = false">
       <ion-header>
-        <ion-toolbar class="header-dark">
+        <ion-toolbar>
           <ion-title>{{ correctionForm.id ? 'Edit Log Presensi' : 'Koreksi Log Presensi' }}</ion-title>
           <ion-buttons slot="end">
             <ion-button @click="correctionModalVisible = false">Batal</ion-button>
@@ -454,7 +454,7 @@
       </ion-header>
 
       <ion-content class="ion-padding bg-light">
-        <div class="mobile-card p-3 mb-4">
+        <div class="mobile-card container-padded mb-3">
           <div class="form-section mb-3">
             <label class="form-label">Tanggal</label>
             <input type="date" v-model="correctionForm.date" class="form-control app-control" />
@@ -469,7 +469,7 @@
             </select>
           </div>
 
-          <div class="row g-2 mb-3">
+          <div class="row g-2 mx-1 mb-3">
             <div class="col-6">
               <label class="form-label">Jam Masuk</label>
               <input type="time" v-model="correctionForm.inTime" class="form-control app-control" />
@@ -486,7 +486,7 @@
           </div>
         </div>
 
-        <div class="mobile-card p-3 mb-4">
+        <div class="mobile-card container-padded">
           <h6 class="fw-bold text-dark mb-3">Manual Breaks (Optional)</h6>
           <div v-for="(b, idx) in correctionForm.breaks" :key="idx" class="border rounded p-2 mb-2 bg-light">
             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -513,10 +513,12 @@
           </button>
         </div>
 
-        <div class="p-3">
-          <button class="btn btn-action primary w-100" @click="saveCorrection">Simpan Koreksi</button>
-        </div>
       </ion-content>
+      <ion-footer>
+        <div class="form-actions p-3 d-flex justify-content-center">
+          <button class="btn btn-action primary w-50" @click="saveCorrection">Simpan Koreksi</button>
+        </div>
+      </ion-footer>
     </ion-modal>
 
     <!-- Delete Confirmation -->
@@ -539,7 +541,7 @@ import { onIonViewWillEnter } from '@ionic/vue';
 import { 
   IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonButton,
   IonContent, IonSegment, IonSegmentButton, IonLabel, IonIcon, IonBadge, 
-  IonModal, IonAlert 
+  IonModal, IonAlert, IonFooter
 } from '@ionic/vue';
 import { 
   settingsOutline, playOutline, stopOutline, cafeOutline, calendarOutline, 
@@ -555,7 +557,7 @@ export default {
   components: {
     IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonButton,
     IonContent, IonSegment, IonSegmentButton, IonLabel, IonIcon, IonBadge, 
-    IonModal, IonAlert, VueApexCharts
+    IonModal, IonAlert, VueApexCharts, IonFooter
   },
   setup() {
     // Nav & States

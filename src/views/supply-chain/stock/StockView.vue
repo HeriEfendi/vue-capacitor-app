@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <ion-header>
-      <ion-toolbar class="header-dark">
+      <ion-toolbar>
         <ion-buttons slot="start">
           <ion-back-button default-href="/dashboard" />
         </ion-buttons>
@@ -176,7 +176,7 @@
     <!-- ADJUST STOCK MODAL -->
     <ion-modal ref="adjustModal" :is-open="adjustModalVisible" @didDismiss="adjustModalVisible = false">
       <ion-header>
-        <ion-toolbar class="header-dark">
+        <ion-toolbar>
           <ion-title>Penyesuaian Stok</ion-title>
           <ion-buttons slot="end">
             <ion-button @click="adjustModalVisible = false">Batal</ion-button>

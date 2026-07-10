@@ -2,27 +2,35 @@
   <ion-page class="app-page">
     <ion-header class="app-header">
       <ion-toolbar class="app-toolbar">
-        <ion-title>Pengeluaran</ion-title>
-        <ion-buttons slot="end">
-          <ion-button class="btn-action primary" @click="createExpense">
-            <ion-icon slot="start" :icon="addOutline" /> Tambah
-          </ion-button>
-        </ion-buttons>
+        <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <ion-title class="app-hero-title" style="padding: 0;">Pengeluaran</ion-title>
+            <ion-buttons slot="end">
+              <ion-button class="btn-action primary" @click="createExpense">
+                <ion-icon slot="start" :icon="addOutline" /> Tambah
+              </ion-button>
+            </ion-buttons>
+          </div>
+          <p class="app-hero-subtitle" style="margin: 0;">Kelola data pengeluaran dan kas pribadi.</p>
+        </div>
       </ion-toolbar>
-      <ion-segment v-model="activeTab" class="bg-light">
-        <ion-segment-button value="dashboard">
-          <ion-label>Dashboard</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="riwayat">
-          <ion-label>Riwayat</ion-label>
-        </ion-segment-button>
-      </ion-segment>
     </ion-header>
 
     <ion-content class="app-content-wrap">
+      <div class="p-3">
+        <ion-segment v-model="activeTab" class="custom-segment">
+          <ion-segment-button value="dashboard">
+            <ion-label>Dashboard</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="riwayat">
+            <ion-label>Riwayat</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
       <!-- DASHBOARD TAB -->
       <div v-if="activeTab === 'dashboard'" class="ion-padding">
-        <div class="project-actions d-grid gap-2 mb-3">
+        <div class="project-actions d-grid gap-1 mx-2 mb-2">
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Hari Ini</small>
@@ -78,7 +86,7 @@
       </div>
 
       <!-- RIWAYAT TAB -->
-      <div v-if="activeTab === 'riwayat'" class="ion-padding">
+      <div v-if="activeTab === 'riwayat'" class="ion-padding mx-1">
         <div v-if="expenses.length">
           <div v-for="expense in sortedExpenses" :key="expense.id" class="mobile-card p-3 mb-3 border-start border-4 border-primary">
             <div class="d-flex justify-content-between align-items-start mb-2">
@@ -162,35 +170,43 @@ export default {
     });
 
     const dailyChartOptions = {
-      chart: { toolbar: { show: false }, type: 'bar' },
+      chart: { toolbar: { show: false }, type: 'bar', zoom: { enabled: false } },
       colors: ['#0d9488'],
       plotOptions: {
         bar: { borderRadius: 6, columnWidth: '50%', dataLabels: { position: 'top' } }
       },
       dataLabels: {
         enabled: true,
-        formatter: (val) => new Intl.NumberFormat('id-ID').format(val),
+        formatter: (val) => val > 0 ? new Intl.NumberFormat('id-ID').format(val) : '',
         offsetY: -20,
       },
       xaxis: { categories: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] },
       yaxis: { labels: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } },
-      tooltip: { y: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } }
+      tooltip: { y: { formatter: (val) => 'Rp ' + new Intl.NumberFormat('id-ID').format(val) } }
     };
 
     const weeklyChartOptions = {
-        chart: { toolbar: { show: false }, type: 'area' },
+        chart: { toolbar: { show: false }, type: 'area', zoom: { enabled: false } },
         colors: ['#4f46e5'],
         xaxis: { categories: ['M-4', 'M-3', 'M-2', 'M-1', 'Minggu Ini'] },
         yaxis: { labels: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } },
-        tooltip: { y: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } }
+        tooltip: { y: { formatter: (val) => 'Rp ' + new Intl.NumberFormat('id-ID').format(val) } },
+        dataLabels: {
+          enabled: true,
+          formatter: (val) => val > 0 ? new Intl.NumberFormat('id-ID').format(val) : ''
+        }
     };
     
     const monthlyChartOptions = {
-        chart: { toolbar: { show: false }, type: 'area' },
+        chart: { toolbar: { show: false }, type: 'area', zoom: { enabled: false } },
         colors: ['#ea580c'],
         xaxis: { categories: ['B-5', 'B-4', 'B-3', 'B-2', 'B-1', 'Bulan Ini'] },
         yaxis: { labels: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } },
-        tooltip: { y: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } }
+        tooltip: { y: { formatter: (val) => 'Rp ' + new Intl.NumberFormat('id-ID').format(val) } },
+        dataLabels: {
+          enabled: true,
+          formatter: (val) => val > 0 ? new Intl.NumberFormat('id-ID').format(val) : ''
+        }
     };
 
     const weeklyChartSeries = computed(() => {

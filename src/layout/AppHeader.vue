@@ -7,7 +7,7 @@
         </ion-button>
       </ion-buttons>
       <ion-title class="ion-text-center justify-content-center">
-        <router-link to="/" class="rounded-pill d-flex align-items-center justify-content-center" style="height: 46px; width: 65vw; font-weight: 700; font-size: 0.9rem; color: #333; background: rgba(255, 255, 255, 0.8); box-shadow: 0 1px 2px rgba(0,0,0,0.05); text-decoration: none; margin: 0 auto;">
+        <router-link to="/" class="rounded-pill d-flex align-items-center justify-content-center" style="height: 46px; width: 60vw; font-weight: 700; font-size: 0.9rem; color: #333; background: rgba(255, 255, 255, 0.8); box-shadow: 0 1px 2px rgba(0,0,0,0.05); text-decoration: none; margin: 0 auto;">
           HDEV MOBILE
         </router-link>
       </ion-title>

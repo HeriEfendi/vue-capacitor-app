@@ -505,7 +505,7 @@ ion-header {
 .form-container { display: flex; flex-direction: column; gap: 12px; }
 .form-section {
   margin: 0px;
-  padding: 0px 20px;
+  padding: 0px 8px;
 }
 
 .form-label { color: #1f2937; font-size: .88rem; font-weight: 600; margin-bottom: 4px; }
@@ -963,8 +963,20 @@ ion-footer {
 .text-indigo { color: #4f46e5 !important; }
 .text-teal   { color: #0d9488 !important; }
 .text-amber  { color: #d97706 !important; }
+.text-rose   { color: #e11d48 !important; }
+.text-emerald{ color: #059669 !important; }
+.text-sky    { color: #0284c7 !important; }
+.text-violet { color: #7c3aed !important; }
+.text-orange { color: #ea580c !important; }
+
 .bg-indigo   { background-color: #4f46e5 !important; }
 .bg-teal     { background-color: #0d9488 !important; }
+.bg-rose     { background-color: #e11d48 !important; }
+.bg-emerald  { background-color: #059669 !important; }
+.bg-sky      { background-color: #0284c7 !important; }
+.bg-violet   { background-color: #7c3aed !important; }
+.bg-orange   { background-color: #ea580c !important; }
+
 .fw-black    { font-weight: 900 !important; }
 
 /* Custom outline button variants for WFO/WFH/Dinas type selector */
@@ -1140,6 +1152,7 @@ ion-footer {
   border-radius: 12px;
   overflow: hidden;
 }
+
 .custom-segment ion-segment-button {
   --color: #64748b;
   --color-checked: #0f172a;
@@ -1151,7 +1164,6 @@ ion-footer {
   --border-radius: 10px;
 }
 
-/* ── Progress bar colors ─────────────────────────────────────── */
 .progress-bar.bg-indigo { background-color: #4f46e5 !important; }
 .progress-bar.bg-teal   { background-color: #0d9488 !important; }
 /* ── Container padding & spacing ─────────────────────────────── */
