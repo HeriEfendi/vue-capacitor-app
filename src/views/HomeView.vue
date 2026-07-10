@@ -48,7 +48,7 @@ export default {
     const menuItems = ref([
       { name: 'To Do', path: '/todo-personal', icon: checkboxOutline, count: 0, description: 'Tugas pribadi', accent: '#3b82f6' },
       { name: 'To Do Team', path: '/todo', icon: checkboxOutline, count: 0, description: 'Kerja tim', accent: '#8b5cf6' },
-      { name: 'Manajemen Proyek', path: '/catatan_proyek', icon: documentTextOutline, count: 0, description: 'Proyek & kas', accent: '#10b981' },
+      { name: 'Buku Kas', path: '/buku_kas', icon: documentTextOutline, count: 0, description: 'Bisnis, hobi & renovasi', accent: '#10b981' },
       { name: 'Ceklok', path: '/ceklok', icon: timeOutline, count: 0, description: 'Presensi kerja', accent: '#06b6d4' },
       { name: 'Pengeluaran', path: '/expenses', icon: cashOutline, count: 0, description: 'Keluar dana', accent: '#f59e0b' },
       { name: 'Kasir (POS)', path: '/cashier', icon: cartOutline, count: 0, description: 'Penjualan & Kasir', accent: '#059669' },

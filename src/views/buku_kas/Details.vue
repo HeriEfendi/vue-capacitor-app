@@ -392,7 +392,7 @@ async function downloadTemplate() {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Template')
   XLSX.utils.book_append_sheet(wb, wsGuide, 'Panduan')
-  XLSX.writeFile(wb, 'Tamplate Manajemen Proyek.xlsx')
+  XLSX.writeFile(wb, 'Template Buku Kas.xlsx')
 }
 
 async function exportToExcel() {
@@ -415,7 +415,7 @@ async function exportToExcel() {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Transaksi')
   XLSX.utils.book_append_sheet(wb, wsGuide, 'Panduan')
-  XLSX.writeFile(wb, `Manajemen Proyek - ${project.value!.name}.xlsx`)
+  XLSX.writeFile(wb, `Buku Kas - ${project.value!.name}.xlsx`)
 }
 
 function parseDate(d: any): string {
@@ -559,7 +559,7 @@ onUnmounted(() => clearInterval(interval))
         <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <ion-title class="app-hero-title" style="padding: 0;">
-              {{ project?.name || 'Detail Proyek' }}
+              {{ project?.name || 'Detail Buku Kas' }}
             </ion-title>
             <ion-badge v-if="project" class="badge-status" :color="getStatusColor(project.status)">{{ project.status }}</ion-badge>
           </div>
@@ -699,7 +699,7 @@ onUnmounted(() => clearInterval(interval))
 
       </div>
       <div v-else class="d-flex justify-content-center align-items-center h-100">
-        Proyek tidak ditemukan.
+        Buku kas tidak ditemukan.
       </div>
       <ion-alert
         :is-open="dialogDeleteTxId !== null"

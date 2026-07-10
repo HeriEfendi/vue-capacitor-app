@@ -66,7 +66,7 @@ async function fetchProjects() {
     const db = await initDB()
     projects.value = await db.getAll('projects') || []
   } catch (e) {
-    showSnackbar('Gagal memuat data projek', 'error')
+    showSnackbar('Gagal memuat data buku kas', 'error')
   } finally {
     loading.value = false
   }
@@ -92,9 +92,9 @@ async function createProject() {
     await db.put('projects', newProject)
     dialogCreate.value = false
     formNew.value = { name: '', description: '', status: 'Active' }
-    showSnackbar('Projek berhasil dibuat!', 'success')
+    showSnackbar('Buku kas berhasil dibuat!', 'success')
   } catch (e) {
-    showSnackbar('Gagal memAdd Project', 'error')
+    showSnackbar('Gagal membuat buku kas', 'error')
   } finally {
     submitting.value = false
   }
@@ -106,9 +106,9 @@ async function deleteProject(id: number) {
     const db = await initDB()
     await db.delete('projects', id)
     dialogDeleteId.value = null
-    showSnackbar('Projek berhasil dihapus', 'success')
+    showSnackbar('Buku kas berhasil dihapus', 'success')
   } catch (e) {
-    showSnackbar('Gagal menghapus projek', 'error')
+    showSnackbar('Gagal menghapus buku kas', 'error')
   }
 }
 
@@ -117,7 +117,7 @@ function showSnackbar(text: string, color = 'success') {
 }
 
 function goToDetail(id: number) {
-  router.push(`/catatan_proyek/${id}`)
+  router.push(`/buku_kas/${id}`)
 }
 
 function openEditProject(p: Project) {
@@ -139,13 +139,13 @@ async function updateProject() {
       const db = await initDB()
       await db.put('projects', updatedProject)
       dialogEdit.value = false
-      showSnackbar('Projek berhasil diupdate!', 'success')
+      showSnackbar('Buku kas berhasil diupdate!', 'success')
       closeModal()
     } else {
       console.error('Project not found in local state');
     }
   } catch (e) {
-    showSnackbar('Gagal mengupdate projek', 'error')
+    showSnackbar('Gagal mengupdate buku kas', 'error')
   } finally {
     submitting.value = false
   }
@@ -167,14 +167,14 @@ onIonViewWillEnter(fetchProjects)
       <ion-toolbar class="app-toolbar">
         <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; align-items: center; justify-content: space-between;">
-            <ion-title class="app-hero-title" style="padding: 0;">Manajemen Proyek</ion-title>
+            <ion-title class="app-hero-title" style="padding: 0;">Buku Kas</ion-title>
             <ion-buttons style="margin: 0;">
               <ion-button class="btn-action primary" @click="dialogCreate = true">
                 <ion-icon slot="start" :icon="addOutline" /> Tambah
               </ion-button>
             </ion-buttons>
           </div>
-          <p class="app-hero-subtitle" style="margin: 0;">Kelola modal, pengeluaran, dan sisa dana dari layar mobile dengan cepat.</p>
+          <p class="app-hero-subtitle" style="margin: 0;">Kelola modal, pengeluaran, dan sisa dana untuk bisnis, hobi, atau renovasi.</p>
         </div>
       </ion-toolbar>
     </ion-header>
@@ -186,7 +186,7 @@ onIonViewWillEnter(fetchProjects)
               <div class="summary-card summary-card--green shadow-soft">
                 <div class="stat-top">
                   <div class="menu-icon-wrap" style="--accent: #059669; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #059669;"><ion-icon :icon="trendingUpOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
-                  <small>Total Modal <br> Semua Projek</small>
+                  <small>Total Modal <br> Semua Buku Kas</small>
                 </div>
                 <div class="summary-value summary-value--green text-center">{{ formatCurrency(totalDepositsAll) }}</div>
               </div>
@@ -195,7 +195,7 @@ onIonViewWillEnter(fetchProjects)
               <div class="summary-card summary-card--red shadow-soft">
                 <div class="stat-top">
                   <div class="menu-icon-wrap" style="--accent: #dc2626; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #dc2626;"><ion-icon :icon="trendingDownOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
-                  <small>Total Pengeluaran <br> Semua Projek</small>
+                  <small>Total Pengeluaran <br> Semua Buku Kas</small>
                 </div>
                 <div class="stat-value summary-value--red text-center">{{ formatCurrency(totalExpensesAll) }}</div>
               </div>
@@ -204,7 +204,7 @@ onIonViewWillEnter(fetchProjects)
               <div class="summary-card summary-card--blue shadow-soft">
                 <div class="stat-top">
                   <div class="menu-icon-wrap" style="--accent: #2563eb; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #2563eb;"><ion-icon :icon="pieChartOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
-                  <small>Total Sisa Saldo Semua Projek</small>
+                  <small>Total Sisa Saldo Semua Buku Kas</small>
                 </div>
                 <div class="stat-value summary-value--blue text-center">{{ formatCurrency(totalBalanceAll) }}</div>
               </div>
@@ -214,7 +214,7 @@ onIonViewWillEnter(fetchProjects)
 
         <div v-if="loading" class="loading-state">
           <ion-spinner />
-          <p>Memuat projek...</p>
+          <p>Memuat buku kas...</p>
         </div>
 
         <ion-grid v-else>
@@ -277,7 +277,7 @@ onIonViewWillEnter(fetchProjects)
         <ion-alert
           :is-open="dialogDeleteId !== null"
           header="Konfirmasi Hapus"
-          message="Apakah anda yakin ingin menghapus projek ini?"
+          message="Apakah anda yakin ingin menghapus buku kas ini?"
           :buttons="[
             { text: 'Batal', role: 'cancel', handler: () => dialogDeleteId = null },
             { text: 'Hapus', role: 'destructive', handler: () => dialogDeleteId !== null && deleteProject(dialogDeleteId) }
@@ -289,7 +289,7 @@ onIonViewWillEnter(fetchProjects)
     <ion-modal :is-open="dialogCreate || dialogEdit" @didDismiss="closeModal">
       <ion-header>
         <ion-toolbar>
-          <ion-title>{{ dialogEdit ? 'Edit Project' : 'Add Project' }}</ion-title>
+          <ion-title>{{ dialogEdit ? 'Edit Buku Kas' : 'Tambah Buku Kas' }}</ion-title>
           <ion-buttons slot="end">
             <ion-button @click="closeModal"><ion-icon :icon="closeOutline" /></ion-button>
           </ion-buttons>
