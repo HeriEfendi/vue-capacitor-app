@@ -43,7 +43,7 @@ export default {
       { name: 'Home', path: '/' },
       { name: 'Produk', path: '/products' },
       { name: 'Kategori', path: '/categories' },
-      { name: 'Tentang Kami', path: '/about' },
+      { name: 'Tentang Aplikasi', path: '/about' },
       { name: 'Kontak', path: '/contact' }
     ]
 

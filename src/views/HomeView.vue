@@ -37,7 +37,7 @@
 import { ref, onMounted } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonIcon, IonBadge } from '@ionic/vue';
-import { checkboxOutline, documentTextOutline, walletOutline, basketOutline, personOutline, cashOutline, timeOutline, cartOutline, layersOutline } from 'ionicons/icons';
+import { checkboxOutline, documentTextOutline, walletOutline, basketOutline, personOutline, cashOutline, timeOutline, cartOutline, layersOutline, informationCircleOutline } from 'ionicons/icons';
 
 export default {
   name: 'HomeView',
@@ -55,7 +55,7 @@ export default {
       { name: 'Tabungan', path: '/capital', icon: walletOutline, count: 0, description: 'Modal usaha', accent: '#d97706' },
       { name: 'Produk', path: '/products', icon: basketOutline, count: 0, description: 'Stok produk', accent: '#ef4444' },
       { name: 'Manajemen Stok', path: '/stock', icon: layersOutline, count: 0, description: 'Monitor & atur stok', accent: '#a855f7' },
-      { name: 'Profile', path: '/profile', icon: personOutline, count: 0, description: 'Data profil', accent: '#0ea5e9' },
+      { name: 'Tentang Aplikasi', path: '/about', icon: informationCircleOutline, description: 'Tentang & Developer', accent: '#0ea5e9' },
     ])
 
     const fetchCounts = async () => {
@@ -67,20 +67,26 @@ export default {
         const projects = await db.getAll('projects')
         const ceklokLogs = await db.getAll('ceklok_logs').catch(() => [])
 
-        menuItems.value[0].count = todos.length           // To Do
-        menuItems.value[1].count = teamTodos.length       // To Do Team
-        menuItems.value[2].count = projects.length        // Manajemen Proyek
-        menuItems.value[3].count = ceklokLogs.length      // Ceklok
+        const updateCount = (path, count) => {
+          const item = menuItems.value.find(m => m.path === path);
+          if (item) item.count = count;
+        };
+
+        updateCount('/todo-personal', todos.length);
+        updateCount('/todo', teamTodos.length);
+        updateCount('/buku_kas', projects.length);
+        updateCount('/ceklok', ceklokLogs.length);
 
         const { capitalCostsRepo, ProductRepository, salesRepo, expensesRepo } = await import('../db/repositories')
-        menuItems.value[4].count = (await expensesRepo.getAll()).length    // Pengeluaran
+        updateCount('/expenses', (await expensesRepo.getAll()).length);
+        
         const allProducts = await ProductRepository.getAll()
         const lowStockItems = allProducts.filter(p => p.stock <= 5)
 
-        menuItems.value[5].count = (await salesRepo.getAll()).length          // Kasir (POS)
-        menuItems.value[6].count = (await capitalCostsRepo.getAll()).length  // Tabungan
-        menuItems.value[7].count = allProducts.length                         // Produk
-        menuItems.value[8].count = lowStockItems.length                       // Manajemen Stok (badge = stok tipis)
+        updateCount('/cashier', (await salesRepo.getAll()).length);
+        updateCount('/capital', (await capitalCostsRepo.getAll()).length);
+        updateCount('/products', allProducts.length);
+        updateCount('/stock', lowStockItems.length);
       } catch (e) {
         console.error('Gagal memuat count:', e)
       }
