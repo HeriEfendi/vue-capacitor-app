@@ -11,8 +11,6 @@ const routes = [
     children: [
       { path: 'dashboard', name: 'Dashboard', component: HomeView },
       { path: 'products', name: 'ProductsList', component: () => import('../views/supply-chain/products/ListView.vue') },
-      { path: 'products/create', name: 'ProductCreate', component: () => import('../views/supply-chain/products/CreateView.vue') },
-      { path: 'products/:id/edit', name: 'ProductEdit', component: () => import('../views/supply-chain/products/EditView.vue') },
       { path: 'categories', name: 'CategoriesList', component: () => import('../views/supply-chain/categories/ListView.vue') },
       { path: 'categories/create', name: 'CategoryCreate', component: () => import('../views/supply-chain/categories/CreateView.vue') },
       { path: 'categories/:id/edit', name: 'CategoryEdit', component: () => import('../views/supply-chain/categories/EditView.vue') },
