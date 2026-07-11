@@ -65,16 +65,15 @@ export default {
         const todos = await db.getAll('todos')
         const teamTodos = await db.getAll('team_todos')
         const projects = await db.getAll('projects')
-        const transactions = await db.getAll('transactions')
         const ceklokLogs = await db.getAll('ceklok_logs').catch(() => [])
 
         menuItems.value[0].count = todos.length           // To Do
         menuItems.value[1].count = teamTodos.length       // To Do Team
         menuItems.value[2].count = projects.length        // Manajemen Proyek
         menuItems.value[3].count = ceklokLogs.length      // Ceklok
-        menuItems.value[4].count = transactions.length    // Pengeluaran
 
-        const { capitalCostsRepo, ProductRepository, salesRepo } = await import('../db/repositories')
+        const { capitalCostsRepo, ProductRepository, salesRepo, expensesRepo } = await import('../db/repositories')
+        menuItems.value[4].count = (await expensesRepo.getAll()).length    // Pengeluaran
         const allProducts = await ProductRepository.getAll()
         const lowStockItems = allProducts.filter(p => p.stock <= 5)
 

@@ -60,7 +60,7 @@
             <div class="img-source-buttons">
               <button type="button" class="btn-img-source" @click="openCamera" :disabled="isProcessing"><ion-icon :icon="cameraOutline" /><span>Kamera</span></button>
               <button type="button" class="btn-img-source" @click="openGallery" :disabled="isProcessing"><ion-icon :icon="imagesOutline" /><span>Galeri</span></button>
-              <button type="button" class="btn-img-source" @click="fileInput.click()" :disabled="isProcessing"><ion-icon :icon="folderOpenOutline" /><span>File</span></button>
+              <button type="button" class="btn-img-source" @click="openFile" :disabled="isProcessing"><ion-icon :icon="folderOpenOutline" /><span>File</span></button>
             </div>
             <small class="text-muted d-block mt-2">Gambar akan di-crop otomatis menjadi 500×500 px dan disimpan sebagai WebP.</small>
           </div>
@@ -82,6 +82,7 @@
         </button>
       </div>
     </ion-footer>
+    <input type="file" ref="fileInput" @change="handleFileInput" accept="image/*" class="d-none" />
   </ion-modal>
 </template>
 
@@ -112,15 +113,22 @@ const openCamera = async () => {
     isProcessing.value = true;
     try {
         const base64 = await captureFromCamera();
-        applyBase64(base64);
-    } catch (err) { console.error(err); } finally { isProcessing.value = false; }
+        if (base64) applyBase64(base64);
+    } catch (err: any) {
+        console.error('Gagal membuka kamera:', err);
+        alert(`Gagal membuka kamera: ${err?.message || err}`);
+    } finally { isProcessing.value = false; }
+};
+
+const openFile = () => {
+    fileInput.value?.click();
 };
 
 const openGallery = async () => {
     isProcessing.value = true;
     try {
         const base64 = await pickFromGallery();
-        applyBase64(base64);
+        if (base64) applyBase64(base64);
     } catch (err) { console.error(err); } finally { isProcessing.value = false; }
 };
 
@@ -147,6 +155,7 @@ watch(() => props.isOpen, async (val) => {
     }
 });
 </script>
+
 
 <style scoped>
 .img-upload-preview { position: relative; width: 160px; height: 160px; border-radius: 14px; border: 2px dashed #b39ddb; background: #f5f3ff; overflow: hidden; display: flex; align-items: center; justify-content: center; }

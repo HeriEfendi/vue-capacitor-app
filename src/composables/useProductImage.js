@@ -59,27 +59,54 @@ function _cropBase64ImageToWebP(src, resolve, reject) {
 // Camera / Gallery capture
 // ─────────────────────────────────────────────
 
+function _isUserCancelled(err) {
+  return err?.message === 'User cancelled photos app' || err?.message === 'User cancelled' || err?.code === 'userCancelled'
+}
+
+async function _ensureCameraPermission() {
+  if (!isNative()) return true
+
+  const status = await Camera.checkPermissions()
+  if (status.camera === 'granted') return true
+
+  const requested = await Camera.requestPermissions({ permissions: ['camera'] })
+  return requested.camera === 'granted'
+}
+
 /** Ambil foto dari Kamera (Capacitor Camera). */
 export async function captureFromCamera() {
-  const photo = await Camera.getPhoto({
-    quality: 90,
-    allowEditing: false,
-    resultType: CameraResultType.DataUrl,
-    source: CameraSource.Camera,
-    saveToGallery: false,
-  })
-  return await cropBase64ToWebP(photo.dataUrl)
+  try {
+    const granted = await _ensureCameraPermission()
+    if (!granted) return null
+
+    const photo = await Camera.getPhoto({
+      quality: 90,
+      allowEditing: false,
+      resultType: CameraResultType.DataUrl,
+      source: CameraSource.Camera,
+      saveToGallery: false,
+    })
+    return await cropBase64ToWebP(photo.dataUrl)
+  } catch (err) {
+    if (_isUserCancelled(err)) return null
+    throw err
+  }
 }
 
 /** Pilih gambar dari Galeri (Capacitor Camera). */
 export async function pickFromGallery() {
-  const photo = await Camera.getPhoto({
-    quality: 90,
-    allowEditing: false,
-    resultType: CameraResultType.DataUrl,
-    source: CameraSource.Photos,
-  })
-  return await cropBase64ToWebP(photo.dataUrl)
+  try {
+    const photo = await Camera.getPhoto({
+      quality: 90,
+      allowEditing: false,
+      resultType: CameraResultType.DataUrl,
+      source: CameraSource.Photos,
+    })
+    return await cropBase64ToWebP(photo.dataUrl)
+  } catch (err) {
+    if (_isUserCancelled(err)) return null
+    throw err
+  }
 }
 
 // ─────────────────────────────────────────────

@@ -170,24 +170,24 @@
               <div class="progress mt-2" style="height: 6px;">
                 <div class="progress-bar bg-indigo" role="progressbar" :style="{ width: Math.min(100, (totalWeekHours / 40) * 100) + '%' }"></div>
               </div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Target: 40 Jam</small>
+              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Target: 40 Jam / Minggu</small>
             </div>
           </div>
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Jam Kerja (Bulan Ini)</small>
+              <small class="text-muted d-block">Jam Kerja (Periode)</small>
               <div class="fs-3 fw-black text-teal mt-1">{{ Math.floor(totalMonthHours) }}.{{ String(Math.round((totalMonthHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
               <div class="progress mt-2" style="height: 6px;">
                 <div class="progress-bar bg-teal" role="progressbar" :style="{ width: Math.min(100, (totalMonthHours / 160) * 100) + '%' }"></div>
               </div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Target: 160 Jam</small>
+              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Target: 160 Jam / Periode</small>
             </div>
           </div>
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Hari Kerja</small>
               <div class="fs-3 fw-black text-amber mt-1">{{ daysWorkedThisMonth }} <span class="fs-6 fw-normal">Hari</span></div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Bulan ini</small>
+              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Periode aktif</small>
             </div>
           </div>
           <div class="mb-2">
@@ -201,9 +201,12 @@
 
         <!-- Weekly Chart -->
         <div class="mobile-card container-padded mb-3">
-          <h6 class="fw-bold text-dark mb-3">Grafik Harian Minggu Ini</h6>
-          <div v-if="weeklyChartSeries[0].data.length > 0">
-            <VueApexCharts type="bar" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries" />
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-dark mb-0">Grafik Harian Minggu Ini</h6>
+            <span class="badge bg-light text-muted border small">{{ weeklyPeriodRange }}</span>
+          </div>
+          <div v-if="weeklyChartSeries.series[0].data.length > 0">
+            <VueApexCharts type="bar" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries.series" />
           </div>
           <div v-else class="text-center py-4 text-muted">
             Belum ada data untuk minggu ini.
@@ -214,7 +217,7 @@
         <div class="mobile-card container-padded mb-3">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold text-dark mb-0">Grafik Mingguan Bulan Ini</h6>
-            <span class="badge bg-light text-muted border small">{{ currentPeriodRange }}</span>
+            <span class="badge bg-light text-muted border small">{{ monthlyPeriodRange }}</span>
           </div>
           <div v-if="monthlyChartSeries[0].data.length > 0">
             <VueApexCharts type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
@@ -958,6 +961,9 @@ export default {
     };
 
     const saveSettings = async () => {
+      if (settings.value.cutoffType === 'monthly') {
+        settings.value.cutoffDay = null;
+      }
       await CeklokRepository.saveSettings(settings.value);
       settingsModalVisible.value = false;
       await loadState();
@@ -1135,7 +1141,16 @@ export default {
     // Stats calculations for Dashboard
     const totalWeekHours = computed(() => {
       const now = new Date();
-      const start = getStartOfWeeklyPeriod(now, settings.value.cutoffDay);
+      let cutoffDay = settings.value.cutoffDay;
+      
+      // Sinkronisasi dengan mode bulanan jika cutoffDay null
+      if (cutoffDay === null || cutoffDay === undefined) {
+         let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), settings.value.cutoffDate + 1);
+         if (now.getDate() <= settings.value.cutoffDate) startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
+         cutoffDay = startOfPeriod.getDay();
+      }
+
+      const start = getStartOfWeeklyPeriod(now, cutoffDay);
       const end = new Date(start.getTime() + 7 * 86400000);
       return logs.value
         .filter(log => {
@@ -1147,9 +1162,14 @@ export default {
 
     const totalMonthHours = computed(() => {
       const now = new Date();
-      const start = settings.value.cutoffType === 'weekly' 
-        ? new Date(now.getFullYear(), now.getMonth(), 1) 
-        : getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
+      let start;
+      if (settings.value.cutoffType === 'weekly') {
+        // Mode mingguan: gunakan periode 1 bulan kalender (atau sesuaikan jika ingin periode mingguan digabung)
+        // Disini saya samakan dengan periode awal bulan aktif
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+      } else {
+        start = getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
+      }
       return logs.value
         .filter(log => new Date(log.clockIn) >= start)
         .reduce((sum, log) => sum + log.totalWorkHours, 0);
@@ -1157,9 +1177,12 @@ export default {
 
     const daysWorkedThisMonth = computed(() => {
       const now = new Date();
-      const start = settings.value.cutoffType === 'weekly' 
-        ? new Date(now.getFullYear(), now.getMonth(), 1) 
-        : getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
+      let start;
+      if (settings.value.cutoffType === 'weekly') {
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+      } else {
+        start = getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
+      }
       return logs.value.filter(log => new Date(log.clockIn) >= start).length;
     });
 
@@ -1192,77 +1215,86 @@ export default {
       return result;
     };
 
-    const currentPeriodRange = computed(() => {
+    const weeklyPeriodRange = computed(() => {
+      const now = new Date();
+      let cutoffDay = settings.value.cutoffDay;
+      
+      // Jika null (mode bulanan), cari periode aktif sekarang
+      if (cutoffDay === null || cutoffDay === undefined) {
+        // Tentukan start tanggal berdasarkan cutoff bulan ini vs bulan lalu
+        let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), settings.value.cutoffDate + 1);
+        if (now.getDate() <= settings.value.cutoffDate) {
+          startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
+        }
+        cutoffDay = startOfPeriod.getDay();
+      }
+
+      const start = getStartOfWeeklyPeriod(now, cutoffDay);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      return `${start.getDate()} ${start.toLocaleString('id-ID', { month: 'short' })} - ${end.getDate()} ${end.toLocaleString('id-ID', { month: 'short' })}`;
+    });
+
+    const monthlyPeriodRange = computed(() => {
       const now = new Date();
       if (settings.value.cutoffType === 'weekly') {
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        return `1 ${firstDay.toLocaleString('id-ID', { month: 'short' })} - ${lastDay.getDate()} ${lastDay.toLocaleString('id-ID', { month: 'short' })}`;
+        const getFirstFri = (d) => {
+          let day = new Date(d.getFullYear(), d.getMonth(), 1);
+          while (day.getDay() !== 5) day.setDate(day.getDate() + 1);
+          return day;
+        };
+        const getNextMonthFirstFri = (d) => {
+          let day = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+          while (day.getDay() !== 5) day.setDate(day.getDate() + 1);
+          return day;
+        };
+        const start = getFirstFri(now);
+        const end = new Date(getNextMonthFirstFri(now));
+        end.setDate(end.getDate() - 1);
+        return `${start.getDate()} ${start.toLocaleString('id-ID', { month: 'short' })} - ${end.getDate()} ${end.toLocaleString('id-ID', { month: 'short' })}`;
       } else {
         const start = getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
         const end = new Date(start.getTime());
         end.setMonth(end.getMonth() + 1);
-        return `${start.getDate() + 1} ${start.toLocaleString('id-ID', { month: 'short' })} - ${start.getDate()} ${end.toLocaleString('id-ID', { month: 'short' })}`;
+        const startDay = settings.value.cutoffDate + 1;
+        const endDay = settings.value.cutoffDate;
+        return `${startDay} ${start.toLocaleString('id-ID', { month: 'short' })} - ${endDay} ${end.toLocaleString('id-ID', { month: 'short' })}`;
       }
     });
 
     // Charts Config & Series
     const weeklyChartSeries = computed(() => {
       const now = new Date();
-      const start = getStartOfWeeklyPeriod(now, settings.value.cutoffDay);
+      let cutoffDay = settings.value.cutoffDay;
+      if (cutoffDay === null || cutoffDay === undefined) {
+         let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), settings.value.cutoffDate + 1);
+         if (now.getDate() <= settings.value.cutoffDate) startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
+         cutoffDay = startOfPeriod.getDay();
+      }
+      const start = getStartOfWeeklyPeriod(now, cutoffDay);
       
-      // Initialize 7 days array starting from cutoffDay
-      const days = [];
-      const labels = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      const baseLabels = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      const labels = [];
+      for(let i=0; i<7; i++) labels.push(baseLabels[(start.getDay() + i) % 7]);
+      
       const data = [];
-
       for (let i = 0; i < 7; i++) {
         const d = new Date(start);
         d.setDate(start.getDate() + i);
-        const dayName = labels[d.getDay()];
         const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        days.push({ dateStr: dateStr, label: dayName });
-      }
-
-      days.forEach(day => {
         const hours = logs.value
-          .filter(log => log.date === day.dateStr)
+          .filter(log => log.date === dateStr)
           .reduce((sum, log) => sum + log.totalWorkHours, 0);
         data.push(Number(hours.toFixed(2)));
-      });
-
-      return [{
-        name: 'Jam Kerja',
-        data: data
-      }];
+      }
+      return { series: [{ name: 'Jam Kerja', data: data }], labels: labels };
     });
 
     const weeklyChartOptions = computed(() => {
-      const now = new Date();
-      const start = getStartOfWeeklyPeriod(now, settings.value.cutoffDay);
-      const categories = [];
-      const labels = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(start);
-        d.setDate(start.getDate() + i);
-        categories.push(labels[d.getDay()]);
-      }
-
       return {
-        chart: {
-          id: 'weekly-hours',
-          toolbar: { show: false },
-          sparkline: { enabled: false }
-        },
+        chart: { id: 'weekly-hours', toolbar: { show: false }, sparkline: { enabled: false } },
         colors: ['#4f46e5'],
-        plotOptions: {
-          bar: {
-            borderRadius: 6,
-            columnWidth: '50%',
-            dataLabels: { position: 'top' }
-          }
-        },
+        plotOptions: { bar: { borderRadius: 6, columnWidth: '50%', dataLabels: { position: 'top' } } },
         dataLabels: {
           enabled: true,
           formatter: function (val) {
@@ -1271,23 +1303,14 @@ export default {
             return val > 0 ? `${h}.${String(m).padStart(2, '0')}` : '';
           },
           offsetY: -20,
-          style: {
-            fontSize: '10px',
-            colors: ['#303030']
-          }
+          style: { fontSize: '10px', colors: ['#303030'] }
         },
         xaxis: {
-          categories: categories,
+          categories: weeklyChartSeries.value.labels,
           labels: { style: { colors: '#64748b', fontWeight: 600 } }
         },
-        yaxis: {
-          labels: { style: { colors: '#64748b' } },
-          title: { text: 'Jam', style: { color: '#64748b' } }
-        },
-        grid: {
-          borderColor: '#e2e8f0',
-          strokeDashArray: 4
-        }
+        yaxis: { labels: { style: { colors: '#64748b' } }, title: { text: 'Jam', style: { color: '#64748b' } } },
+        grid: { borderColor: '#e2e8f0', strokeDashArray: 4 }
       };
     });
 
@@ -1392,6 +1415,8 @@ export default {
       if (timerInterval) clearInterval(timerInterval);
     });
 
+
+
     return {
       activeTab,
       logs,
@@ -1434,11 +1459,11 @@ export default {
       weeklyChartOptions,
       monthlyChartSeries,
       monthlyChartOptions,
-      currentPeriodRange,
+      weeklyPeriodRange,
+      monthlyPeriodRange,
       settingsOutline, playOutline, stopOutline, cafeOutline, calendarOutline, 
       createOutline, trashOutline, downloadOutline, addOutline,
-      effectiveStartStr,
-      effectiveEndStr
+      effectiveStartStr
     };
   }
 }
