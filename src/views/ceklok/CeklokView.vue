@@ -14,9 +14,7 @@
           <p class="app-hero-subtitle" style="margin: 0;">Catat waktu hadir dan pulang, serta pantau status presensi harian.</p>
         </div>
       </ion-toolbar>
-    </ion-header> 
 
-    <ion-content class="app-content-wrap">
       <!-- Tabs Segment -->
       <div class="p-3">
         <ion-segment v-model="activeTab" class="custom-segment">
@@ -31,7 +29,9 @@
           </ion-segment-button>
         </ion-segment>
       </div>
+    </ion-header> 
 
+    <ion-content class="app-content-wrap">
       <!-- TAB 1: PRESENSI (Clock In/Out) -->
       <div v-if="activeTab === 'presensi'" class="ion-padding">
         <!-- Live Clock Card -->

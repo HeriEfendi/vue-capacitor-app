@@ -116,7 +116,7 @@ const openCamera = async () => {
         if (base64) applyBase64(base64);
     } catch (err: any) {
         console.error('Gagal membuka kamera:', err);
-        alert(`Gagal membuka kamera: ${err?.message || err}`);
+        alert(err?.message || 'Gagal membuka kamera. Pastikan izin kamera telah diberikan.');
     } finally { isProcessing.value = false; }
 };
 
@@ -129,7 +129,10 @@ const openGallery = async () => {
     try {
         const base64 = await pickFromGallery();
         if (base64) applyBase64(base64);
-    } catch (err) { console.error(err); } finally { isProcessing.value = false; }
+    } catch (err: any) {
+        console.error('Gagal membuka galeri:', err);
+        alert(err?.message || 'Gagal membuka galeri. Pastikan izin penyimpanan telah diberikan.');
+    } finally { isProcessing.value = false; }
 };
 
 const handleFileInput = async (e: any) => {
