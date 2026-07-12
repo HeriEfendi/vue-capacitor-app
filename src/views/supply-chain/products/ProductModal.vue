@@ -94,7 +94,7 @@ import {
 } from 'ionicons/icons';
 import { ref, onMounted, watch } from 'vue';
 import { 
-    captureFromCamera, pickFromGallery, cropAndConvertToWebP, readProductImage 
+    captureFromCamera, pickFromGallery, cropAndConvertToWebP, readProductImage, saveProductImageFromBase64 
 } from '../../../composables/useProductImage';
 
 const props = defineProps<{ isOpen: boolean, isEdit: boolean, product: any, categories: any[] }>();
@@ -113,7 +113,11 @@ const openCamera = async () => {
     isProcessing.value = true;
     try {
         const base64 = await captureFromCamera();
-        if (base64) applyBase64(base64);
+        if (base64) {
+          const fileName = await saveProductImageFromBase64(base64, Date.now());
+          props.product.image = fileName;
+          applyBase64(base64);
+        }
     } catch (err: any) {
         console.error('Gagal membuka kamera:', err);
         alert(err?.message || 'Gagal membuka kamera. Pastikan izin kamera telah diberikan.');
@@ -128,7 +132,11 @@ const openGallery = async () => {
     isProcessing.value = true;
     try {
         const base64 = await pickFromGallery();
-        if (base64) applyBase64(base64);
+        if (base64) {
+          const fileName = await saveProductImageFromBase64(base64, Date.now());
+          props.product.image = fileName;
+          applyBase64(base64);
+        }
     } catch (err: any) {
         console.error('Gagal membuka galeri:', err);
         alert(err?.message || 'Gagal membuka galeri. Pastikan izin penyimpanan telah diberikan.');
@@ -141,6 +149,8 @@ const handleFileInput = async (e: any) => {
     isProcessing.value = true;
     try {
         const base64 = await cropAndConvertToWebP(f);
+        const fileName = await saveProductImageFromBase64(base64, Date.now());
+        props.product.image = fileName;
         applyBase64(base64);
     } catch (err) { console.error(err); } finally { isProcessing.value = false; }
 };

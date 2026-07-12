@@ -6,6 +6,8 @@ import { initDB } from '@/db'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader, IonAlert, IonFooter, IonSegment, IonSegmentButton, IonBackButton } from '@ionic/vue';
 import AppToast from '@/components/AppToast.vue';
 import { addOutline, trashOutline, pencilOutline, closeOutline, cloudUploadOutline, cloudDownloadOutline, listOutline, checkmarkCircleOutline, searchOutline, arrowBackOutline } from 'ionicons/icons';
+import { Capacitor } from '@capacitor/core'
+import { Filesystem, Directory } from '@capacitor/filesystem'
 const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
 
 
@@ -387,6 +389,20 @@ function getGuideData() {
   ]
 }
 
+async function saveWorkbook(wb: XLSX.WorkBook, fileName: string) {
+  if (Capacitor.isNativePlatform()) {
+    await Filesystem.writeFile({
+      path: fileName,
+      data: XLSX.write(wb, { bookType: 'xlsx', type: 'base64' }),
+      directory: Directory.Documents,
+    })
+    showSnackbar(`File tersimpan di Documents/${fileName}`, 'success')
+    return
+  }
+
+  XLSX.writeFile(wb, fileName)
+}
+
 async function downloadTemplate() {
   const XLSX = await import('xlsx');
   const ws = XLSX.utils.aoa_to_sheet([
@@ -402,7 +418,7 @@ async function downloadTemplate() {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Template')
   XLSX.utils.book_append_sheet(wb, wsGuide, 'Panduan')
-  XLSX.writeFile(wb, 'Template Buku Kas.xlsx')
+  await saveWorkbook(wb, 'Template Buku Kas.xlsx')
 }
 
 async function exportToExcel() {
@@ -425,7 +441,7 @@ async function exportToExcel() {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Transaksi')
   XLSX.utils.book_append_sheet(wb, wsGuide, 'Panduan')
-  XLSX.writeFile(wb, `Buku Kas - ${project.value!.name}.xlsx`)
+  await saveWorkbook(wb, `Buku Kas - ${project.value!.name}.xlsx`)
 }
 
 function parseDate(d: any): string {
