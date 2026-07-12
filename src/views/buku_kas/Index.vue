@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { initDB } from '@/db'
-import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonAlert, IonFooter } from '@ionic/vue';
+import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonAlert, IonFooter, IonSegment, IonSegmentButton } from '@ionic/vue';
 import AppToast from '@/components/AppToast.vue';
-import { addOutline, trashOutline, pencilOutline, arrowForwardOutline, walletOutline, cashOutline, closeOutline, saveOutline, trendingUpOutline, trendingDownOutline, pieChartOutline } from 'ionicons/icons';
+import { addOutline, trashOutline, pencilOutline, arrowForwardOutline, closeOutline, trendingUpOutline, trendingDownOutline, pieChartOutline, searchOutline } from 'ionicons/icons';
 
 interface Project {
   id: number
@@ -23,6 +23,8 @@ const router = useRouter()
 
 const projects = ref<Project[]>([])
 const loading = ref(false)
+const searchQuery = ref('')
+const statusFilter = ref('ALL')
 const dialogCreate = ref(false)
 const dialogEdit = ref(false)
 const editingId = ref<number | null>(null)
@@ -33,8 +35,17 @@ const formNew = ref({ name: '', description: '', status: 'Active' })
 const formEdit = ref({ name: '', description: '', status: 'Active' })
 const submitting = ref(false)
 
-const totalDepositsAll = computed(() => projects.value.reduce((acc, p) => acc + p.total_deposits, 0))
-const totalExpensesAll = computed(() => projects.value.reduce((acc, p) => acc + p.total_expenses, 0))
+const filteredProjects = computed(() => {
+  return projects.value.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                          (p.description || '').toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesStatus = statusFilter.value === 'ALL' || p.status === statusFilter.value
+    return matchesSearch && matchesStatus
+  })
+})
+
+const totalDepositsAll = computed(() => filteredProjects.value.reduce((acc, p) => acc + p.total_deposits, 0))
+const totalExpensesAll = computed(() => filteredProjects.value.reduce((acc, p) => acc + p.total_expenses, 0))
 const totalBalanceAll = computed(() => totalDepositsAll.value - totalExpensesAll.value)
 
 function formatCurrency(val: number) {
@@ -55,7 +66,7 @@ function getBalanceColor(project: Project) {
 
 function getStatusColor(status: string) {
   if (status === 'Active' || status === 'Aktif') return 'success'
-  if (status === 'Completed' || status === 'Selesai') return 'primary'
+  if (status === 'Completed' || status === 'Selesai') return 'teal'
   if (status === 'Pending' || status === 'Tunda') return 'warning'
   return 'secondary'
 }
@@ -169,44 +180,67 @@ onIonViewWillEnter(fetchProjects)
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <ion-title class="app-hero-title" style="padding: 0;">Buku Kas</ion-title>
             <ion-buttons style="margin: 0;">
-              <ion-button class="btn-action primary" @click="dialogCreate = true">
-                <ion-icon slot="start" :icon="addOutline" /> Tambah
-              </ion-button>
+              <button class="btn btn-action primary btn-md" @click="dialogCreate = true">
+                <ion-icon :icon="addOutline" class="me-1" /> Tambah
+              </button>
             </ion-buttons>
           </div>
           <p class="app-hero-subtitle" style="margin: 0;">Kelola modal, pengeluaran, dan sisa dana untuk bisnis, hobi, atau renovasi.</p>
         </div>
       </ion-toolbar>
+
+      <!-- Search & Filters Segment -->
+      <div class="px-3 pb-3">
+        <div class="search-input-wrap mb-2 position-relative">
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            class="form-control app-control" 
+            style="padding-left: 40px;" 
+            placeholder="Cari buku kas..." 
+          />
+          <ion-icon 
+            :icon="searchOutline" 
+            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; color: #94a3b8;" 
+          />
+        </div>
+        
+        <ion-segment v-model="statusFilter" class="custom-segment">
+          <ion-segment-button value="ALL">
+            <ion-label>Semua</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="Active">
+            <ion-label>Aktif</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="Pending">
+            <ion-label>Tunda</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="Completed">
+            <ion-label>Selesai</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
     </ion-header>
 
     <ion-content fullscreen class="app-content-wrap">
-        <ion-grid>
+        <ion-grid class="">
           <ion-row>
-            <ion-col size="6" size-lg="3">
-              <div class="summary-card summary-card--green shadow-soft">
-                <div class="stat-top">
-                  <div class="menu-icon-wrap" style="--accent: #059669; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #059669;"><ion-icon :icon="trendingUpOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
-                  <small>Total Modal <br> Semua Buku Kas</small>
-                </div>
-                <div class="summary-value summary-value--green text-center">{{ formatCurrency(totalDepositsAll) }}</div>
+            <ion-col size="6">
+              <div class="mobile-card p-3 h-100 border-start border-4 border-success">
+                <small class="text-muted d-block">Total Modal</small>
+                <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency(totalDepositsAll) }}</div>
               </div>
             </ion-col>
-            <ion-col size="6" size-lg="3">
-              <div class="summary-card summary-card--red shadow-soft">
-                <div class="stat-top">
-                  <div class="menu-icon-wrap" style="--accent: #dc2626; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #dc2626;"><ion-icon :icon="trendingDownOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
-                  <small>Total Pengeluaran <br> Semua Buku Kas</small>
-                </div>
-                <div class="stat-value summary-value--red text-center">{{ formatCurrency(totalExpensesAll) }}</div>
+            <ion-col size="6">
+              <div class="mobile-card p-3 h-100 border-start border-4 border-danger">
+                <small class="text-muted d-block">Total Pengeluaran</small>
+                <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(totalExpensesAll) }}</div>
               </div>
             </ion-col>
-            <ion-col size="12" size-lg="3">
-              <div class="summary-card summary-card--blue shadow-soft">
-                <div class="stat-top">
-                  <div class="menu-icon-wrap" style="--accent: #2563eb; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: white; color: #2563eb;"><ion-icon :icon="pieChartOutline" style="font-size: 1.4rem; font-weight: bold;" /></div>
-                  <small>Total Sisa Saldo Semua Buku Kas</small>
-                </div>
-                <div class="stat-value summary-value--blue text-center">{{ formatCurrency(totalBalanceAll) }}</div>
+            <ion-col size="12">
+              <div class="mobile-card p-3 h-100 border-start border-4 border-primary">
+                <small class="text-muted d-block">Total Sisa Saldo</small>
+                <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(totalBalanceAll) }}</div>
               </div>
             </ion-col>
           </ion-row>
@@ -217,36 +251,40 @@ onIonViewWillEnter(fetchProjects)
           <p>Memuat buku kas...</p>
         </div>
 
-        <ion-grid v-else>
+        <div v-else-if="filteredProjects.length === 0" class="empty-state text-center py-5 text-muted">
+          <p>Tidak ada buku kas yang ditemukan</p>
+        </div>
+
+        <ion-grid v-else class="mx-2">
           <ion-row>
-            <ion-col v-for="project in projects" :key="project.id" size="12" size-sm="6" size-lg="4">
-              <ion-card class="mobile-card" @click="goToDetail(project.id)">
+            <ion-col v-for="project in filteredProjects" :key="project.id" size="12" size-sm="6" size-lg="4">
+              <ion-card class="mobile-card m-0 mb-3" @click="goToDetail(project.id)">
                 <ion-card-header>
                   <div class="mobile-card-top">
-                    <ion-badge class="badge-status" :color="getStatusColor(project.status)">{{ project.status }}</ion-badge>
+                    <span v-if="project" class="pill-badge" :class="getStatusColor(project.status)">{{ project.status }}</span>
                     <div class="d-flex gap-2">
-                      <ion-button class="btn-action primary icon-btn" size="small" @click.stop="openEditProject(project)">
+                      <button class="btn btn-light btn-md text-primary" @click.stop="openEditProject(project)" title="Edit">
                         <ion-icon :icon="pencilOutline" />
-                      </ion-button>
-                      <ion-button class="btn-action danger icon-btn" size="small" @click.stop="dialogDeleteId = project.id">
+                      </button>
+                      <button class="btn btn-light btn-md text-danger" @click.stop="dialogDeleteId = project.id" title="Hapus">
                         <ion-icon :icon="trashOutline" />
-                      </ion-button>
+                      </button>
                     </div>
                   </div>
-                  <ion-card-title class="mobile-card-title">{{ project.name }}</ion-card-title>
-                  <ion-card-subtitle class="mobile-card-subtitle">{{ project.description || 'Tidak ada deskripsi' }}</ion-card-subtitle>
+                  <ion-card-title class="mobile-card-title mt-2">{{ project.name }}</ion-card-title>
+                  <ion-card-subtitle class="mobile-card-subtitle mt-1">{{ project.description || 'Tidak ada deskripsi' }}</ion-card-subtitle>
                 </ion-card-header>
 
-                <ion-card-content class="project-card-body">
-                  <div class="metric-row">
+                <ion-card-content class="project-card-body pt-0">
+                  <div class="metric-row d-flex justify-content-between my-1">
                     <span class="metric-label">Modal</span>
                     <span class="metric-value text-success">{{ formatCurrency(project.total_deposits || 0) }}</span>
                   </div>
-                  <div class="metric-row">
+                  <div class="metric-row d-flex justify-content-between my-1">
                     <span class="metric-label">Pengeluaran</span>
                     <span class="metric-value text-danger">{{ formatCurrency(project.total_expenses || 0) }}</span>
                   </div>
-                  <div class="metric-row">
+                  <div class="metric-row d-flex justify-content-between my-1">
                     <span class="metric-label">Sisa Dana</span>
                     <span :class="`metric-value text-${getBalanceColor(project)}`">{{ getBalancePercent(project) }}%</span>
                   </div>
@@ -254,14 +292,14 @@ onIonViewWillEnter(fetchProjects)
                   <ion-progress-bar
                     :value="Math.max(0, (getBalancePercent(project) || 0) / 100)"
                     :color="getBalanceColor(project)"
-                    class="thick-progress"
+                    class="thick-progress my-2"
                   />
 
-                  <div class="mobile-card-footer">
-                    <span :class="`balance-pill text-${getBalanceColor(project)}`">{{ formatCurrency(project.balance || 0) }}</span>
-                    <ion-button class="btn-action primary icon-btn" size="small" @click.stop="goToDetail(project.id)">
+                  <div class="mobile-card-footer d-flex justify-content-between align-items-center mt-3">
+                    <span :class="`balance-pill text-${getBalanceColor(project)} fw-black fs-6`">{{ formatCurrency(project.balance || 0) }}</span>
+                    <button class="btn btn-light btn-md text-primary" @click.stop="goToDetail(project.id)" title="Buka Detail">
                       <ion-icon :icon="arrowForwardOutline" />
-                    </ion-button>
+                    </button>
                   </div>
                 </ion-card-content>
               </ion-card>

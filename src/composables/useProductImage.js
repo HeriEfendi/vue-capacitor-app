@@ -71,42 +71,14 @@ function _isUserCancelled(err) {
   )
 }
 
-async function _ensureCameraPermission() {
-  if (!isNative()) return true
-  try {
-    const status = await Camera.checkPermissions()
-    if (status.camera === 'granted' || status.camera === 'limited') return true
-    const requested = await Camera.requestPermissions({ permissions: ['camera'] })
-    return requested.camera === 'granted' || requested.camera === 'limited'
-  } catch {
-    return true // web fallback
-  }
-}
-
-async function _ensurePhotosPermission() {
-  if (!isNative()) return true
-  try {
-    const status = await Camera.checkPermissions()
-    // Android 13+ pakai 'photos', Android <13 pakai 'camera' untuk gallery
-    const photosStatus = status.photos ?? status.camera
-    if (photosStatus === 'granted' || photosStatus === 'limited') return true
-    const requested = await Camera.requestPermissions({ permissions: ['photos'] })
-    const result = requested.photos ?? requested.camera
-    return result === 'granted' || result === 'limited'
-  } catch {
-    return true
-  }
-}
-
 /**
  * Ambil foto dari Kamera (Capacitor Camera).
- * Android: Camera.getPhoto bisa return base64String bukan dataUrl — handle keduanya.
+ * NOTE: Tidak pre-check permission karena Camera.checkPermissions() bisa
+ * crash (NullPointerException) di beberapa versi plugin di Android.
+ * Camera.getPhoto() sudah handle permission request secara internal.
  */
 export async function captureFromCamera() {
   try {
-    const granted = await _ensureCameraPermission()
-    if (!granted) throw new Error('Izin kamera ditolak. Aktifkan izin kamera di pengaturan aplikasi.')
-
     const photo = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
@@ -114,6 +86,7 @@ export async function captureFromCamera() {
       source: CameraSource.Camera,
       saveToGallery: false,
       correctOrientation: true,
+      webUseInput: false,
     })
 
     // Capacitor bisa return base64String atau dataUrl tergantung platform/versi
@@ -123,6 +96,11 @@ export async function captureFromCamera() {
     return await cropBase64ToWebP(src)
   } catch (err) {
     if (_isUserCancelled(err)) return null
+    // Deteksi permission denied
+    const msg = err?.message ?? ''
+    if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('denied')) {
+      throw new Error('Izin kamera ditolak. Buka Pengaturan → Aplikasi → izinkan Kamera.')
+    }
     throw err
   }
 }
@@ -130,15 +108,13 @@ export async function captureFromCamera() {
 /** Pilih gambar dari Galeri (Capacitor Camera). */
 export async function pickFromGallery() {
   try {
-    const granted = await _ensurePhotosPermission()
-    if (!granted) throw new Error('Izin galeri ditolak. Aktifkan izin penyimpanan di pengaturan aplikasi.')
-
     const photo = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
       resultType: CameraResultType.Base64,
       source: CameraSource.Photos,
       correctOrientation: true,
+      webUseInput: false,
     })
 
     const src = photo.dataUrl
@@ -147,6 +123,10 @@ export async function pickFromGallery() {
     return await cropBase64ToWebP(src)
   } catch (err) {
     if (_isUserCancelled(err)) return null
+    const msg = err?.message ?? ''
+    if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('denied')) {
+      throw new Error('Izin galeri ditolak. Buka Pengaturan → Aplikasi → izinkan Penyimpanan/Foto.')
+    }
     throw err
   }
 }

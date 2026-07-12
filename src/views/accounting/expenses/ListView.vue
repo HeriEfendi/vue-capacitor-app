@@ -98,10 +98,10 @@
                 <span class="text-dark mb-1">{{ expense.description }}</span>
               </div>
               <div class="d-flex gap-1 ms-2">
-                <button class="btn btn-light btn-sm text-primary" @click="$router.push(`/expenses/${expense.id}/edit`)" title="Edit">
+                <button class="btn btn-light btn-md text-primary" @click="$router.push(`/expenses/${expense.id}/edit`)" title="Edit">
                   <ion-icon :icon="createOutline" />
                 </button>
-                <button class="btn btn-light btn-sm text-danger" @click="onDelete(expense.id)" title="Hapus">
+                <button class="btn btn-light btn-md text-danger" @click="onDelete(expense.id)" title="Hapus">
                   <ion-icon :icon="trashOutline" />
                 </button>
               </div>
@@ -141,13 +141,16 @@ export default {
     const formatDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'
 
     const summary = computed(() => {
-      const now = new Date()
       const total = (from) => expenses.value.filter(e => new Date(e.date) >= from).reduce((sum, e) => sum + Number(e.amount || 0), 0)
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      // ISO week: Senin = awal minggu. Minggu (getDay=0) dihitung sebagai hari ke-7.
+      const dayOfWeek = today.getDay() || 7; // 1=Sen .. 7=Min
+      const mondayOfWeek = new Date(today); mondayOfWeek.setDate(today.getDate() - (dayOfWeek - 1));
       return {
-        daily: total(new Date(now.setHours(0,0,0,0))),
-        weekly: total(new Date(now.setDate(now.getDate() - now.getDay()))),
-        monthly: total(new Date(now.getFullYear(), now.getMonth(), 1)),
-        yearly: total(new Date(now.getFullYear(), 0, 1)),
+        daily: total(new Date(today)),
+        weekly: total(new Date(mondayOfWeek)),
+        monthly: total(new Date(today.getFullYear(), today.getMonth(), 1)),
+        yearly: total(new Date(today.getFullYear(), 0, 1)),
       }
     })
     
@@ -158,12 +161,14 @@ export default {
 
     const dailyChartSeries = computed(() => {
       const data = [];
-      const now = new Date();
-      const start = new Date(now); start.setDate(now.getDate() - now.getDay() + 1); // Monday
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      // ISO week: Senin = hari ke-1. Minggu (getDay=0) = hari ke-7.
+      const dayOfWeek = today.getDay() || 7;
+      const monday = new Date(today); monday.setDate(today.getDate() - (dayOfWeek - 1));
       for (let i = 0; i < 7; i++) {
-        const d = new Date(start); d.setDate(start.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
-        const val = expenses.value.filter(e => e.date.startsWith(dateStr)).reduce((s, e) => s + Number(e.amount), 0);
+        const d = new Date(monday); d.setDate(monday.getDate() + i);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const val = expenses.value.filter(e => e.date && e.date.startsWith(dateStr)).reduce((s, e) => s + Number(e.amount), 0);
         data.push(val);
       }
       return [{ name: 'Pengeluaran', data }];
@@ -211,10 +216,15 @@ export default {
 
     const weeklyChartSeries = computed(() => {
         const data = [];
-        const now = new Date();
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        // ISO week: Senin = awal minggu, Minggu (getDay=0) = hari ke-7
+        const dayOfWeek = today.getDay() || 7; // 1=Sen .. 7=Min
+        const daysFromMonday = dayOfWeek - 1;
         for (let i = 4; i >= 0; i--) {
-            const start = new Date(); start.setDate(now.getDate() - (i * 7) - now.getDay());
+            const start = new Date(today); start.setDate(today.getDate() - daysFromMonday - (i * 7));
+            start.setHours(0, 0, 0, 0);
             const end = new Date(start); end.setDate(start.getDate() + 6);
+            end.setHours(23, 59, 59, 999);
             const val = expenses.value.filter(e => {
                 const ed = new Date(e.date);
                 return ed >= start && ed <= end;

@@ -232,10 +232,10 @@
       <div v-if="activeTab === 'riwayat'" class="ion-padding">
         <!-- Filter and Export Actions -->
         <div class="d-flex justify-content-between align-items-center mx-3 mb-3">
-          <button class="btn btn-action primary btn-sm" @click="openCorrectionModal">
+          <button class="btn btn-action primary btn-md" @click="openCorrectionModal">
             <ion-icon :icon="addOutline" class="me-1" /> Koreksi Absen
           </button>
-          <button class="btn btn-action success btn-sm" @click="exportExcel">
+          <button class="btn btn-action success btn-md" @click="exportExcel">
             <ion-icon :icon="downloadOutline" class="me-1" /> Export Excel
           </button>
         </div>
@@ -262,10 +262,10 @@
                 <h6 class="fw-bold text-dark mb-1">{{ formatDateStr(log.date) }}</h6>
               </div>
               <div class="d-flex gap-1">
-                <button class="btn btn-light btn-sm text-primary" @click="editLog(log)" title="Edit">
+                <button class="btn btn-light btn-md text-primary" @click="editLog(log)" title="Edit">
                   <ion-icon :icon="createOutline" />
                 </button>
-                <button class="btn btn-light btn-sm text-danger" @click="confirmDelete(log.id)" title="Hapus">
+                <button class="btn btn-light btn-md text-danger" @click="confirmDelete(log.id)" title="Hapus">
                   <ion-icon :icon="trashOutline" />
                 </button>
               </div>
@@ -395,7 +395,7 @@
         <div class="mobile-card p-3 mb-4">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold text-dark mb-0">Preset Jam Istirahat</h6>
-            <button class="btn btn-action primary btn-sm" @click="addNewBreakPreset">
+            <button class="btn btn-action primary btn-md" @click="addNewBreakPreset">
               <ion-icon :icon="addOutline" /> Tambah
             </button>
           </div>
@@ -412,7 +412,7 @@
             >
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <input type="text" v-model="bc.name" class="form-control form-control-sm w-70 fw-bold border-0 p-0" placeholder="Nama Istirahat" />
-                <button class="btn btn-link text-danger btn-sm p-0" @click="removeBreakPreset(index)">
+                <button class="btn btn-link text-danger btn-md p-0" @click="removeBreakPreset(index)">
                   <ion-icon :icon="trashOutline" />
                 </button>
               </div>
@@ -497,7 +497,7 @@
           <div v-for="(b, idx) in correctionForm.breaks" :key="idx" class="border rounded p-2 mb-2 bg-light">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <strong>Break #{{ idx + 1 }}</strong>
-              <button class="btn btn-link text-danger btn-sm p-0" @click="removeCorrectionBreak(idx)">Hapus</button>
+              <button class="btn btn-link text-danger btn-md p-0" @click="removeCorrectionBreak(idx)">Hapus</button>
             </div>
             <div class="row g-2">
               <div class="col-4">
@@ -514,7 +514,7 @@
               </div>
             </div>
           </div>
-          <button class="btn btn-action light btn-sm w-100 mt-2" @click="addCorrectionBreak">
+          <button class="btn btn-action light btn-md w-100 mt-2" @click="addCorrectionBreak">
             + Tambah Istirahat Manual
           </button>
         </div>
