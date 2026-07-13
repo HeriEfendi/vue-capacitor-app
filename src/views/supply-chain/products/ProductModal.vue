@@ -60,7 +60,6 @@
             <div class="img-source-buttons">
               <button type="button" class="btn-img-source" @click="openCamera" :disabled="isProcessing"><ion-icon :icon="cameraOutline" /><span>Kamera</span></button>
               <button type="button" class="btn-img-source" @click="openGallery" :disabled="isProcessing"><ion-icon :icon="imagesOutline" /><span>Galeri</span></button>
-              <button type="button" class="btn-img-source" @click="openFile" :disabled="isProcessing"><ion-icon :icon="folderOpenOutline" /><span>File</span></button>
             </div>
             <small class="text-muted d-block mt-2">Gambar akan di-crop otomatis menjadi 500×500 px dan disimpan sebagai WebP.</small>
           </div>
@@ -82,7 +81,6 @@
         </button>
       </div>
     </ion-footer>
-    <input type="file" ref="fileInput" @change="handleFileInput" accept="image/*" class="d-none" />
   </ion-modal>
 </template>
 
@@ -100,7 +98,7 @@ import {
 const props = defineProps<{ isOpen: boolean, isEdit: boolean, product: any, categories: any[] }>();
 const emit = defineEmits(['close', 'save']);
 
-const fileInput = ref(null);
+const fileInput = ref(null); // ponytail: Hapus saat refactoring template tuntas
 const previewUrl = ref(null);
 const isProcessing = ref(false);
 
@@ -152,10 +150,6 @@ const openCamera = async () => {
   } finally {
     isProcessing.value = false;
   }
-};
-
-const openFile = () => {
-    fileInput.value?.click();
 };
 
 const openGallery = async () => {
