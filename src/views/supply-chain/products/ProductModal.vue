@@ -111,43 +111,21 @@ const openCamera = async () => {
   if (isProcessing.value) return;
   isProcessing.value = true;
   try {
-    const { Camera } = await import('@capacitor/camera');
-    const status = await Camera.checkPermissions();
-    if (status.camera !== 'granted') {
-      const request = await Camera.requestPermissions();
-      if (request.camera !== 'granted') throw new Error('Permission denied');
-    }
-
-    const image = await Camera.getPhoto({
-      quality: 90,
-      allowEditing: true,
-      resultType: 'uri',
-      source: 'CAMERA',
-    });
-    previewUrl.value = image.webPath;
-    if (Capacitor.isNativePlatform()) {
-      const { Filesystem } = await import('@capacitor/filesystem');
-      const file = await Filesystem.readFile({
-        path: image.path,
-      });
-      props.product.image = `data:image/webp;base64,${file.data}`;
-    } else {
-      const response = await fetch(image.webPath!);
-      const blob = await response.blob();
-      const reader = new FileReader();
-      const base64 = await new Promise((resolve) => {
-        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
-        reader.readAsDataURL(blob);
-      });
-      const fileName = await saveProductImageFromBase64(base64 as string, Date.now());
+    const base64 = await captureFromCamera();
+    if (base64) {
+      const fileName = await saveProductImageFromBase64(base64, Date.now());
       props.product.image = fileName;
+      applyBase64(base64);
     }
   } catch (error: any) {
-    if (error.message !== 'User cancelled photos app') {
+    const msg = error?.message ?? '';
+    if (
+      !msg.includes('cancelled') &&
+      !msg.includes('User cancelled') &&
+      !msg.includes('No image picked')
+    ) {
       console.error('Camera error:', error);
-    }
-    if (Capacitor.isNativePlatform()) {
-      // Native sudah handle via Camera plugin
+      alert('Gagal membuka kamera: ' + msg);
     }
   } finally {
     isProcessing.value = false;

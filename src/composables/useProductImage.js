@@ -72,13 +72,38 @@ function _isUserCancelled(err) {
 }
 
 /**
+ * Check and request camera/photos permission on native platform.
+ */
+async function checkAndRequestPermissions(source) {
+  if (!isNative()) return
+  try {
+    const status = await Camera.checkPermissions()
+    if (source === CameraSource.Camera) {
+      if (status.camera !== 'granted') {
+        const req = await Camera.requestPermissions({ permissions: ['camera'] })
+        if (req.camera !== 'granted') {
+          throw new Error('Izin kamera ditolak. Buka Pengaturan → Aplikasi → izinkan Kamera.')
+        }
+      }
+    } else {
+      if (status.photos !== 'granted') {
+        const req = await Camera.requestPermissions({ permissions: ['photos'] })
+        if (req.photos !== 'granted') {
+          throw new Error('Izin galeri ditolak. Buka Pengaturan → Aplikasi → izinkan Penyimpanan/Foto.')
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Error checking/requesting permissions:', err)
+  }
+}
+
+/**
  * Ambil foto dari Kamera (Capacitor Camera).
- * NOTE: Tidak pre-check permission karena Camera.checkPermissions() bisa
- * crash (NullPointerException) di beberapa versi plugin di Android.
- * Camera.getPhoto() sudah handle permission request secara internal.
  */
 export async function captureFromCamera() {
   try {
+    await checkAndRequestPermissions(CameraSource.Camera)
     const photo = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
@@ -86,7 +111,7 @@ export async function captureFromCamera() {
       source: CameraSource.Camera,
       saveToGallery: false,
       correctOrientation: true,
-      webUseInput: false,
+      webUseInput: false, // Use PWA elements webcam modal on web/desktop
     })
 
     // Capacitor bisa return base64String atau dataUrl tergantung platform/versi
@@ -108,13 +133,14 @@ export async function captureFromCamera() {
 /** Pilih gambar dari Galeri (Capacitor Camera). */
 export async function pickFromGallery() {
   try {
+    await checkAndRequestPermissions(CameraSource.Photos)
     const photo = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
       resultType: CameraResultType.Base64,
       source: CameraSource.Photos,
       correctOrientation: true,
-      webUseInput: false,
+      webUseInput: true, // Use standard input on web/desktop for compatibility
     })
 
     const src = photo.dataUrl
@@ -243,52 +269,88 @@ async function _deleteFromIDB(fileName) {
 }
 
 // ─────────────────────────────────────────────
+// Storage: Web (localStorage with IndexedDB fallback)
+// ─────────────────────────────────────────────
+
+async function _writeToWebStorage(base64, productId) {
+  const fileName = `product_${productId}.webp`
+  const dataUrl = `data:image/webp;base64,${base64}`
+
+  // Write to localStorage (primary)
+  try {
+    localStorage.setItem(fileName, dataUrl)
+  } catch (e) {
+    console.warn('Failed to save to localStorage:', e)
+  }
+
+  // Also write to IndexedDB (as a robust fallback)
+  try {
+    await _writeToIDB(base64, productId)
+  } catch (e) {
+    console.warn('Failed to save to IndexedDB fallback:', e)
+  }
+
+  return fileName
+}
+
+async function _readFromWebStorage(fileName) {
+  // Try localStorage first
+  const localData = localStorage.getItem(fileName)
+  if (localData) {
+    return localData
+  }
+  // Fallback to IndexedDB
+  return await _readFromIDB(fileName)
+}
+
+async function _deleteFromWebStorage(fileName) {
+  try {
+    localStorage.removeItem(fileName)
+  } catch (e) {
+    console.warn('Failed to delete from localStorage:', e)
+  }
+  await _deleteFromIDB(fileName)
+}
+
+// ─────────────────────────────────────────────
 // Public API — platform-aware
 // ─────────────────────────────────────────────
 
 /**
  * Simpan gambar produk dari File object (file input browser).
- * Native Android → Documents/h_dev/product/
- * Browser/Desktop → IndexedDB (ProductImagesDB)
  */
 export async function saveProductImage(file, productId) {
   const base64 = await cropAndConvertToWebP(file)
   return isNative()
     ? await _writeToFilesystem(base64, productId)
-    : await _writeToIDB(base64, productId)
+    : await _writeToWebStorage(base64, productId)
 }
 
 /**
  * Simpan gambar produk dari base64 WebP (hasil Camera/Gallery).
- * Native Android → Documents/h_dev/product/
- * Browser/Desktop → IndexedDB (ProductImagesDB)
  */
 export async function saveProductImageFromBase64(base64, productId) {
   return isNative()
     ? await _writeToFilesystem(base64, productId)
-    : await _writeToIDB(base64, productId)
+    : await _writeToWebStorage(base64, productId)
 }
 
 /**
  * Baca gambar produk sebagai data URL siap pakai di <img>.
- * Native Android → baca dari Filesystem
- * Browser/Desktop → baca dari IndexedDB
  */
 export async function readProductImage(fileName) {
   if (!fileName) return null
   return isNative()
     ? await _readFromFilesystem(fileName)
-    : await _readFromIDB(fileName)
+    : await _readFromWebStorage(fileName)
 }
 
 /**
  * Hapus gambar produk.
- * Native Android → hapus dari Filesystem
- * Browser/Desktop → hapus dari IndexedDB
  */
 export async function deleteProductImage(fileName) {
   if (!fileName) return
   return isNative()
     ? await _deleteFromFilesystem(fileName)
-    : await _deleteFromIDB(fileName)
+    : await _deleteFromWebStorage(fileName)
 }
