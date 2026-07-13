@@ -110,18 +110,48 @@ const applyBase64 = (base64: string) => {
 };
 
 const openCamera = async () => {
-    isProcessing.value = true;
-    try {
-        const base64 = await captureFromCamera();
-        if (base64) {
-          const fileName = await saveProductImageFromBase64(base64, Date.now());
-          props.product.image = fileName;
-          applyBase64(base64);
-        }
-    } catch (err: any) {
-        console.error('Gagal membuka kamera:', err);
-        alert(err?.message || 'Gagal membuka kamera. Pastikan izin kamera telah diberikan.');
-    } finally { isProcessing.value = false; }
+  if (isProcessing.value) return;
+  isProcessing.value = true;
+  try {
+    const { Camera } = await import('@capacitor/camera');
+    if (Capacitor.isNativePlatform()) {
+      const permissions = await Camera.requestPermissions({ permissions: ['camera'] });
+      if (permissions.camera !== 'granted') throw new Error('Izin kamera ditolak');
+    }
+    const image = await Camera.getPhoto({
+      quality: 90,
+      allowEditing: true,
+      resultType: 'uri',
+      source: 'CAMERA',
+    });
+    previewUrl.value = image.webPath;
+    if (Capacitor.isNativePlatform()) {
+      const { Filesystem } = await import('@capacitor/filesystem');
+      const file = await Filesystem.readFile({
+        path: image.path,
+      });
+      props.product.image = `data:image/webp;base64,${file.data}`;
+    } else {
+      const response = await fetch(image.webPath!);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      const base64 = await new Promise((resolve) => {
+        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+        reader.readAsDataURL(blob);
+      });
+      const fileName = await saveProductImageFromBase64(base64 as string, Date.now());
+      props.product.image = fileName;
+    }
+  } catch (error: any) {
+    if (error.message !== 'User cancelled photos app') {
+      console.error('Camera error:', error);
+    }
+    if (Capacitor.isNativePlatform()) {
+      // Native sudah handle via Camera plugin
+    }
+  } finally {
+    isProcessing.value = false;
+  }
 };
 
 const openFile = () => {
@@ -156,9 +186,20 @@ const handleFileInput = async (e: any) => {
 };
 
 const save = () => {
-    // Sync UI to model
     emit('save', props.product);
 };
+
+onMounted(async () => {
+  if (props.product.image) {
+    if (typeof props.product.image === 'string' && props.product.image.startsWith('data:')) {
+      previewUrl.value = props.product.image;
+    } else if (typeof props.product.image === 'string') {
+      previewUrl.value = await readProductImage(props.product.image);
+    } else {
+      previewUrl.value = URL.createObjectURL(props.product.image);
+    }
+  }
+});
 
 watch(() => props.isOpen, async (val) => {
     if (val && props.product.image) {
