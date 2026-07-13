@@ -190,18 +190,18 @@ onIonViewWillEnter(fetchProjects)
       </ion-toolbar>
 
       <!-- Search & Filters Segment -->
-      <div class="px-3 pb-3">
+      <div class="px-3 py-1">
         <div class="search-input-wrap mb-2 position-relative">
           <input 
             type="text" 
             v-model="searchQuery" 
-            class="form-control app-control" 
-            style="padding-left: 40px;" 
+            class="form-control form-control-sm app-control" 
+            style="padding-left: 30px;" 
             placeholder="Cari buku kas..." 
           />
           <ion-icon 
             :icon="searchOutline" 
-            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; color: #94a3b8;" 
+            style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;" 
           />
         </div>
         
@@ -223,28 +223,26 @@ onIonViewWillEnter(fetchProjects)
     </ion-header>
 
     <ion-content fullscreen class="app-content-wrap">
-        <ion-grid class="">
-          <ion-row>
-            <ion-col size="6">
-              <div class="mobile-card p-3 h-100 border-start border-4 border-success">
-                <small class="text-muted d-block">Total Modal</small>
-                <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency(totalDepositsAll) }}</div>
-              </div>
-            </ion-col>
-            <ion-col size="6">
-              <div class="mobile-card p-3 h-100 border-start border-4 border-danger">
-                <small class="text-muted d-block">Total Pengeluaran</small>
-                <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(totalExpensesAll) }}</div>
-              </div>
-            </ion-col>
-            <ion-col size="12">
-              <div class="mobile-card p-3 h-100 border-start border-4 border-primary">
-                <small class="text-muted d-block">Total Sisa Saldo</small>
-                <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(totalBalanceAll) }}</div>
-              </div>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
+        <div class="row m-2 g-2">
+          <div class="col-6 col-sm-4 col-md-3 mb-2">
+            <div class="mobile-card p-3 h-100 transition-all">
+              <small class="text-muted d-block">Total Modal</small>
+              <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency(totalDepositsAll) }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-md-3 mb-2">
+            <div class="mobile-card p-3 h-100 transition-all">
+              <small class="text-muted d-block">Total Pengeluaran</small>
+              <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(totalExpensesAll) }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-4 col-md-3 mb-2">
+            <div class="mobile-card p-3 h-100 transition-all">
+              <small class="text-muted d-block">Total Sisa Saldo</small>
+              <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(totalBalanceAll) }}</div>
+            </div>
+          </div>
+        </div>
 
         <div v-if="loading" class="loading-state">
           <ion-spinner />

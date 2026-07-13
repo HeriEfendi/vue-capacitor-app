@@ -481,13 +481,30 @@ const availableCategories = computed(() => {
 const donutOptions = computed(() => ({
   chart: { 
     type: 'donut',
-    height: 300,
-    width: '100%' 
+    height: 240,
+    width: '100%',
+    toolbar: { show: false }
   },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '75%',
+        customRoundEdges: true,
+        expandOnClick: false
+      }
+    }
+  },
+  colors: ['#059669', '#e11d48', '#3b82f6', '#8b5cf6', '#f59e0b', '#06b6d4', '#ec4899', '#6366f1', '#14b8a6', '#f97316'],
   labels: Object.keys(categoryTotals.value),
+  stroke: {
+    lineCap: 'round',
+    width: 0
+  },
+  legend: { position: 'bottom', labels: { colors: '#64748b' } },
   tooltip: {
     enabled: true,
-    trigger: 'click',
+    shared: true,
+    intersect: false,
     y: {
       formatter: (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
     }
@@ -546,15 +563,10 @@ const barOptions = computed(() => {
       type: 'bar',
       height: 300,
       width: '100%',
-      toolbar: { show: false } 
+      toolbar: { show: false } ,
+      sparkline: { enabled: false }
     },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: '55%',
-        endingShape: 'rounded'
-      },
-    },
+    plotOptions: { bar: { borderRadius: 6, columnWidth: '50%', dataLabels: { position: 'top' } } },
     dataLabels: {
       enabled: false
     },
@@ -563,21 +575,26 @@ const barOptions = computed(() => {
       width: 2,
       colors: ['transparent']
     },
-    xaxis: { categories: cashFlowData.value.months },
+    xaxis: { 
+      categories: cashFlowData.value.months,
+      labels: { style: { colors: '#64748b', fontWeight: 600 } }
+    },
     yaxis: {
       labels: {
+        style: { colors: '#64748b' },
         formatter: (val: number) => new Intl.NumberFormat('id-ID').format(val)
       }
     },
-    fill: {
-      opacity: 1
-    },
-    colors: ['#2e7d32', '#c62828'], // green for deposit, red for expense
+    colors: ['#059669', '#e11d48'],
     tooltip: {
+      enabled: true,
+      shared: true,
+      intersect: false,
       y: {
         formatter: (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
       }
-    }
+    },
+    grid: { borderColor: '#e2e8f0', strokeDashArray: 4 }
   }
 })
 
@@ -668,67 +685,65 @@ onUnmounted(() => clearInterval(interval))
         <div v-if="activeTab === 'dashboard'" class="ion-padding px-2">
           
           <!-- Summary Grid -->
-            <ion-grid class="app-content-wrap p-0">
-              <ion-row>
-                <ion-col size="6">
-                  <div class="mobile-card p-3 h-100 border-start border-4 border-success">
-                    <small class="text-muted d-block">Modal</small>
-                    <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).modal_total || 0) }}</div>
-                  </div>
-                </ion-col>
-                <ion-col size="6">
-                  <div class="mobile-card p-3 h-100 border-start border-4 border-danger">
-                    <small class="text-muted d-block">Pengeluaran</small>
-                    <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(project.total_expenses) }}</div>
-                  </div>
-                </ion-col>
-                <ion-col size="6" v-if="(project as any).panen_total > 0">
-                  <div class="mobile-card p-3 h-100 border-start border-4 border-success">
-                    <small class="text-muted d-block">Pendapatan</small>
-                    <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).panen_total || 0) }}</div>
-                    
-                    <div class="d-flex justify-content-between align-items-center border-top mt-2 pt-2">
-                      <div class="d-flex flex-column align-items-start">
-                        <small class="text-muted" style="font-size: 0.72rem; line-height: 1;">Margin</small>
-                        <span class="fw-bold mt-1" :class="profitPercent >= 0 ? 'text-success' : 'text-danger'">{{ profitPercent }}%</span>
-                      </div>
-                      <div class="d-flex flex-column align-items-end">
-                        <small class="text-muted" style="font-size: 0.72rem; line-height: 1;">ROI</small>
-                        <span class="fw-bold mt-1" :class="roi >= 0 ? 'text-success' : 'text-danger'">{{ roi }}%</span>
-                      </div>
-                    </div>
-                  </div>
-                </ion-col>
-                <ion-col size="6">
-                  <div class="mobile-card p-3 h-100 border-start border-4 border-primary">
-                    <div v-if="(project as any).panen_total > 0" class="mb-2">
-                      <small class="text-muted d-block">Keuntungan</small>
-                      <div class="fs-6 fw-bold mt-1" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
-                      <div class="border-bottom my-2"></div>
-                    </div>
-                    <small class="text-muted d-block">Sisa Saldo</small>
-                    <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(project.balance) }}</div>
-                  </div>
-                </ion-col>
-                <ion-col size="6" v-if="(project as any).panen_total <= 0">
-                  <div class="mobile-card p-3 h-100 border-start border-4 border-warning">
-                    <small class="text-muted d-block">Total Transaksi</small>
-                    <div class="fs-6 fw-black text-warning mt-1">{{ (project.transactions || []).length }}</div>
-                  </div>
-                </ion-col>
-              </ion-row>
-            </ion-grid>
+        <div class="project-actions d-grid gap-2 m-2 mx-0">
+          <div class="mb-2">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Modal</small>
+              <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).modal_total || 0) }}</div>
+            </div>
+          </div>
+          <div class="mb-2">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Pengeluaran</small>
+              <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(project.total_expenses) }}</div>
+            </div>
+          </div>
+          <div class="mb-2" v-if="(project as any).panen_total > 0">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Pendapatan</small>
+              <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).panen_total || 0) }}</div>
+              
+              <div class="d-flex justify-content-between align-items-center border-top mt-2 pt-2">
+                <div class="d-flex flex-column align-items-start">
+                  <small class="text-muted">Margin</small>
+                  <span class="fw-bold mt-1" :class="profitPercent >= 0 ? 'text-success' : 'text-danger'">{{ profitPercent }}%</span>
+                </div>
+                <div class="d-flex flex-column align-items-end">
+                  <small class="text-muted">ROI</small>
+                  <span class="fw-bold mt-1" :class="roi >= 0 ? 'text-success' : 'text-danger'">{{ roi }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mb-2">
+            <div class="mobile-card p-3 h-100">
+              <div v-if="(project as any).panen_total > 0" class="mb-2">
+                <small class="text-muted d-block">Keuntungan</small>
+                <div class="fs-6 fw-black mt-1" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
+                <div class="border-bottom my-2"></div>
+              </div>
+              <small class="text-muted d-block">Sisa Saldo</small>
+              <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(project.balance) }}</div>
+            </div>
+          </div>
+          <div class="mb-2" v-if="(project as any).panen_total <= 0">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Total Transaksi</small>
+              <div class="fs-6 fw-black text-primary mt-1">{{ (project.transactions || []).length }}</div>
+            </div>
+          </div>
+        </div>
 
           <!-- Charts -->
-          <div class="mobile-card container-padded mb-3 mt-3 mx-2">
+          <div class="mobile-card container-padded mb-3 mt-3 mx-2" v-if="barSeries[0].data.length > 0">
             <h6 class="fw-bold text-dark mb-3">Arus Kas Bulanan</h6>
-            <VueApexCharts type="bar" height="280" :options="barOptions" :series="barSeries" />
+            <VueApexCharts type="bar" height="240" :options="barOptions" :series="barSeries" />
           </div>
 
           <div class="mobile-card container-padded mb-3 mx-2">
             <h6 class="fw-bold text-dark mb-3">Pengeluaran per Kategori</h6>
             <div v-if="donutSeries.length > 0">
-              <VueApexCharts type="donut" height="280" :options="donutOptions" :series="donutSeries" />
+              <VueApexCharts type="donut" height="240" :options="donutOptions" :series="donutSeries" />
             </div>
             <div v-else class="text-center py-4 text-muted">Belum ada data pengeluaran.</div>
           </div>
@@ -740,24 +755,24 @@ onUnmounted(() => clearInterval(interval))
           
           <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between">
             <!-- Search input -->
-            <div class="px-3 pb-2 pt-1 w-100 search-container">
+            <div class="w-100 px-3 py-1 search-container">
               <div class="search-input-wrap position-relative">
                 <input 
                   type="text" 
                   v-model="txSearchQuery" 
-                  class="form-control app-control" 
-                  style="padding-left: 40px;" 
+                  class="form-control form-control-sm app-control" 
+                  style="padding-left: 30px;" 
                   placeholder="Cari transaksi..." 
                 />
                 <ion-icon 
                   :icon="searchOutline" 
-                  style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; color: #94a3b8;" 
+                  style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;" 
                 />
               </div>
             </div>
 
             <!-- Filter chips -->
-            <div class="px-3 py-2 d-flex gap-2 overflow-x-auto" style="scrollbar-width: none;">
+            <div class="mx-3 my-2 d-flex gap-2 overflow-x-auto" style="scrollbar-width: none;">
               <button
                 v-for="opt in filterOptions" 
                 :key="opt.value"
@@ -784,7 +799,7 @@ onUnmounted(() => clearInterval(interval))
               <template v-for="tx in filteredTransactions" :key="tx.id">
                 <ion-card class="transaction-card">
                 <div class="transaction-inner d-flex align-items-center" :class="tx.type === 'DEPOSIT' ? 'deposit-bg' : 'expense-bg'">
-                  <div class="transaction-meta">
+                  <div class="transaction-meta ms-2">
                     <span class="fw-bold" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
                       {{ tx.type === 'DEPOSIT' ? '▲ In' : '▼ Out' }}
                     </span>

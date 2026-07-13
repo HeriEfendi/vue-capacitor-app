@@ -34,25 +34,25 @@
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Hari Ini</small>
-              <div class="fs-4 fw-black text-teal mt-1">{{ formatPrice(summary.daily) }}</div>
+              <div class="fs-6 fw-black text-teal mt-1">{{ formatPrice(summary.daily) }}</div>
             </div>
           </div>
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Minggu Ini</small>
-              <div class="fs-4 fw-black text-indigo mt-1">{{ formatPrice(summary.weekly) }}</div>
+              <div class="fs-6 fw-black text-indigo mt-1">{{ formatPrice(summary.weekly) }}</div>
             </div>
           </div>
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Bulan Ini</small>
-              <div class="fs-4 fw-black text-amber mt-1">{{ formatPrice(summary.monthly) }}</div>
+              <div class="fs-6 fw-black text-amber mt-1">{{ formatPrice(summary.monthly) }}</div>
             </div>
           </div>
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Tahun Ini</small>
-              <div class="fs-4 fw-black text-danger mt-1">{{ formatPrice(summary.yearly) }}</div>
+              <div class="fs-6 fw-black text-danger mt-1">{{ formatPrice(summary.yearly) }}</div>
             </div>
           </div>
         </div>
@@ -205,7 +205,11 @@ export default {
     const monthlyChartOptions = {
         chart: { toolbar: { show: false }, type: 'area', zoom: { enabled: false } },
         colors: ['#ea580c'],
-        xaxis: { categories: ['B-5', 'B-4', 'B-3', 'B-2', 'B-1', 'Bulan Ini'] },
+        xaxis: { categories: Array.from({length: 6}, (_, i) => {
+            const m = new Date();
+            m.setMonth(m.getMonth() - (5 - i));
+            return m.toLocaleDateString('id-ID', { month: 'short' });
+        }) },
         yaxis: { labels: { formatter: (val) => new Intl.NumberFormat('id-ID').format(val) } },
         tooltip: { y: { formatter: (val) => 'Rp ' + new Intl.NumberFormat('id-ID').format(val) } },
         dataLabels: {
