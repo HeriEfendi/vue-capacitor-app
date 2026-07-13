@@ -112,6 +112,12 @@ const openCamera = async () => {
   isProcessing.value = true;
   try {
     const { Camera } = await import('@capacitor/camera');
+    const status = await Camera.checkPermissions();
+    if (status.camera !== 'granted') {
+      const request = await Camera.requestPermissions();
+      if (request.camera !== 'granted') throw new Error('Permission denied');
+    }
+
     const image = await Camera.getPhoto({
       quality: 90,
       allowEditing: true,

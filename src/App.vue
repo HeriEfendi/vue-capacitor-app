@@ -24,10 +24,16 @@ export default {
     const route = useRoute();
     provide('sidebarVisible', store.state.sidebarVisible);
 
+    let lastBackPress = 0;
     onMounted(() => {
       App.addListener('backButton', () => {
-        if (route.name === 'FinancialRecordsDetails') {
-          router.push('/buku_kas');
+        if (route.name === 'Dashboard') {
+          const now = Date.now();
+          if (now - lastBackPress < 2000) {
+            App.exitApp();
+          } else {
+            lastBackPress = now;
+          }
         } else {
           router.back();
         }

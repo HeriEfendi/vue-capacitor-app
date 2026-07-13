@@ -1316,27 +1316,29 @@ export default {
 
     const monthlyChartSeries = computed(() => {
       const now = new Date();
+      const baseMonth = now.getDate() <= settings.value.cutoffDate ? now.getMonth() - 1 : now.getMonth();
       const start = settings.value.cutoffType === 'weekly' 
-        ? new Date(now.getFullYear(), now.getMonth(), 1) 
-        : getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
+        ? getStartOfWeeklyPeriod(new Date(now.getFullYear(), baseMonth, 1), settings.value.cutoffDay)
+        : new Date(now.getFullYear(), baseMonth, settings.value.cutoffDate + 1);
       
       // Group by weeks in month (Week 1, Week 2, Week 3, Week 4, Week 5)
       
       const logsInPeriod = logs.value.filter(log => new Date(log.clockIn) >= start);
       if (logsInPeriod.length === 0) return [{ name: 'Total Jam', data: [0, 0, 0, 0, 0] }];
 
-      // Group logs by week index relative to the *first* week found in the period
+      // Group logs by week index relative to period start (weekIdx = posisi langsung di array)
       const weekGroups = new Map();
       logsInPeriod.forEach(log => {
         const logDate = new Date(log.clockIn);
-        const weekIdx = Math.floor((logDate.getTime() - start.getTime()) / 86400000 / 7);
-        weekGroups.set(weekIdx, (weekGroups.get(weekIdx) || 0) + log.totalWorkHours);
+        const weekIdx = Math.floor((logDate.getTime() - start.getTime()) / (86400000 * 7));
+        if (weekIdx >= 0 && weekIdx < 5) {
+          weekGroups.set(weekIdx, (weekGroups.get(weekIdx) || 0) + log.totalWorkHours);
+        }
       });
 
-      const sortedWeekIndices = Array.from(weekGroups.keys()).sort((a, b) => a - b);
       const data = [0, 0, 0, 0, 0];
-      sortedWeekIndices.forEach((weekIdx, i) => {
-        if (i < 5) data[i] = weekGroups.get(weekIdx);
+      weekGroups.forEach((hours, weekIdx) => {
+        data[weekIdx] = hours;
       });
 
       return [{
@@ -1367,7 +1369,7 @@ export default {
           }
         },
         xaxis: {
-          categories: ['Mng 1', 'Mng 2', 'Mng 3', 'Mng 4', 'Mng 5'],
+          categories: ['Mgg 1', 'Mgg 2', 'Mgg 3', 'Mgg 4', 'Mgg 5'],
           labels: { style: { colors: '#64748b', fontWeight: 600 } }
         },
         yaxis: {
@@ -1393,7 +1395,25 @@ export default {
             formatter: function (val) {
               const h = Math.floor(val);
               const m = Math.round((val % 1) * 60);
-              return `${h}.${String(m).padStart(2, '0')}`;
+              return `${h}.${String(m).padStart(2, '0')} jam`;
+            }
+          },
+          title: {
+            formatter: function (seriesName, { dataPointIndex }) {
+              const i = dataPointIndex ?? 0;
+              const now = new Date();
+              const baseMonth = now.getDate() <= settings.value.cutoffDate ? now.getMonth() - 1 : now.getMonth();
+              const cutoff = settings.value.cutoffDate;
+              const periodStart = new Date(now.getFullYear(), baseMonth, cutoff + 1);
+              const weekStart = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate() + (i * 7));
+              let weekEnd;
+              if (i === 4) {
+                weekEnd = new Date(periodStart.getFullYear(), periodStart.getMonth() + 1, cutoff);
+              } else {
+                weekEnd = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate() + (i * 7) + 6);
+              }
+              const fmt = (d) => `${d.getDate()} ${d.toLocaleString('id-ID', { month: 'short' })}`;
+              return `Mgg ${i + 1}: ${fmt(weekStart)} – ${fmt(weekEnd)}`;
             }
           }
         }
