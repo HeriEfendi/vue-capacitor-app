@@ -13,6 +13,7 @@
     "@capacitor/camera": "^8.2.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/share": "^8.0.1",
     "@coreui/coreui": "^5.4.1",
     "@coreui/icons": "^3.0.1",
     "@coreui/icons-vue": "^2.2.0",

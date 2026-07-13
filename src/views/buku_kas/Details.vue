@@ -6,8 +6,6 @@ import { initDB } from '@/db'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader, IonAlert, IonFooter, IonSegment, IonSegmentButton, IonBackButton } from '@ionic/vue';
 import AppToast from '@/components/AppToast.vue';
 import { addOutline, trashOutline, pencilOutline, closeOutline, cloudUploadOutline, cloudDownloadOutline, listOutline, checkmarkCircleOutline, searchOutline, arrowBackOutline } from 'ionicons/icons';
-import { Capacitor } from '@capacitor/core'
-import { Filesystem, Directory } from '@capacitor/filesystem'
 const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
 
 
@@ -389,15 +387,29 @@ function getGuideData() {
   ]
 }
 
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+
 async function saveWorkbook(wb: XLSX.WorkBook, fileName: string) {
   if (Capacitor.isNativePlatform()) {
+    const base64 = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+    const path = `temp_${fileName}`;
     await Filesystem.writeFile({
-      path: fileName,
-      data: XLSX.write(wb, { bookType: 'xlsx', type: 'base64' }),
-      directory: Directory.Documents,
-    })
-    showSnackbar(`File tersimpan di Documents/${fileName}`, 'success')
-    return
+      path,
+      data: base64,
+      directory: Directory.Cache,
+    });
+    const { uri } = await Filesystem.getUri({
+      path,
+      directory: Directory.Cache,
+    });
+    await Share.share({
+      title: 'Download Excel',
+      url: uri,
+      dialogTitle: 'Simpan file',
+    });
+    return;
   }
 
   XLSX.writeFile(wb, fileName)
