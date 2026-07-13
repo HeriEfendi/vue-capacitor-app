@@ -72,38 +72,10 @@ function _isUserCancelled(err) {
 }
 
 /**
- * Check and request camera/photos permission on native platform.
- */
-async function checkAndRequestPermissions(source) {
-  if (!isNative()) return
-  try {
-    const status = await Camera.checkPermissions()
-    if (source === CameraSource.Camera) {
-      if (status.camera !== 'granted') {
-        const req = await Camera.requestPermissions({ permissions: ['camera'] })
-        if (req.camera !== 'granted') {
-          throw new Error('Izin kamera ditolak. Buka Pengaturan → Aplikasi → izinkan Kamera.')
-        }
-      }
-    } else {
-      if (status.photos !== 'granted') {
-        const req = await Camera.requestPermissions({ permissions: ['photos'] })
-        if (req.photos !== 'granted') {
-          throw new Error('Izin galeri ditolak. Buka Pengaturan → Aplikasi → izinkan Penyimpanan/Foto.')
-        }
-      }
-    }
-  } catch (err) {
-    console.warn('Error checking/requesting permissions:', err)
-  }
-}
-
-/**
  * Ambil foto dari Kamera (Capacitor Camera).
  */
 export async function captureFromCamera() {
   try {
-    await checkAndRequestPermissions(CameraSource.Camera)
     const photo = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
@@ -133,7 +105,6 @@ export async function captureFromCamera() {
 /** Pilih gambar dari Galeri (Capacitor Camera). */
 export async function pickFromGallery() {
   try {
-    await checkAndRequestPermissions(CameraSource.Photos)
     const photo = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
