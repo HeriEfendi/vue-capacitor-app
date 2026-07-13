@@ -112,10 +112,6 @@ const openCamera = async () => {
   isProcessing.value = true;
   try {
     const { Camera } = await import('@capacitor/camera');
-    if (Capacitor.isNativePlatform()) {
-      const permissions = await Camera.requestPermissions({ permissions: ['camera'] });
-      if (permissions.camera !== 'granted') throw new Error('Izin kamera ditolak');
-    }
     const image = await Camera.getPhoto({
       quality: 90,
       allowEditing: true,
