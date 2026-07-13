@@ -46,7 +46,7 @@
 
 <script>
 import { IonMenu, IonContent, IonList, IonItem, IonLabel, IonIcon, menuController } from '@ionic/vue';
-import { checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline, timeOutline, cartOutline, layersOutline, informationCircleOutline } from 'ionicons/icons';
+import { checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline, timeOutline, cartOutline, layersOutline, informationCircleOutline, cloudDownloadOutline } from 'ionicons/icons';
 
 export default {
   name: 'AppSidebar',
@@ -84,6 +84,7 @@ export default {
         title: 'General Setting',
         items: [
           { label: 'Users', path: '/users', icon: peopleOutline, desc: 'Data pengguna', accent: '#0f766e' },
+          { label: 'Backup & Restore', path: '/backup-restore', icon: cloudDownloadOutline, desc: 'Ekspor & Impor Database', accent: '#6366f1' },
           { label: 'Tentang Aplikasi', path: '/about', icon: informationCircleOutline, desc: 'Tentang & Developer', accent: '#0ea5e9' },
           { label: 'Profile', path: '/profile', icon: personOutline, desc: 'Data profil', accent: '#0ea5e9' },
         ],
