@@ -2,18 +2,19 @@
   <ion-page class="app-page">
     <ion-header class="app-header">
       <ion-toolbar class="app-toolbar">
-        <div class="app-hero backup-hero">
-          <div class="d-flex align-items-center gap-2">
-            <ion-back-button default-href="/dashboard" class="custom-back-btn" />
-            <div>
-              <p class="eyebrow">General Setting</p>
-              <ion-title class="app-hero-title" style="padding: 0;">Backup & Restore</ion-title>
-              <p class="app-hero-subtitle">Ekspor seluruh data database ke Excel atau Impor kembali kapan saja.</p>
-            </div>
+        <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <ion-title class="app-hero-title" style="padding: 0;">Backup & Restore</ion-title>
+            <ion-buttons slot="end">
+              <ion-button @click="openSettingsModal">
+                <ion-icon :icon="settingsOutline" />
+              </ion-button>
+            </ion-buttons>
           </div>
+          <p class="app-hero-subtitle" style="margin: 0;">Ekspor seluruh data database ke Excel atau Impor kembali kapan saja.</p>
         </div>
       </ion-toolbar>
-    </ion-header>
+    </ion-header> 
 
     <ion-content class="app-content-wrap ion-padding">
       <!-- Loading Overlay -->
@@ -26,9 +27,9 @@
       </div>
 
       <!-- Action Grid -->
-      <div class="backup-grid">
+      <div class="backup-grid m-2">
         <!-- Card 1: Backup -->
-        <ion-card class="mobile-card action-card shadow-soft">
+        <ion-card class="mobile-card action-card shadow-soft mb-2">
           <div class="card-glow-bg backup-glow"></div>
           <ion-card-header class="mobile-card-header">
             <div class="icon-circle bg-emerald-light">
@@ -51,7 +52,7 @@
         </ion-card>
 
         <!-- Card 2: Restore -->
-        <ion-card class="mobile-card action-card shadow-soft">
+        <ion-card class="mobile-card action-card shadow-soft mb-2 mt-0">
           <div class="card-glow-bg restore-glow"></div>
           <ion-card-header class="mobile-card-header">
             <div class="icon-circle bg-indigo-light">
