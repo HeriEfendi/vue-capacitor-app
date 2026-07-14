@@ -1,87 +1,104 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button default-href="/dashboard" />
-        </ion-buttons>
-        <ion-title>Manajemen Stok</ion-title>
+    <ion-header class="app-header">
+      <ion-toolbar class="app-toolbar">
+        <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <ion-title class="app-hero-title" style="padding: 0;">Manajemen Stok</ion-title>
+          </div>
+          <p class="app-hero-subtitle" style="margin: 0;">Pantau stok barang dan riwayat mutasi presisi.</p>
+        </div>
       </ion-toolbar>
-    </ion-header>
 
-    <ion-content class="app-content-wrap bg-light">
-      <!-- Tabs Segment -->
-      <div class="px-3 pt-3">
+      <div class="p-3">
         <ion-segment v-model="activeTab" class="custom-segment">
           <ion-segment-button value="monitoring">
-            <ion-label>Monitoring Stok</ion-label>
+            <ion-label>Monitoring</ion-label>
           </ion-segment-button>
           <ion-segment-button value="mutasi">
-            <ion-label>Riwayat Mutasi</ion-label>
+            <ion-label>Mutasi</ion-label>
           </ion-segment-button>
         </ion-segment>
       </div>
+    </ion-header>
+
+    <ion-content class="app-content-wrap bg-light">
 
       <!-- TAB 1: MONITORING STOK -->
       <div v-if="activeTab === 'monitoring'" class="ion-padding">
-        <!-- Stock Metrics Dashboard Card -->
-        <div class="row g-2 mb-4">
-          <div class="col-4">
-            <div class="mobile-card p-3 h-100 text-center">
-              <small class="text-muted d-block" style="font-size: 0.75rem;">Total Produk</small>
-              <div class="fs-4 fw-black text-indigo mt-1">{{ products.length }}</div>
+        <!-- Stock Metrics Dashboard -->
+        <div class="project-actions d-grid gap-2 m-2">
+          <div class="mb-2 clickable-card">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Total Produk</small>
+              <div class="fs-3 fw-black text-indigo mt-1">{{ products.length }} <span class="fs-6 fw-normal">Item</span></div>
+              <small class="text-muted mt-1 d-block small">Variasi produk terdaftar</small>
             </div>
           </div>
-          <div class="col-4">
-            <div class="mobile-card p-3 h-100 text-center">
-              <small class="text-muted d-block" style="font-size: 0.75rem;">Total Stok Item</small>
-              <div class="fs-4 fw-black text-teal mt-1">{{ totalStockCount }}</div>
+          <div class="mb-2 clickable-card">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Total Stok Item</small>
+              <div class="fs-3 fw-black text-teal mt-1">{{ totalStockCount }} <span class="fs-6 fw-normal">Unit</span></div>
+              <small class="text-muted mt-1 d-block small">Seluruh inventaris</small>
             </div>
           </div>
-          <div class="col-4">
-            <div class="mobile-card p-3 h-100 text-center">
-              <small class="text-muted d-block" style="font-size: 0.75rem;">Total Nilai Stok</small>
-              <div class="fs-5 fw-black text-amber mt-1 text-truncate" :title="formatPrice(totalStockValue)">
-                {{ formatPrice(totalStockValue) }}
-              </div>
+          <div class="mb-2 clickable-card">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Stok Tipis</small>
+              <div class="fs-3 fw-black text-danger mt-1">{{ lowStockCount }} <span class="fs-6 fw-normal">Item</span></div>
+              <small class="text-muted mt-1 d-block small">Segera butuh restock</small>
+            </div>
+          </div>
+          <div class="mb-2 clickable-card">
+            <div class="mobile-card p-3 h-100">
+              <small class="text-muted d-block">Total Nilai Stok</small>
+              <div class="fs-6 fw-black text-amber mt-1 text-truncate">{{ formatPrice(totalStockValue) }}</div>
+              <small class="text-muted mt-1 d-block small">Nilai aset total</small>
             </div>
           </div>
         </div>
 
         <!-- Filters & Search -->
-        <div class="mobile-card p-3 mb-3">
-          <input 
-            type="text" 
-            v-model="searchQuery" 
-            class="form-control app-control mb-3" 
-            placeholder="Cari produk..." 
-          />
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between mb-3">
+          <!-- Search input -->
+          <div class="w-100 px-3 py-1 search-container">
+            <div class="search-input-wrap position-relative">
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                class="form-control form-control-sm app-control" 
+                style="padding-left: 30px;" 
+                placeholder="Cari produk..." 
+              />
+              <ion-icon 
+                :icon="searchOutline" 
+                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;" 
+              />
+            </div>
+          </div>
 
-          <!-- Quick Stock Filters -->
-          <div class="filter-chips--mobile">
-            <button 
-              type="button" 
-              class="btn btn-action btn-sm me-1"
-              :class="statusFilter === 'all' ? 'primary' : 'light'"
+          <!-- Filter chips -->
+          <div class="mx-3 my-2 d-flex gap-2 overflow-x-auto" style="scrollbar-width: none;">
+            <button
+              class="btn btn-action btn-md" 
+              :class="statusFilter === 'all' ? 'pill-badge primary' : 'pill-badge secondary'" 
               @click="statusFilter = 'all'"
             >
-              Semua ({{ products.length }})
+              Semua <ion-badge slot="end" class="ms-2 small-badge">{{ products.length }}</ion-badge>
             </button>
-            <button 
-              type="button" 
-              class="btn btn-action btn-sm me-1"
-              :class="statusFilter === 'low' ? 'warning' : 'light'"
+            <button
+              class="btn btn-action btn-md" 
+              :class="statusFilter === 'low' ? 'pill-badge warning' : 'pill-badge secondary'" 
               @click="statusFilter = 'low'"
             >
-              Stok Tipis ({{ lowStockCount }})
+              Stok Tipis <ion-badge slot="end" class="ms-2 small-badge">{{ lowStockCount }}</ion-badge>
             </button>
-            <button 
-              type="button" 
-              class="btn btn-action btn-sm me-1"
-              :class="statusFilter === 'out' ? 'danger' : 'light'"
+            <button
+              class="btn btn-action btn-md" 
+              :class="statusFilter === 'out' ? 'pill-badge danger' : 'pill-badge secondary'" 
               @click="statusFilter = 'out'"
             >
-              Habis ({{ outOfStockCount }})
+              Habis <ion-badge slot="end" class="ms-2 small-badge">{{ outOfStockCount }}</ion-badge>
             </button>
           </div>
         </div>
@@ -96,18 +113,18 @@
           <div 
             v-for="prod in filteredProducts" 
             :key="prod.id" 
-            class="mobile-card p-3 mb-2 cursor-pointer stock-item-card"
+            class="mobile-card p-2 mb-2 cursor-pointer clickable-card mx-3"
             @click="openAdjustment(prod)"
           >
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center gap-3" style="max-width: 70%;">
-                <div class="rounded bg-light overflow-hidden flex-shrink-0" style="width: 50px; height: 50px; display: grid; place-items: center;">
-                  <img v-if="prod.imageURL" :src="prod.imageURL" :alt="prod.name" style="max-width: 100%; max-height: 100%; object-fit: cover;" />
+                <div class="rounded-3 bg-light overflow-hidden flex-shrink-0" style="width: 50px; height: 50px; display: grid; place-items: center;">
+                  <img v-if="prod.imageURL" :src="prod.imageURL" :alt="prod.name" style="width: 100%; height: 100%; object-fit: cover;" />
                   <ion-icon v-else :icon="basketOutline" style="font-size: 1.5rem; color: #adb5bd;" />
                 </div>
                 <div>
-                  <h6 class="fw-bold text-dark mb-1 text-truncate">{{ prod.name }}</h6>
-                  <span class="badge bg-secondary mb-0" style="font-size: 0.65rem;">{{ getCategoryName(prod.categoryId) }}</span>
+                  <h6 class="fw-bold text-dark mb-1 text-truncate medium">{{ prod.name }}</h6>
+                  <span class="badge bg-secondary mb-0 small">{{ getCategoryName(prod.categoryId) }}</span>
                 </div>
               </div>
 
@@ -115,7 +132,7 @@
                 <span class="text-muted small d-block mb-1">Nilai: {{ formatPrice(prod.price * prod.stock) }}</span>
                 <span v-if="prod.stock === 0" class="badge bg-danger fs-6 px-3 py-1">Habis</span>
                 <span v-else-if="prod.stock <= 5" class="badge bg-warning text-dark fs-6 px-3 py-1">Tipis ({{ prod.stock }})</span>
-                <span v-else class="badge bg-success fs-6 px-3 py-1">Stok: {{ prod.stock }}</span>
+                <span v-else class="badge bg-success medium px-3 py-1">Stok: {{ prod.stock }}</span>
               </div>
             </div>
           </div>
@@ -125,23 +142,34 @@
       <!-- TAB 2: RIWAYAT MUTASI -->
       <div v-if="activeTab === 'mutasi'" class="ion-padding">
         <!-- Actions & Export -->
-        <div class="d-flex justify-content-between align-items-center mb-3 px-1">
-          <h6 class="fw-bold text-dark mb-0">Catatan Mutasi Stok</h6>
+        <div class="d-flex justify-content-between align-items-center mx-3 mb-3">
+          <div></div>
           <button class="btn btn-action success btn-sm" @click="exportExcel">
             <ion-icon :icon="downloadOutline" class="me-1" /> Export Excel
           </button>
         </div>
 
-        <div class="mobile-card p-3 mb-3">
-          <input 
-            type="text" 
-            v-model="historySearchQuery" 
-            class="form-control app-control" 
-            placeholder="Filter nama produk..." 
-          />
+        <!-- Filters & Search -->
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between mb-3">
+          <!-- Search input -->
+          <div class="w-100 px-3 py-1 search-container">
+            <div class="search-input-wrap position-relative">
+              <input 
+                type="text" 
+                v-model="historySearchQuery" 
+                class="form-control form-control-sm app-control" 
+                style="padding-left: 30px;" 
+                placeholder="Filter nama produk..." 
+              />
+              <ion-icon 
+                :icon="searchOutline" 
+                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;" 
+              />
+            </div>
+          </div>
         </div>
 
-        <div v-if="filteredMutations.length === 0" class="empty-state text-center py-5 mobile-card">
+        <div v-if="filteredMutations.length === 0" class="mobile-card container-padded mb-3 border-start border-4">
           <ion-icon :icon="calendarOutline" style="font-size: 3rem;" class="mb-2" />
           <p>Belum ada riwayat mutasi stok.</p>
         </div>
@@ -151,7 +179,7 @@
           <div 
             v-for="log in filteredMutations" 
             :key="log.id" 
-            class="mobile-card p-3 mb-2 border-start border-4"
+            class="mobile-card container-padded mb-3 border-start border-4"
             :class="getMutationBorderClass(log.changeQuantity)"
           >
             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -257,7 +285,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { ProductRepository, CategoryRepository, stockMutationsRepo } from '../../../db/repositories'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, toastController } from '@ionic/vue';
-import { basketOutline, addOutline, removeOutline, downloadOutline, calendarOutline, documentTextOutline } from 'ionicons/icons';
+import { basketOutline, addOutline, removeOutline, downloadOutline, calendarOutline, documentTextOutline, searchOutline } from 'ionicons/icons';
 import { readProductImage } from '../../../composables/useProductImage';
 import * as XLSX from 'xlsx';
 
@@ -480,11 +508,3 @@ export default {
 }
 </script>
 
-<style scoped>
-.stock-item-card {
-  transition: transform 0.15s ease;
-}
-.stock-item-card:active {
-  transform: scale(0.98);
-}
-</style>

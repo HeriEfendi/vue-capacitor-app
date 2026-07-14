@@ -170,7 +170,7 @@
               <div class="progress mt-2" style="height: 6px;">
                 <div class="progress-bar bg-indigo" role="progressbar" :style="{ width: Math.min(100, (totalWeekHours / 40) * 100) + '%' }"></div>
               </div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Target: 40 Jam / Minggu</small>
+              <small class="text-muted mt-1 d-block small" >Target: 40 Jam / Minggu</small>
             </div>
           </div>
           <div class="mb-2">
@@ -180,21 +180,21 @@
               <div class="progress mt-2" style="height: 6px;">
                 <div class="progress-bar bg-teal" role="progressbar" :style="{ width: Math.min(100, (totalMonthHours / 160) * 100) + '%' }"></div>
               </div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Target: 160 Jam / Periode</small>
+              <small class="text-muted mt-1 d-block small" >Target: 160 Jam / Periode</small>
             </div>
           </div>
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Hari Kerja</small>
               <div class="fs-3 fw-black text-amber mt-1">{{ daysWorkedThisMonth }} <span class="fs-6 fw-normal">Hari</span></div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Periode aktif</small>
+              <small class="text-muted mt-1 d-block small" >Periode aktif</small>
             </div>
           </div>
           <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Rata-rata Harian</small>
               <div class="fs-3 fw-black text-primary mt-1">{{ Math.floor(avgDailyHours) }}.{{ String(Math.round((avgDailyHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Hari aktif</small>
+              <small class="text-muted mt-1 d-block small" >Hari aktif</small>
             </div>
           </div>
         </div>
@@ -1177,19 +1177,26 @@ export default {
 
     const daysWorkedThisMonth = computed(() => {
       const now = new Date();
-      let start;
-      if (settings.value.cutoffType === 'weekly') {
-        start = new Date(now.getFullYear(), now.getMonth(), 1);
-      } else {
-        start = getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
-      }
-      return logs.value.filter(log => new Date(log.clockIn) >= start).length;
+
+      const { start, end } = getMonthlyPeriodDates(now, settings.value);
+      return logs.value.filter(log => {
+        const d = new Date(log.clockIn);
+        return d >= start && d < end;
+      }).length;
     });
 
     const avgDailyHours = computed(() => {
-      const count = daysWorkedThisMonth.value;
-      if (count === 0) return 0;
-      return totalMonthHours.value / count;
+      const completedSessions = logs.value.filter(log => {
+        const { start, end } = getMonthlyPeriodDates(new Date(), settings.value);
+        const d = new Date(log.clockIn);
+        return log.clockOut && d >= start && d < end;
+    });
+
+    const totalHours = completedSessions.reduce((sum, log) => sum + log.totalWorkHours, 0);
+    const uniqueDays = new Set(completedSessions.map(log => log.date)).size;
+
+    if (uniqueDays === 0) return 0;
+    return totalHours / uniqueDays;
     });
 
     // Helper functions for cutoff periods
@@ -1215,6 +1222,20 @@ export default {
       return result;
     };
 
+
+    const getMonthlyPeriodDates = (date, settings) => {
+      let start, end;
+      if (settings.cutoffType === 'weekly') {
+        start = getStartOfWeeklyPeriod(new Date(date.getFullYear(), date.getMonth(), 1), settings.cutoffDay);
+        end = new Date(start);
+        end.setDate(end.getDate() + 35);
+      } else {
+        start = getStartOfMonthlyPeriod(date, settings.cutoffDate);
+        end = new Date(start);
+        end.setMonth(end.getMonth() + 1);
+      }
+      return { start, end };
+    };
     const weeklyPeriodRange = computed(() => {
       const now = new Date();
       let cutoffDay = settings.value.cutoffDay;
@@ -1316,34 +1337,27 @@ export default {
 
     const monthlyChartSeries = computed(() => {
       const now = new Date();
-      const baseMonth = now.getDate() <= settings.value.cutoffDate ? now.getMonth() - 1 : now.getMonth();
-      const start = settings.value.cutoffType === 'weekly' 
-        ? getStartOfWeeklyPeriod(new Date(now.getFullYear(), baseMonth, 1), settings.value.cutoffDay)
-        : new Date(now.getFullYear(), baseMonth, settings.value.cutoffDate + 1);
+      const { start, end } = getMonthlyPeriodDates(now, settings.value);
       
-      // Group by weeks in month (Week 1, Week 2, Week 3, Week 4, Week 5)
-      
-      const logsInPeriod = logs.value.filter(log => new Date(log.clockIn) >= start);
+      const logsInPeriod = logs.value.filter(log => {
+        const d = new Date(log.clockIn);
+        return d >= start && d < end;
+      });
+
       if (logsInPeriod.length === 0) return [{ name: 'Total Jam', data: [0, 0, 0, 0, 0] }];
 
-      // Group logs by week index relative to period start (weekIdx = posisi langsung di array)
-      const weekGroups = new Map();
+      const data = [0, 0, 0, 0, 0];
       logsInPeriod.forEach(log => {
         const logDate = new Date(log.clockIn);
         const weekIdx = Math.floor((logDate.getTime() - start.getTime()) / (86400000 * 7));
         if (weekIdx >= 0 && weekIdx < 5) {
-          weekGroups.set(weekIdx, (weekGroups.get(weekIdx) || 0) + log.totalWorkHours);
+          data[weekIdx] += log.totalWorkHours;
         }
-      });
-
-      const data = [0, 0, 0, 0, 0];
-      weekGroups.forEach((hours, weekIdx) => {
-        data[weekIdx] = hours;
       });
 
       return [{
         name: 'Total Jam',
-        data: data.map(v => Number(v))
+        data: data.map(v => Number(v.toFixed(2)))
       }];
     });
 

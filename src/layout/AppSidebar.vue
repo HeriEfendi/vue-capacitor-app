@@ -65,7 +65,7 @@ export default {
         title: 'Keuangan',
         items: [
           { label: 'Buku Kas', path: '/buku_kas', icon: documentTextOutline, desc: 'Bisnis, hobi & renovasi', accent: '#059669' },
-          { label: 'Tabungan', path: '/capital', icon: walletOutline, desc: 'Modal usaha', accent: '#d97706' },
+          { label: 'Tabungan', path: '/savings', icon: walletOutline, desc: 'Modal usaha', accent: '#d97706' },
           { label: 'Pengeluaran', path: '/expenses', icon: arrowDownCircleOutline, desc: 'Dana keluar', accent: '#dc2626' },
           { label: 'Pendapatan', path: '/incomes', icon: arrowUpCircleOutline, desc: 'Dana masuk', accent: '#16a34a' },
           { label: 'Utang', path: '/debts', icon: cardOutline, desc: 'Catatan utang', accent: '#9333ea' },

@@ -185,39 +185,39 @@
       <!-- TAB 2: MONITORING / DASHBOARD -->
       <div v-if="activeTab === 'dashboard'" class="ion-padding">
         <!-- Dashboard Metrics KPI Card -->
-        <div class="row g-2 mb-4">
-          <div class="col-6 col-md-3">
+        <div class="project-actions d-grid gap-2 m-2">
+          <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Penjualan Hari Ini</small>
-              <div class="fs-4 fw-black text-indigo mt-1">{{ formatPrice(kpiMetrics.salesToday) }}</div>
+              <div class="fs-6 fw-black text-indigo mt-1">{{ formatPrice(kpiMetrics.salesToday) }}</div>
               <small class="text-muted small mt-1 d-block">{{ kpiMetrics.countToday }} Transaksi</small>
             </div>
           </div>
-          <div class="col-6 col-md-3">
+          <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Pendapatan Bulan Ini</small>
-              <div class="fs-4 fw-black text-teal mt-1">{{ formatPrice(kpiMetrics.salesMonth) }}</div>
+              <div class="fs-6 fw-black text-teal mt-1">{{ formatPrice(kpiMetrics.salesMonth) }}</div>
               <small class="text-muted small mt-1 d-block">{{ kpiMetrics.countMonth }} Transaksi</small>
             </div>
           </div>
-          <div class="col-6 col-md-3">
+          <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Transaksi Total</small>
-              <div class="fs-4 fw-black text-amber mt-1">{{ salesHistory.length }}</div>
+              <div class="fs-6 fw-black text-amber mt-1">{{ salesHistory.length }}</div>
               <small class="text-muted small mt-1 d-block">Seluruh transaksi</small>
             </div>
           </div>
-          <div class="col-6 col-md-3">
+          <div class="mb-2">
             <div class="mobile-card p-3 h-100">
               <small class="text-muted d-block">Rata-rata Keranjang</small>
-              <div class="fs-4 fw-black text-primary mt-1">{{ formatPrice(kpiMetrics.avgBasket) }}</div>
+              <div class="fs-6 fw-black text-primary mt-1">{{ formatPrice(kpiMetrics.avgBasket) }}</div>
               <small class="text-muted small mt-1 d-block">Per transaksi</small>
             </div>
           </div>
         </div>
 
         <!-- Sales Trend Chart -->
-        <div class="mobile-card p-3 mb-4">
+        <div class="mobile-card container-padded mb-3">
           <h6 class="fw-bold text-dark mb-3">Grafik Penjualan 7 Hari Terakhir</h6>
           <div v-if="chartSeries[0].data.length > 0">
             <VueApexCharts type="area" height="260" :options="chartOptions" :series="chartSeries" />
@@ -228,7 +228,7 @@
         </div>
 
         <!-- Top Selling Products -->
-        <div class="mobile-card p-3 mb-4">
+        <div class="mobile-card container-padded mb-3">
           <h6 class="fw-bold text-dark mb-3">Produk Terlaris</h6>
           <div v-if="topProducts.length === 0" class="text-center py-3 text-muted">
             Belum ada data produk terjual.
@@ -236,12 +236,12 @@
           <div v-else class="list-group list-group-flush">
             <div v-for="(p, index) in topProducts" :key="index" class="list-group-item d-flex justify-content-between align-items-center py-2 px-1">
               <div>
-                <span class="fw-black text-indigo me-2">#{{ index + 1 }}</span>
-                <span class="text-dark fw-bold">{{ p.name }}</span>
+                <span class="fw-black text-indigo me-2 medium">#{{ index + 1 }}</span>
+                <span class="text-dark fw-bold medium">{{ p.name }}</span>
               </div>
               <div class="text-end">
-                <span class="badge bg-success me-2">{{ p.qtySold }} terjual</span>
-                <span class="fw-semibold text-muted">{{ formatPrice(p.revenue) }}</span>
+                <span class="pill-badge done small border me-2">{{ p.qtySold }} terjual</span>
+                <span class="fw-semibold text-muted medium">{{ formatPrice(p.revenue) }}</span>
               </div>
             </div>
           </div>
@@ -251,14 +251,14 @@
       <!-- TAB 3: RIWAYAT TRANSAKSI -->
       <div v-if="activeTab === 'riwayat'" class="ion-padding">
         <!-- Actions & Export -->
-        <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+        <div class="d-flex justify-content-between align-items-center mx-3 mb-3">
           <h6 class="fw-bold text-dark mb-0">Daftar Transaksi</h6>
           <button class="btn btn-action success btn-sm" @click="exportExcel">
             <ion-icon :icon="downloadOutline" class="me-1" /> Export Excel
           </button>
         </div>
 
-        <div v-if="salesHistory.length === 0" class="text-center py-5 text-muted mobile-card">
+        <div v-if="salesHistory.length === 0" class="d-flex justify-content-between align-items-center mx-3 mb-3">
           <ion-icon :icon="calendarOutline" style="font-size: 3rem;" class="mb-2" />
           <p>Belum ada riwayat transaksi penjualan.</p>
         </div>
@@ -268,7 +268,7 @@
           <div 
             v-for="sale in salesHistory" 
             :key="sale.id" 
-            class="mobile-card p-3 mb-3 border-start border-4 border-teal"
+            class="mobile-card container-padded mb-3 border-start border-4 border-teal"
           >
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
@@ -352,7 +352,7 @@
           <div v-if="paymentMethod === 'cash'">
             <div class="form-section px-0 mb-3">
               <label class="form-label">Uang Diterima (Tunai)</label>
-              <input type="number" class="form-control app-control fs-4 fw-bold text-dark" v-model.number="amountPaid" />
+              <input type="number" class="form-control app-control fs-6 fw-bold text-dark" v-model.number="amountPaid" />
             </div>
 
             <!-- Quick Cash Buttons -->
@@ -367,7 +367,7 @@
             <!-- Change display -->
             <div class="d-flex justify-content-between align-items-center p-3 rounded" :class="changeAmount >= 0 ? 'bg-success-light' : 'bg-danger-light'">
               <span class="fw-semibold text-dark">Kembalian:</span>
-              <span class="fs-4 fw-black" :class="changeAmount >= 0 ? 'text-success' : 'text-danger'">
+              <span class="fs-6 fw-black" :class="changeAmount >= 0 ? 'text-success' : 'text-danger'">
                 {{ changeAmount >= 0 ? formatPrice(changeAmount) : 'Kurang ' + formatPrice(Math.abs(changeAmount)) }}
               </span>
             </div>
@@ -921,7 +921,8 @@ export default {
         chart: {
           id: 'sales-trend',
           toolbar: { show: false },
-          sparkline: { enabled: false }
+          sparkline: { enabled: false },
+          zoom: { enabled: false }
         },
         dataLabels: { enabled: false },
         stroke: { curve: 'smooth', width: 3, colors: ['#6366f1'] },

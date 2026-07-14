@@ -41,7 +41,7 @@ db.version(7).stores({
   // Merged umkm_marketplace stores (from Dexie)
   categories: 'id, name',
   products: '++id, name, price, stock, categoryId, featured',
-  capitalCosts: '++id, createdAt, name, amount',
+  savings: '++id, createdAt, name, amount',
   debts: '++id, createdAt, name, amount, dueDate',
   incomes: '++id, createdAt, name, amount',
   expenses: '++id, createdAt, description, amount, date, category',
@@ -66,7 +66,7 @@ export async function seedDatabase() {
       oldDb.version(3).stores({
         categories: 'id, name',
         products: '++id, name, price, stock, categoryId, featured',
-        capitalCosts: '++id, createdAt, name, amount',
+        savings: '++id, createdAt, name, amount',
         debts: '++id, createdAt, name, amount, dueDate',
         incomes: '++id, createdAt, name, amount',
         expenses: '++id, createdAt, description, amount, date, category',

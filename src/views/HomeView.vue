@@ -52,7 +52,7 @@ export default {
       { name: 'Ceklok', path: '/ceklok', icon: timeOutline, count: 0, description: 'Presensi kerja', accent: '#06b6d4' },
       { name: 'Pengeluaran', path: '/expenses', icon: cashOutline, count: 0, description: 'Keluar dana', accent: '#f59e0b' },
       { name: 'Kasir (POS)', path: '/cashier', icon: cartOutline, count: 0, description: 'Penjualan & Kasir', accent: '#059669' },
-      { name: 'Tabungan', path: '/capital', icon: walletOutline, count: 0, description: 'Modal usaha', accent: '#d97706' },
+      { name: 'Tabungan', path: '/savings', icon: walletOutline, count: 0, description: 'Modal usaha', accent: '#d97706' },
       { name: 'Produk', path: '/products', icon: basketOutline, count: 0, description: 'Stok produk', accent: '#ef4444' },
       { name: 'Manajemen Stok', path: '/stock', icon: layersOutline, count: 0, description: 'Monitor & atur stok', accent: '#a855f7' },
       { name: 'Tentang Aplikasi', path: '/about', icon: informationCircleOutline, description: 'Tentang & Developer', accent: '#0ea5e9' },
@@ -77,14 +77,14 @@ export default {
         updateCount('/buku_kas', projects.length);
         updateCount('/ceklok', ceklokLogs.length);
 
-        const { capitalCostsRepo, ProductRepository, salesRepo, expensesRepo } = await import('../db/repositories')
+        const { savingsRepo, ProductRepository, salesRepo, expensesRepo } = await import('../db/repositories')
         updateCount('/expenses', (await expensesRepo.getAll()).length);
         
         const allProducts = await ProductRepository.getAll()
         const lowStockItems = allProducts.filter(p => p.stock <= 5)
 
         updateCount('/cashier', (await salesRepo.getAll()).length);
-        updateCount('/capital', (await capitalCostsRepo.getAll()).length);
+        updateCount('/savings', (await savingsRepo.getAll()).length);
         updateCount('/products', allProducts.length);
         updateCount('/stock', lowStockItems.length);
       } catch (e) {

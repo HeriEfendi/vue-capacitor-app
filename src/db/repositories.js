@@ -71,7 +71,7 @@ const createRepo = (tableName) => ({
     },
 });
 
-export const capitalCostsRepo = createRepo('capitalCosts');
+export const savingsRepo = createRepo('savings');
 export const debtsRepo = createRepo('debts');
 export const incomesRepo = createRepo('incomes');
 export const expensesRepo = createRepo('expenses');
