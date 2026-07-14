@@ -27,6 +27,29 @@ db.version(6).stores({
   stockMutations: '++id, productId, type, changeQuantity, beforeStock, afterStock, createdAt, notes'
 });
 
+// Version 7: Add project_id index to transactions for proper relational querying
+db.version(7).stores({
+  // Existing FinancialAppDB stores (from native IndexedDB)
+  projects: 'id',
+  todos: 'id',
+  team_todos: 'id',
+  users: 'id',
+  transactions: 'id, project_id',   // <-- tambah index project_id
+  ceklok_logs: 'id',
+  ceklok_settings: 'key',
+
+  // Merged umkm_marketplace stores (from Dexie)
+  categories: 'id, name',
+  products: '++id, name, price, stock, categoryId, featured',
+  capitalCosts: '++id, createdAt, name, amount',
+  debts: '++id, createdAt, name, amount, dueDate',
+  incomes: '++id, createdAt, name, amount',
+  expenses: '++id, createdAt, description, amount, date, category',
+  dailyLedger: '++id, createdAt, description, amount, type',
+  sales: '++id, createdAt, totalAmount, paymentMethod, amountPaid, changeAmount, items, notes',
+  stockMutations: '++id, productId, type, changeQuantity, beforeStock, afterStock, createdAt, notes'
+});
+
 let databaseSeeded = false;
 
 export async function seedDatabase() {

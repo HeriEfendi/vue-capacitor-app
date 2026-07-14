@@ -2,7 +2,8 @@
 import { ref, computed } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { useRouter } from 'vue-router'
-import { initDB } from '@/db'
+import { db } from '@/db/schema'
+import { calcProjectTotals } from '@/db/bukuKasMigration'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonAlert, IonFooter, IonSegment, IonSegmentButton } from '@ionic/vue';
 import AppToast from '@/components/AppToast.vue';
 import { addOutline, trashOutline, pencilOutline, arrowForwardOutline, closeOutline, trendingUpOutline, trendingDownOutline, pieChartOutline, searchOutline } from 'ionicons/icons';
@@ -74,8 +75,20 @@ function getStatusColor(status: string) {
 async function fetchProjects() {
   loading.value = true
   try {
-    const db = await initDB()
-    projects.value = await db.getAll('projects') || []
+    if (!db.isOpen()) await db.open()
+    const rawProjects = await db.table('projects').toArray()
+
+    // Hitung totals dari tabel transactions terpisah untuk setiap project
+    projects.value = await Promise.all(rawProjects.map(async (p) => {
+      const totals = await calcProjectTotals(p.id)
+      return {
+        ...p,
+        total_deposits: totals.total_deposits,
+        total_expenses: totals.total_expenses,
+        balance: totals.balance,
+        transactions: [], // tidak perlu dimuat di halaman index
+      }
+    }))
   } catch (e) {
     showSnackbar('Gagal memuat data buku kas', 'error')
   } finally {
@@ -87,6 +100,7 @@ async function createProject() {
   if (!formNew.value.name.trim()) return
   submitting.value = true
   try {
+    if (!db.isOpen()) await db.open()
     const newProject: Project = {
       id: Date.now(),
       name: formNew.value.name,
@@ -96,11 +110,12 @@ async function createProject() {
       total_expenses: 0,
       balance: 0,
       created_at: new Date().toISOString(),
-      transactions: [],
+      transactions: [], // hanya di state lokal, tidak disimpan ke DB
     }
     projects.value.unshift(newProject)
-    const db = await initDB()
-    await db.put('projects', newProject)
+    // Simpan ke DB tanpa field transactions
+    const { transactions: _tx, ...projectToSave } = newProject as any
+    await db.table('projects').put(projectToSave)
     dialogCreate.value = false
     formNew.value = { name: '', description: '', status: 'Active' }
     showSnackbar('Buku kas berhasil dibuat!', 'success')
@@ -113,9 +128,12 @@ async function createProject() {
 
 async function deleteProject(id: number) {
   try {
+    if (!db.isOpen()) await db.open()
     projects.value = projects.value.filter(p => p.id !== id)
-    const db = await initDB()
-    await db.delete('projects', id)
+    await db.table('projects').delete(id)
+    // Hapus juga semua transaksi terkait project ini
+    const txIds = await db.table('transactions').where('project_id').equals(id).primaryKeys()
+    await db.table('transactions').bulkDelete(txIds)
     dialogDeleteId.value = null
     showSnackbar('Buku kas berhasil dihapus', 'success')
   } catch (e) {
@@ -142,13 +160,15 @@ async function updateProject() {
   if (!editingId.value || !formEdit.value.name.trim()) return;
   submitting.value = true
   try {
+    if (!db.isOpen()) await db.open()
     const pIndex = projects.value.findIndex(p => p.id === editingId.value)
     if (pIndex !== -1) {
-      const updatedProject = JSON.parse(JSON.stringify({ ...projects.value[pIndex], ...formEdit.value }));
-      projects.value[pIndex] = updatedProject;
+      const updatedProject = { ...projects.value[pIndex], ...formEdit.value };
+      projects.value[pIndex] = { ...updatedProject };
       projects.value = [...projects.value]; // Force reactivity
-      const db = await initDB()
-      await db.put('projects', updatedProject)
+      // Simpan tanpa field transactions
+      const { transactions: _tx, ...toSave } = updatedProject as any
+      await db.table('projects').put(toSave)
       dialogEdit.value = false
       showSnackbar('Buku kas berhasil diupdate!', 'success')
       closeModal()

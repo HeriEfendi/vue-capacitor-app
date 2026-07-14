@@ -2,7 +2,8 @@
 import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import * as XLSX from 'xlsx'
 import { useRoute } from 'vue-router'
-import { initDB } from '@/db'
+import { db } from '@/db/schema'
+import { migrateProjectTransactions, getTransactionsByProject, calcProjectTotals } from '@/db/bukuKasMigration'
 import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader, IonAlert, IonFooter, IonSegment, IonSegmentButton, IonBackButton } from '@ionic/vue';
 import AppToast from '@/components/AppToast.vue';
 import { addOutline, trashOutline, pencilOutline, closeOutline, cloudUploadOutline, cloudDownloadOutline, listOutline, checkmarkCircleOutline, searchOutline, arrowBackOutline } from 'ionicons/icons';
@@ -138,18 +139,22 @@ function getStatusColor(status: string) {
 async function fetchProject() {
   loading.value = true
   try {
-    const db = await initDB()
+    if (!db.isOpen()) await db.open()
     const projectId = Number(route.params.id)
-    let found = await db.get('projects', projectId)
+    const found = await db.table('projects').get(projectId)
     
     if (found) {
-      // Ensure transactions array exists
-      found.transactions = found.transactions || []
-      
-      // Recalculate totals
-      const deposits = found.transactions.filter(t => t.type === 'DEPOSIT');
-      (found as any).modal_total = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-      (found as any).panen_total = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+      // Baca transaksi dari tabel terpisah
+      const txs = await getTransactionsByProject(projectId)
+      found.transactions = txs
+
+      // Hitung totals dari tabel transactions terpisah
+      const totals = await calcProjectTotals(projectId)
+      found.total_deposits = totals.total_deposits
+      found.total_expenses = totals.total_expenses
+      found.balance = totals.balance
+      ;(found as any).modal_total = totals.modal_total
+      ;(found as any).panen_total = totals.panen_total
     }
     project.value = found || null
   } catch(e) {
@@ -172,44 +177,38 @@ async function saveTransaction() {
   }
 
   try {
-    const db = await initDB()
-    const projects = await db.getAll('projects')
-    const projectIndex = projects.findIndex(p => p.id === project.value!.id)
+    if (!db.isOpen()) await db.open()
+    const projectId = project.value!.id
 
-    if (projectIndex !== -1) {
-      if (editingTxId.value) {
-        const txIndex = projects[projectIndex].transactions.findIndex(t => t.id === editingTxId.value)
-        if (txIndex !== -1) {
-          projects[projectIndex].transactions[txIndex] = { ...projects[projectIndex].transactions[txIndex], ...formTx.value };
-        }
-      } else {
-        const newTx: Transaction = {
-          id: Date.now(),
-          project_id: project.value.id,
-          ...formTx.value
-        }
-        if (!projects[projectIndex].transactions) projects[projectIndex].transactions = []
-        projects[projectIndex].transactions.push(newTx)
+    if (editingTxId.value) {
+      // Update transaksi yang sudah ada
+      const existing = await db.table('transactions').get(editingTxId.value)
+      if (existing) {
+        await db.table('transactions').put({ ...existing, ...formTx.value, project_id: projectId })
       }
-      
-      // Recalculate totals
-      const p = projects[projectIndex];
-      const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
-      p.total_deposits = deposits.reduce((acc, t) => acc + t.amount, 0);
-      p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
-      
-      const modal = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-      const panen = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-      
-      (p as any).modal_total = modal;
-      (p as any).panen_total = panen;
-      p.balance = p.total_deposits - p.total_expenses;
-
-      await db.put('projects', projects[projectIndex])
-      await fetchProject()
-      closeDialog()
-      showSnackbar('Transaksi berhasil disimpan!', 'success')
+    } else {
+      // Tambah transaksi baru
+      const newTx: Transaction = {
+        id: Date.now(),
+        project_id: projectId,
+        ...formTx.value
+      }
+      await db.table('transactions').put(newTx)
     }
+
+    // Hitung ulang totals dan update di project
+    const totals = await calcProjectTotals(projectId)
+    const projectRecord = await db.table('projects').get(projectId)
+    if (projectRecord) {
+      projectRecord.total_deposits = totals.total_deposits
+      projectRecord.total_expenses = totals.total_expenses
+      projectRecord.balance = totals.balance
+      await db.table('projects').put(projectRecord)
+    }
+
+    await fetchProject()
+    closeDialog()
+    showSnackbar('Transaksi berhasil disimpan!', 'success')
   } catch (e) {
     console.error(e)
     showSnackbar('Gagal menyimpan transaksi', 'error')
@@ -220,31 +219,24 @@ async function saveTransaction() {
 
 async function deleteTransaction(id: number) {
     try {
-        const db = await initDB();
-        const projects = await db.getAll('projects');
-        const projectIndex = projects.findIndex(p => p.id === project.value!.id);
+        if (!db.isOpen()) await db.open()
+        const projectId = project.value!.id
 
-        if (projectIndex !== -1) {
-            projects[projectIndex].transactions = projects[projectIndex].transactions.filter(t => t.id !== id);
-            
-            // Recalculate totals
-            const p = projects[projectIndex];
-            const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
-            p.total_deposits = deposits.reduce((acc, t) => acc + t.amount, 0);
-            p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
-            
-            const modal = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-            const panen = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-            (p as any).modal_total = modal;
-            (p as any).panen_total = panen;
-            
-            p.balance = p.total_deposits - p.total_expenses;
+        await db.table('transactions').delete(id)
 
-            dialogDeleteTxId.value = null;
-            await db.put('projects', projects[projectIndex]);
-            project.value = JSON.parse(JSON.stringify(projects[projectIndex]));
-            showSnackbar('Transaksi berhasil dihapus', 'success');
+        // Hitung ulang totals dan update di project
+        const totals = await calcProjectTotals(projectId)
+        const projectRecord = await db.table('projects').get(projectId)
+        if (projectRecord) {
+          projectRecord.total_deposits = totals.total_deposits
+          projectRecord.total_expenses = totals.total_expenses
+          projectRecord.balance = totals.balance
+          await db.table('projects').put(projectRecord)
         }
+
+        dialogDeleteTxId.value = null
+        await fetchProject()
+        showSnackbar('Transaksi berhasil dihapus', 'success')
     } catch {
         showSnackbar('Gagal menghapus transaksi', 'error');
     }
@@ -340,21 +332,21 @@ async function onFileChange(e: Event) {
           let success = false;
           try {
             if (!project.value) throw new Error('Projek tidak ditemukan')
-            const newTxs = [...project.value!.transactions, ...newTransactions];
-            const db = await initDB()
-            const p = await db.get('projects', project.value!.id)
-            if (!p) throw new Error('Projek tidak ditemukan di database')
-            
-            p.transactions = newTxs;
-            p.total_deposits = p.transactions.filter(t => t.type === 'DEPOSIT').reduce((acc, t) => acc + t.amount, 0)
-            p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0)
-            p.balance = p.total_deposits - p.total_expenses
-            
-            const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
-            (p as any).modal_total = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-            (p as any).panen_total = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+            const projectId = project.value!.id
+            if (!db.isOpen()) await db.open()
 
-            await db.put('projects', JSON.parse(JSON.stringify(p)))
+            // Simpan transaksi ke tabel transactions terpisah (bulkPut = upsert)
+            await db.table('transactions').bulkPut(newTransactions)
+
+            // Hitung ulang totals & update project record
+            const totals = await calcProjectTotals(projectId)
+            const projectRecord = await db.table('projects').get(projectId)
+            if (!projectRecord) throw new Error('Projek tidak ditemukan di database')
+            projectRecord.total_deposits = totals.total_deposits
+            projectRecord.total_expenses = totals.total_expenses
+            projectRecord.balance = totals.balance
+            await db.table('projects').put(projectRecord)
+
             await fetchProject()
             success = true;
           } catch (e) {
@@ -373,6 +365,7 @@ async function onFileChange(e: Event) {
   }
   reader.readAsArrayBuffer(file)
 }
+
 
 function getGuideData() {
   return [
@@ -611,7 +604,12 @@ const barSeries = computed(() => {
   ]
 })
 
-onMounted(fetchProject)
+onMounted(async () => {
+  // Jalankan migrasi data lama (idempotent — aman dijalankan berulang)
+  await migrateProjectTransactions()
+  await fetchProject()
+})
+
 
 const chartCarousel = ref(null)
 let interval: any = null
