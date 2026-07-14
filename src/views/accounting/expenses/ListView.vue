@@ -86,30 +86,31 @@
       </div>
 
       <!-- RIWAYAT TAB -->
-      <div v-if="activeTab === 'riwayat'" class="ion-padding mx-1">
-        <div v-if="expenses.length">
-          <div v-for="expense in sortedExpenses" :key="expense.id" class="mobile-card p-3 mb-3 border-start border-4 border-primary">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <div class="flex-grow-1">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="badge bg-primary">{{ expense.category || 'Umum' }}</span>
-                    <div class="flex-grow-1 text-center fw-bold"><small class="text-muted">{{ formatDate(expense.date) }}</small></div>
+      <div v-if="activeTab === 'riwayat'" class="ion-padding mx-3">
+        <div v-if="expenses.length" class="row">
+          <div v-for="expense in sortedExpenses" :key="expense.id" class="col-12 col-md-6">
+            <div class="mobile-card-sm px-2 py-1 mb-1">
+              <!-- Baris 1: Label, Tanggal, Tombol -->
+              <div class="position-relative d-flex align-items-center justify-content-between mb-0">
+                <span class="badge bg-primary mb-0 small">{{ expense.category || 'Umum' }}</span>
+                
+                <small class="text-muted medium position-absolute start-50 top-50 translate-middle">{{ formatDate(expense.date) }}</small>
+                
+                <div class="d-flex align-items-center gap-2">
+                  <button class="btn btn-light btn-sm text-primary" @click="$router.push(`/expenses/${expense.id}/edit`)" title="Edit">
+                    <ion-icon :icon="createOutline" />
+                  </button>
+                  <button class="btn btn-light btn-sm text-danger" @click="onDelete(expense.id)" title="Hapus">
+                    <ion-icon :icon="trashOutline" />
+                  </button>
                 </div>
-                <span class="text-dark mb-1">{{ expense.description }}</span>
               </div>
-              <div class="d-flex gap-1 ms-2">
-                <button class="btn btn-light btn-md text-primary" @click="$router.push(`/expenses/${expense.id}/edit`)" title="Edit">
-                  <ion-icon :icon="createOutline" />
-                </button>
-                <button class="btn btn-light btn-md text-danger" @click="onDelete(expense.id)" title="Hapus">
-                  <ion-icon :icon="trashOutline" />
-                </button>
+              
+              <!-- Baris 2: Description, Nominal -->
+              <div class="d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold text-dark mb-0 text-truncate medium">{{ expense.description }}</h6>
+                <span class="text-primary fw-bold medium">{{ formatPrice(expense.amount) }}</span>
               </div>
-            </div>
-
-            <div class="d-flex justify-content-between text-dark border-top pt-2 mt-2">
-              <span>Jumlah:</span>
-              <span class="text-primary fw-bold">{{ formatPrice(expense.amount) }}</span>
             </div>
           </div>
         </div>
@@ -121,7 +122,7 @@
 
 <script>
 import { ref, computed, defineAsyncComponent } from 'vue'
-import { onIonViewWillEnter, IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardContent, IonCardTitle, IonCardSubtitle, IonButtons, IonSegment, IonSegmentButton, IonLabel } from '@ionic/vue';
+import { onIonViewWillEnter, IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardContent, IonCardTitle, IonCardSubtitle, IonButtons, IonSegment, IonSegmentButton, IonLabel, alertController } from '@ionic/vue';
 import { addOutline, trashOutline, createOutline } from 'ionicons/icons';
 import { expensesRepo } from '../../../db/repositories'
 import { useRouter } from 'vue-router'
@@ -136,7 +137,17 @@ export default {
     const activeTab = ref('dashboard')
     const expenses = ref([])
     const fetchAll = async () => { expenses.value = await expensesRepo.getAll() }
-    const onDelete = async (id) => { await expensesRepo.delete(id); await fetchAll() }
+    const onDelete = async (id) => {
+      const alert = await alertController.create({
+        header: 'Konfirmasi',
+        message: 'Yakin ingin hapus data ini?',
+        buttons: [
+          { text: 'Batal', role: 'cancel' },
+          { text: 'Hapus', role: 'destructive', handler: async () => { await expensesRepo.delete(id); await fetchAll() } }
+        ]
+      });
+      await alert.present();
+    }
     const formatPrice = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(price || 0))
     const formatDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'
 
@@ -253,7 +264,7 @@ export default {
     });
 
     const createExpense = () => router.push('/expenses/create')
-    const sortedExpenses = computed(() => [...expenses.value].sort((a, b) => b.id - a.id))
+    const sortedExpenses = computed(() => [...expenses.value].sort((a, b) => new Date(b.date) - new Date(a.date)))
     
     onIonViewWillEnter(fetchAll)
     return { activeTab, expenses, sortedExpenses, onDelete, formatPrice, formatDate, addOutline, trashOutline, createOutline, summary, createExpense, dailyChartSeries, dailyChartOptions, weeklyChartSeries, weeklyChartOptions, monthlyChartSeries, monthlyChartOptions, avgDaily }

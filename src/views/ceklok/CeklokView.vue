@@ -34,126 +34,74 @@
     <ion-content class="app-content-wrap">
       <!-- TAB 1: PRESENSI (Clock In/Out) -->
       <div v-if="activeTab === 'presensi'" class="ion-padding">
-        <!-- Live Clock Card -->
-        <div class="mobile-card container-padded text-center py-4 mb-4">
-          <div class="current-time">{{ currentTimeStr }}</div>
-          <div class="current-date">{{ currentDateStr }}</div>
-          <div class="status-indicator mt-2" :class="activeLog ? 'active' : 'inactive'">
-            <span class="dot"></span>
-            {{ activeLog ? `Sedang Kerja (${activeLog.type})` : 'Belum Mulai Kerja' }}
-          </div>
-        </div>
-
-        <!-- Big Toggle Button -->
-        <div class="d-flex justify-content-center my-4">
-          <button 
-            class="ceklok-btn" 
-            :class="activeLog ? 'stop' : 'start'"
-            @click="handleClockToggle"
-          >
-            <ion-icon :icon="activeLog ? stopOutline : playOutline" class="ceklok-btn-icon" />
-            <span class="ceklok-btn-text">{{ activeLog ? 'Selesai Kerja' : 'Mulai Kerja' }}</span>
-          </button>
-        </div>
-
-        <!-- Duration Counter -->
-        <div v-if="activeLog" class="duration-counter mobile-card container-padded mb-3">
-          <div class="row align-items-center text-center">
-            <div class="col-6 border-end">
-              <small class="text-muted d-block">Durasi Kerja</small>
-              <span class="fw-bold fs-5 text-indigo">{{ liveDurationStr }}</span>
-            </div>
-            <div class="col-6">
-              <small class="text-muted d-block">Waktu Masuk</small>
-              <span class="fw-bold fs-5 text-teal">{{ formatTime(activeLog.clockIn) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Working Details Form -->
-        <div class="mobile-card container-padded mb-3">
-          <h5 class="fw-bold mb-3 text-dark">Detail Pekerjaan</h5>
-          
-          <div class="form-section mb-3">
-            <label class="form-label">Tipe Presensi</label>
-            <div class="d-flex gap-2">
-              <button 
-                type="button" 
-                class="btn flex-fill btn-outline-teal"
-                :class="{ 'active': localType === 'WFO' }"
-                @click="localType = 'WFO'"
-                :disabled="!!activeLog"
-              >WFO</button>
-              <button 
-                type="button" 
-                class="btn flex-fill btn-outline-teal"
-                :class="{ 'active': localType === 'WFH' }"
-                @click="localType = 'WFH'"
-                :disabled="!!activeLog"
-              >WFH</button>
-              <button 
-                type="button" 
-                class="btn flex-fill btn-outline-teal"
-                :class="{ 'active': localType === 'Dinas' }"
-                @click="localType = 'Dinas'"
-                :disabled="!!activeLog"
-              >Dinas</button>
+        <div class="row">
+          <!-- Column 1: Live Status -->
+          <div class="col-12 col-md-4 mb-3">
+            <div class="mobile-card container-padded text-center py-4 h-100">
+              <div class="current-time">{{ currentTimeStr }}</div>
+              <div class="current-date">{{ currentDateStr }}</div>
+              <div class="status-indicator mt-2" :class="activeLog ? 'active' : 'inactive'">
+                <span class="dot"></span>
+                {{ activeLog ? `Sedang Kerja (${activeLog.type})` : 'Belum Mulai Kerja' }}
+              </div>
             </div>
           </div>
 
-          <div class="form-section mb-3">
-            <label class="form-label">Catatan Aktivitas / Progress</label>
-            <textarea 
-              v-model="localNotes" 
-              class="form-control app-control" 
-              rows="3" 
-              placeholder="Tulis apa yang sedang dikerjakan hari ini..."
-              @change="saveActiveNotes"
-            ></textarea>
-          </div>
-
-          <!-- Break Controls -->
-          <div v-if="activeLog" class="form-section mt-4 pt-3 border-top">
-            <label class="form-label d-flex justify-content-between align-items-center">
-              <span>Waktu Istirahat</span>
-              <ion-badge color="warning" v-if="activeBreak">{{ activeBreak.name }}</ion-badge>
-            </label>
-
-            <div class="d-flex gap-2">
+          <!-- Column 2: Actions & Durations -->
+          <div class="col-12 col-md-4 mb-3">
+            <div class="container-padded text-center py-2 h-100 d-flex flex-column justify-content-center">
               <button 
-                v-if="!activeBreak"
-                type="button" 
-                class="btn btn-action warning w-100" 
-                @click="startBreak"
+                class="ceklok-btn mx-auto" 
+                :class="activeLog ? 'stop' : 'start'"
+                @click="handleClockToggle"
               >
-                <ion-icon :icon="cafeOutline" class="me-2" /> Mulai Istirahat
+                <ion-icon :icon="activeLog ? stopOutline : playOutline" class="ceklok-btn-icon" />
+                <span class="ceklok-btn-text">{{ activeLog ? 'Selesai Kerja' : 'Mulai Kerja' }}</span>
               </button>
-              <button 
-                v-else
-                type="button" 
-                class="btn btn-action danger w-100" 
-                @click="endBreak"
-              >
-                <ion-icon :icon="stopOutline" class="me-2" /> Selesai Istirahat
-              </button>
-            </div>
-
-            <!-- List of Breaks in this shift -->
-            <div v-if="activeLog.breaks && activeLog.breaks.length > 0" class="mt-3">
-              <small class="text-muted d-block mb-1">Daftar Istirahat Hari Ini:</small>
-              <ul class="list-group list-group-flush rounded-3 border">
-                <li 
-                  v-for="(brk, index) in activeLog.breaks" 
-                  :key="index"
-                  class="list-group-item d-flex justify-content-between align-items-center py-2"
-                >
-                  <div>
-                    <span class="fw-semibold text-dark">{{ brk.name }}</span>
-                    <span class="text-muted small ms-2">({{ formatTime(brk.start) }} - {{ brk.end ? formatTime(brk.end) : '...' }})</span>
+              
+              <div v-if="activeLog" class="duration-counter mt-4">
+                <div class="row align-items-center text-center">
+                  <div class="col-6 border-end">
+                    <small class="text-muted d-block">Durasi</small>
+                    <span class="fw-bold fs-5 text-indigo">{{ liveDurationStr }}</span>
                   </div>
-                  <span class="badge bg-secondary rounded-pill">{{ brk.durationMinutes }} menit</span>
-                </li>
-              </ul>
+                  <div class="col-6">
+                    <small class="text-muted d-block">Masuk</small>
+                    <span class="fw-bold fs-5 text-teal">{{ formatTime(activeLog.clockIn) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Details & Breaks -->
+          <div class="col-12 col-md-4 mb-3">
+            <div class="mobile-card container-padded h-100">
+              <h5 class="fw-bold mb-3 text-dark">Detail Pekerjaan</h5>
+              
+              <div class="form-section mb-3">
+                <label class="form-label">Tipe Presensi</label>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn flex-fill btn-outline-teal" :class="{ 'active': localType === 'WFO' }" @click="localType = 'WFO'" :disabled="!!activeLog">WFO</button>
+                  <button type="button" class="btn flex-fill btn-outline-teal" :class="{ 'active': localType === 'WFH' }" @click="localType = 'WFH'" :disabled="!!activeLog">WFH</button>
+                  <button type="button" class="btn flex-fill btn-outline-teal" :class="{ 'active': localType === 'Dinas' }" @click="localType = 'Dinas'" :disabled="!!activeLog">Dinas</button>
+                </div>
+              </div>
+
+              <div class="form-section mb-3">
+                <label class="form-label">Catatan</label>
+                <textarea v-model="localNotes" class="form-control app-control" rows="2" placeholder="Tulis aktivitas..." @change="saveActiveNotes"></textarea>
+              </div>
+
+              <div v-if="activeLog" class="form-section mt-4 pt-3 border-top">
+                <label class="form-label d-flex justify-content-between align-items-center">
+                  <span>Waktu Istirahat</span>
+                  <ion-badge color="warning" v-if="activeBreak">{{ activeBreak.name }}</ion-badge>
+                </label>
+                <button type="button" class="btn btn-action w-100" :class="activeBreak ? 'danger' : 'warning'" @click="activeBreak ? endBreak() : startBreak()">
+                  <ion-icon :icon="activeBreak ? stopOutline : cafeOutline" class="me-2" /> {{ activeBreak ? 'Selesai Istirahat' : 'Mulai Istirahat' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1337,20 +1285,21 @@ export default {
 
     const monthlyChartSeries = computed(() => {
       const now = new Date();
-      const { start, end } = getMonthlyPeriodDates(now, settings.value);
-      
+      const baseMonth = now.getDate() <= settings.value.cutoffDate ? now.getMonth() - 1 : now.getMonth();
+      const cutoff = settings.value.cutoffDate;
+      const periodStart = new Date(now.getFullYear(), baseMonth, cutoff + 1);
+      const periodEnd = new Date(periodStart.getFullYear(), periodStart.getMonth() + 1, cutoff + 1);
+
       const logsInPeriod = logs.value.filter(log => {
         const d = new Date(log.clockIn);
-        return d >= start && d < end;
+        return d >= periodStart && d < periodEnd;
       });
-
-      if (logsInPeriod.length === 0) return [{ name: 'Total Jam', data: [0, 0, 0, 0, 0] }];
 
       const data = [0, 0, 0, 0, 0];
       logsInPeriod.forEach(log => {
         const logDate = new Date(log.clockIn);
-        const weekIdx = Math.floor((logDate.getTime() - start.getTime()) / (86400000 * 7));
-        if (weekIdx >= 0 && weekIdx < 5) {
+        const weekIdx = Math.min(4, Math.floor((logDate.getTime() - periodStart.getTime()) / (86400000 * 7)));
+        if (weekIdx >= 0) {
           data[weekIdx] += log.totalWorkHours;
         }
       });
@@ -1383,7 +1332,20 @@ export default {
           }
         },
         xaxis: {
-          categories: ['Mgg 1', 'Mgg 2', 'Mgg 3', 'Mgg 4', 'Mgg 5'],
+          categories: Array.from({ length: 5 }, (_, i) => {
+            const now = new Date();
+            const baseMonth = now.getDate() <= settings.value.cutoffDate ? now.getMonth() - 1 : now.getMonth();
+            const cutoff = settings.value.cutoffDate;
+            const periodStart = new Date(now.getFullYear(), baseMonth, cutoff + 1);
+            const weekStart = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate() + (i * 7));
+            let weekEnd = new Date(weekStart);
+            if (i === 4) {
+              weekEnd = new Date(periodStart.getFullYear(), periodStart.getMonth() + 1, cutoff);
+            } else {
+              weekEnd.setDate(weekStart.getDate() + 6);
+            }
+            return `${weekStart.getDate()} - ${weekEnd.getDate()}`;
+          }),
           labels: { style: { colors: '#64748b', fontWeight: 600 } }
         },
         yaxis: {

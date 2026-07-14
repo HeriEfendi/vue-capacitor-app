@@ -109,30 +109,34 @@
           <p class="text-muted">Tidak ada produk yang sesuai dengan filter.</p>
         </div>
 
-        <div v-else class="list-group">
+        <div v-else class="row mx-1">
           <div 
             v-for="prod in filteredProducts" 
             :key="prod.id" 
-            class="mobile-card p-2 mb-2 cursor-pointer clickable-card mx-3"
-            @click="openAdjustment(prod)"
+            class="col-12 col-md-6 mb-2 px-1"
           >
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center gap-3" style="max-width: 70%;">
-                <div class="rounded-3 bg-light overflow-hidden flex-shrink-0" style="width: 50px; height: 50px; display: grid; place-items: center;">
-                  <img v-if="prod.imageURL" :src="prod.imageURL" :alt="prod.name" style="width: 100%; height: 100%; object-fit: cover;" />
-                  <ion-icon v-else :icon="basketOutline" style="font-size: 1.5rem; color: #adb5bd;" />
+            <div 
+              class="mobile-card p-2 mb-2 cursor-pointer clickable-card h-100"
+              @click="openAdjustment(prod)"
+            >
+              <div class="d-flex align-items-center justify-content-between h-100">
+                <div class="d-flex align-items-center gap-3" style="max-width: 65%;">
+                  <div class="rounded-3 bg-light overflow-hidden flex-shrink-0" style="width: 50px; height: 50px; display: grid; place-items: center;">
+                    <img v-if="prod.imageURL" :src="prod.imageURL" :alt="prod.name" style="width: 100%; height: 100%; object-fit: cover;" />
+                    <ion-icon v-else :icon="basketOutline" style="font-size: 1.5rem; color: #adb5bd;" />
+                  </div>
+                  <div class="text-truncate">
+                    <h6 class="fw-bold text-dark mb-1 text-truncate medium">{{ prod.name }}</h6>
+                    <span class="badge bg-secondary mb-0 small">{{ getCategoryName(prod.categoryId) }}</span>
+                  </div>
                 </div>
-                <div>
-                  <h6 class="fw-bold text-dark mb-1 text-truncate medium">{{ prod.name }}</h6>
-                  <span class="badge bg-secondary mb-0 small">{{ getCategoryName(prod.categoryId) }}</span>
-                </div>
-              </div>
 
-              <div class="text-end">
-                <span class="text-muted small d-block mb-1">Nilai: {{ formatPrice(prod.price * prod.stock) }}</span>
-                <span v-if="prod.stock === 0" class="badge bg-danger fs-6 px-3 py-1">Habis</span>
-                <span v-else-if="prod.stock <= 5" class="badge bg-warning text-dark fs-6 px-3 py-1">Tipis ({{ prod.stock }})</span>
-                <span v-else class="badge bg-success medium px-3 py-1">Stok: {{ prod.stock }}</span>
+                <div class="text-end">
+                  <span class="text-muted small fw-bold d-block mb-1">Nilai: {{ formatPrice(prod.price * prod.stock) }}</span>
+                  <span v-if="prod.stock === 0" class="badge bg-danger fs-6 px-2 py-1">Habis</span>
+                  <span v-else-if="prod.stock <= 5" class="badge bg-warning text-dark fs-6 px-2 py-1">Tipis ({{ prod.stock }})</span>
+                  <span v-else class="badge bg-success medium px-2 py-1">Stok: {{ prod.stock }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -179,7 +183,7 @@
           <div 
             v-for="log in filteredMutations" 
             :key="log.id" 
-            class="mobile-card container-padded mb-3 border-start border-4"
+            class="mobile-card container-padded mb-3"
             :class="getMutationBorderClass(log.changeQuantity)"
           >
             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -214,24 +218,25 @@
       </ion-header>
 
       <ion-content class="ion-padding bg-light" v-if="selectedProduct">
-        <div class="mobile-card p-3 mb-4">
+        <div class="mobile-card container-padded mb-3">
           <div class="d-flex align-items-center gap-3">
             <div class="rounded bg-light overflow-hidden" style="width: 60px; height: 60px; display: grid; place-items: center;">
-              <img :src="selectedProduct.imageURL" :alt="selectedProduct.name" style="max-width: 100%; max-height: 100%; object-fit: cover;" />
+              <img v-if="selectedProduct.imageURL" :src="selectedProduct.imageURL" :alt="selectedProduct.name" style="width: 100%; height: 100%; object-fit: cover;" />
+              <ion-icon v-else :icon="basketOutline" style="font-size: 1.5rem; color: #adb5bd;" />
             </div>
             <div>
-              <h5 class="fw-bold text-dark mb-1">{{ selectedProduct.name }}</h5>
+              <h6 class="fw-bold text-dark mb-1">{{ selectedProduct.name }}</h6>
               <span class="badge bg-secondary">{{ getCategoryName(selectedProduct.categoryId) }}</span>
             </div>
           </div>
           <hr />
           <div class="d-flex justify-content-between align-items-center text-dark">
             <span>Stok Saat Ini:</span>
-            <span class="fs-4 fw-black text-indigo">{{ selectedProduct.stock }} unit</span>
+            <span class="fs-6 fw-black text-indigo">{{ selectedProduct.stock }} unit</span>
           </div>
         </div>
 
-        <div class="mobile-card p-3 mb-4">
+        <div class="mobile-card container-padded mb-3">
           <h6 class="fw-bold text-dark mb-3">Form Penyesuaian</h6>
           
           <div class="form-stack">
@@ -245,7 +250,7 @@
 
             <div class="field-group mb-3">
               <label class="field-label">Jumlah Unit</label>
-              <input type="number" class="form-control app-control fs-4 fw-bold text-dark" v-model.number="adjustmentQty" min="1" />
+              <input type="number" class="form-control app-control fw-bold text-dark" v-model.number="adjustmentQty" min="1" />
             </div>
 
             <div class="field-group mb-3">
@@ -267,7 +272,7 @@
           </div>
         </div>
 
-        <div class="p-3">
+        <div class="">
           <button 
             class="btn btn-action primary w-100 py-3 fw-bold fs-6" 
             :disabled="adjustmentQty <= 0" 

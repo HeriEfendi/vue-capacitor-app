@@ -112,36 +112,48 @@
 
           <!-- Left side: Products catalog -->
           <ion-col size="12" size-lg="8">
-            <div class="mobile-card container-padded mb-3">
+            
+        <!-- Filters & Search -->
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between mb-3">
+          <!-- Search input -->
+          <div class="w-100 px-3 py-1 search-container">
+            <div class="search-input-wrap position-relative">
               <input 
                 type="text" 
                 v-model="searchQuery" 
-                class="form-control app-control mb-3" 
+                class="form-control form-control-sm app-control" 
+                style="padding-left: 30px;" 
                 placeholder="Cari produk..." 
               />
-
-              <!-- Category filter chips -->
-              <div class="filter-chips--mobile">
-                <button 
-                  type="button" 
-                  class="btn btn-action btn-sm me-1"
-                  :class="selectedCategory === 'all' ? 'primary' : 'light'"
-                  @click="selectedCategory = 'all'"
-                >
-                  Semua
-                </button>
-                <button 
-                  v-for="cat in categories" 
-                  :key="cat.id"
-                  type="button" 
-                  class="btn btn-action btn-sm me-1"
-                  :class="selectedCategory === cat.id ? 'primary' : 'light'"
-                  @click="selectedCategory = cat.id"
-                >
-                  {{ cat.name }}
-                </button>
-              </div>
+              <ion-icon 
+                :icon="searchOutline" 
+                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;" 
+              />
             </div>
+          </div>
+
+          <!-- Category filter chips -->
+          <div class="mx-3 my-2 d-flex gap-2 overflow-x-auto" style="scrollbar-width: none;">
+            <button
+              class="btn btn-action btn-md" 
+              :class="selectedCategory === 'all' ? 'pill-badge primary' : 'pill-badge secondary'" 
+              @click="selectedCategory = 'all'"
+              style="white-space: nowrap;"
+            >
+              Semua
+            </button>
+            <button
+              v-for="cat in categories" 
+              :key="cat.id"
+              class="btn btn-action btn-md" 
+              :class="selectedCategory === cat.id ? 'pill-badge primary' : 'pill-badge secondary'" 
+              @click="selectedCategory = cat.id"
+              style="white-space: nowrap;"
+            >
+              {{ cat.name }}
+            </button>
+          </div>
+        </div>
 
             <!-- Products Grid -->
             <div v-if="filteredProducts.length === 0" class="empty-state text-center py-5 mobile-card container-padded">
@@ -149,30 +161,35 @@
               <p class="text-muted">Tidak ada produk tersedia.</p>
             </div>
 
-            <div v-else class="project-actions d-grid gap-2 m-2 mb-0">
-              <div v-for="product in filteredProducts" :key="product.id" class="mb-2">
+            <div v-else class="row mx-1">
+              <div 
+                v-for="product in filteredProducts" 
+                :key="product.id" 
+                class="col-12 col-md-6 mb-2 px-1"
+              >
                 <div 
-                  class="mobile-card h-100 p-2 d-flex flex-column justify-content-between cursor-pointer pos-product-card"
+                  class="mobile-card p-2 h-100 cursor-pointer clickable-card"
                   :class="{ 'opacity-50': product.stock === 0 }"
                   @click="product.stock > 0 && addToCart(product)"
                 >
-                  <div>
-                    <div class="position-relative text-center rounded-3 overflow-hidden mb-2" style="height: 100px; background: #f0edff;">
-                      <img v-if="product.imageURL" :src="product.imageURL" class="w-100 h-100" style="object-fit: cover;" />
-                      <div v-else class="d-flex h-100 align-items-center justify-content-center text-muted"><ion-icon :icon="basketOutline" style="font-size:2rem;" /></div>
-                      <span v-if="product.stock === 0" class="badge bg-danger position-absolute top-0 start-0 m-1">Habis</span>
-                      <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark position-absolute top-0 start-0 m-1">Sisa {{ product.stock }}</span>
+                  <div class="d-flex align-items-center justify-content-between h-100">
+                    <div class="d-flex align-items-center gap-3" style="max-width: 65%;">
+                      <div class="rounded-3 bg-light overflow-hidden flex-shrink-0" style="width: 50px; height: 50px; display: grid; place-items: center;">
+                        <img v-if="product.imageURL" :src="product.imageURL" :alt="product.name" style="width: 100%; height: 100%; object-fit: cover;" />
+                        <ion-icon v-else :icon="basketOutline" style="font-size: 1.5rem; color: #adb5bd;" />
+                      </div>
+                      <div class="text-truncate">
+                        <h6 class="fw-bold text-dark mb-1 text-truncate medium">{{ product.name }}</h6>
+                        <span class="badge bg-secondary mb-0 small">{{ getCategoryName(product.categoryId) }}</span>
+                      </div>
                     </div>
-                    <div class="px-1 text-start">
-                      <h6 class="fw-bold text-dark mb-1 text-truncate" :title="product.name">{{ product.name }}</h6>
-                      <span class="text-muted small d-block mb-1">{{ getCategoryName(product.categoryId) }}</span>
+
+                    <div class="text-end">
+                      <span class="text-indigo fw-bold d-block mb-1" style="font-size: 0.85rem;">{{ formatPrice(product.price) }}</span>
+                      <span v-if="product.stock === 0" class="badge bg-danger fs-6 px-2 py-1">Habis</span>
+                      <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark fs-6 px-2 py-1">Sisa {{ product.stock }}</span>
+                      <span v-else class="badge bg-success medium px-2 py-1">Stok: {{ product.stock }}</span>
                     </div>
-                  </div>
-                  <div class="px-1 d-flex justify-content-between align-items-center mt-auto">
-                    <span class="text-indigo fw-bold" style="font-size: 0.85rem;">{{ formatPrice(product.price) }}</span>
-                    <button class="btn btn-action success btn-sm p-1 d-flex align-items-center" :disabled="product.stock === 0">
-                      <ion-icon :icon="addOutline" style="font-size: 1rem;" />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -216,32 +233,38 @@
           </div>
         </div>
 
-        <!-- Sales Trend Chart -->
-        <div class="mobile-card container-padded mb-3">
-          <h6 class="fw-bold text-dark mb-3">Grafik Penjualan 7 Hari Terakhir</h6>
-          <div v-if="chartSeries[0].data.length > 0">
-            <VueApexCharts type="area" height="260" :options="chartOptions" :series="chartSeries" />
-          </div>
-          <div v-else class="text-center py-4 text-muted">
-            Belum ada data penjualan 7 hari terakhir.
-          </div>
-        </div>
-
-        <!-- Top Selling Products -->
-        <div class="mobile-card container-padded mb-3">
-          <h6 class="fw-bold text-dark mb-3">Produk Terlaris</h6>
-          <div v-if="topProducts.length === 0" class="text-center py-3 text-muted">
-            Belum ada data produk terjual.
-          </div>
-          <div v-else class="list-group list-group-flush">
-            <div v-for="(p, index) in topProducts" :key="index" class="list-group-item d-flex justify-content-between align-items-center py-2 px-1">
-              <div>
-                <span class="fw-black text-indigo me-2 medium">#{{ index + 1 }}</span>
-                <span class="text-dark fw-bold medium">{{ p.name }}</span>
+        <div class="row">
+          <!-- Sales Trend Chart -->
+          <div class="col-12 col-md-6 mb-3">
+            <div class="mobile-card container-padded h-100">
+              <h6 class="fw-bold text-dark mb-3">Grafik Penjualan 7 Hari Terakhir</h6>
+              <div v-if="chartSeries[0].data.length > 0">
+                <VueApexCharts type="area" height="260" :options="chartOptions" :series="chartSeries" />
               </div>
-              <div class="text-end">
-                <span class="pill-badge done small border me-2">{{ p.qtySold }} terjual</span>
-                <span class="fw-semibold text-muted medium">{{ formatPrice(p.revenue) }}</span>
+              <div v-else class="text-center py-4 text-muted">
+                Belum ada data penjualan 7 hari terakhir.
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Selling Products -->
+          <div class="col-12 col-md-6 mb-3">
+            <div class="mobile-card container-padded h-100">
+              <h6 class="fw-bold text-dark mb-3">Produk Terlaris</h6>
+              <div v-if="topProducts.length === 0" class="text-center py-3 text-muted">
+                Belum ada data produk terjual.
+              </div>
+              <div v-else class="list-group list-group-flush">
+                <div v-for="(p, index) in topProducts" :key="index" class="list-group-item d-flex justify-content-between align-items-center py-2 px-1">
+                  <div>
+                    <span class="fw-black text-indigo me-2 medium">#{{ index + 1 }}</span>
+                    <span class="text-dark fw-bold medium">{{ p.name }}</span>
+                  </div>
+                  <div class="text-end">
+                    <span class="pill-badge done small border me-2">{{ p.qtySold }} terjual</span>
+                    <span class="fw-semibold text-muted medium">{{ formatPrice(p.revenue) }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -264,43 +287,45 @@
         </div>
 
         <!-- Transaction Cards -->
-        <div v-else>
+        <div v-else class="row g-0">
           <div 
             v-for="sale in salesHistory" 
             :key="sale.id" 
-            class="mobile-card container-padded mb-3 border-start border-4 border-teal"
+            class="col-12 col-md-6 mb-3"
           >
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <div>
-                <span class="badge bg-indigo mb-1 me-1">INV-{{ sale.id }}</span>
-                <span class="badge bg-secondary mb-1">{{ formatPaymentMethod(sale.paymentMethod) }}</span>
-                <h6 class="fw-bold text-dark mb-0">{{ formatDateTime(sale.createdAt) }}</h6>
+            <div class="mobile-card container-padded h-100 border-start border-4 border-teal">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <span class="badge bg-indigo mb-1 me-1">INV-{{ sale.id }}</span>
+                  <span class="badge bg-secondary mb-1">{{ formatPaymentMethod(sale.paymentMethod) }}</span>
+                  <h6 class="fw-bold text-dark mb-0">{{ formatDateTime(sale.createdAt) }}</h6>
+                </div>
+                <div class="d-flex gap-1">
+                  <button class="btn btn-light btn-sm text-primary" @click="openReceipt(sale)" title="Lihat Struk">
+                    <ion-icon :icon="documentTextOutline" /> Detail
+                  </button>
+                  <button class="btn btn-light btn-sm text-danger" @click="confirmDeleteSale(sale.id)" title="Hapus">
+                    <ion-icon :icon="trashOutline" />
+                  </button>
+                </div>
               </div>
-              <div class="d-flex gap-1">
-                <button class="btn btn-light btn-sm text-primary" @click="openReceipt(sale)" title="Lihat Struk">
-                  <ion-icon :icon="documentTextOutline" /> Detail
-                </button>
-                <button class="btn btn-light btn-sm text-danger" @click="confirmDeleteSale(sale.id)" title="Hapus">
-                  <ion-icon :icon="trashOutline" />
-                </button>
+
+              <div class="mt-2 text-muted small">
+                <strong>Item:</strong>
+                <div v-for="(item, idx) in sale.items" :key="idx" class="d-flex justify-content-between">
+                  <span>{{ item.name }} x{{ item.quantity }}</span>
+                  <span>{{ formatPrice(item.price * item.quantity) }}</span>
+                </div>
               </div>
-            </div>
 
-            <div class="mt-2 text-muted small">
-              <strong>Item:</strong>
-              <div v-for="(item, idx) in sale.items" :key="idx" class="d-flex justify-content-between">
-                <span>{{ item.name }} x{{ item.quantity }}</span>
-                <span>{{ formatPrice(item.price * item.quantity) }}</span>
+              <div class="d-flex justify-content-between fw-bold text-dark border-top pt-2 mt-2" style="font-size: 0.95rem;">
+                <span>Total Akhir:</span>
+                <span class="text-indigo">{{ formatPrice(sale.totalAmount) }}</span>
               </div>
-            </div>
 
-            <div class="d-flex justify-content-between fw-bold text-dark border-top pt-2 mt-2" style="font-size: 0.95rem;">
-              <span>Total Akhir:</span>
-              <span class="text-indigo">{{ formatPrice(sale.totalAmount) }}</span>
-            </div>
-
-            <div v-if="sale.notes" class="mt-2 p-2 bg-light rounded text-muted" style="font-size: 0.8rem; font-style: italic;">
-              "{{ sale.notes }}"
+              <div v-if="sale.notes" class="mt-2 p-2 bg-light rounded text-muted" style="font-size: 0.8rem; font-style: italic;">
+                "{{ sale.notes }}"
+              </div>
             </div>
           </div>
         </div>

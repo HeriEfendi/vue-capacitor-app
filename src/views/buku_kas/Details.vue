@@ -680,70 +680,76 @@ onUnmounted(() => clearInterval(interval))
       <div v-else-if="project">
         
         <!-- ==================== TAB 1: DASHBOARD ==================== -->
-        <div v-if="activeTab === 'dashboard'" class="ion-padding px-2">
+        <div v-if="activeTab === 'dashboard'" class="ion-padding">
           
           <!-- Summary Grid -->
-        <div class="project-actions d-grid gap-2 m-2 mx-0">
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Modal</small>
-              <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).modal_total || 0) }}</div>
+          <div class="project-actions d-grid gap-2 mx-2">
+            <div class="mb-2">
+              <div class="mobile-card p-3 h-100">
+                <small class="text-muted d-block">Modal</small>
+                <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).modal_total || 0) }}</div>
+              </div>
             </div>
-          </div>
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Pengeluaran</small>
-              <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(project.total_expenses) }}</div>
+            <div class="mb-2">
+              <div class="mobile-card p-3 h-100">
+                <small class="text-muted d-block">Pengeluaran</small>
+                <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(project.total_expenses) }}</div>
+              </div>
             </div>
-          </div>
-          <div class="mb-2" v-if="(project as any).panen_total > 0">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Pendapatan</small>
-              <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).panen_total || 0) }}</div>
-              
-              <div class="d-flex justify-content-between align-items-center border-top mt-2 pt-2">
-                <div class="d-flex flex-column align-items-start">
-                  <small class="text-muted">Margin</small>
-                  <span class="fw-bold mt-1" :class="profitPercent >= 0 ? 'text-success' : 'text-danger'">{{ profitPercent }}%</span>
-                </div>
-                <div class="d-flex flex-column align-items-end">
-                  <small class="text-muted">ROI</small>
-                  <span class="fw-bold mt-1" :class="roi >= 0 ? 'text-success' : 'text-danger'">{{ roi }}%</span>
+            <div class="mb-2" v-if="(project as any).panen_total > 0">
+              <div class="mobile-card p-3 h-100">
+                <small class="text-muted d-block">Pendapatan</small>
+                <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).panen_total || 0) }}</div>
+                
+                <div class="d-flex justify-content-between align-items-center border-top mt-2 pt-2">
+                  <div class="d-flex flex-column align-items-start">
+                    <small class="text-muted">Margin</small>
+                    <span class="fw-bold mt-1" :class="profitPercent >= 0 ? 'text-success' : 'text-danger'">{{ profitPercent }}%</span>
+                  </div>
+                  <div class="d-flex flex-column align-items-end">
+                    <small class="text-muted">ROI</small>
+                    <span class="fw-bold mt-1" :class="roi >= 0 ? 'text-success' : 'text-danger'">{{ roi }}%</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <div v-if="(project as any).panen_total > 0" class="mb-2">
-                <small class="text-muted d-block">Keuntungan</small>
-                <div class="fs-6 fw-black mt-1" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
-                <div class="border-bottom my-2"></div>
+            <div class="mb-2">
+              <div class="mobile-card p-3 h-100">
+                <div v-if="(project as any).panen_total > 0" class="mb-2">
+                  <small class="text-muted d-block">Keuntungan</small>
+                  <div class="fs-6 fw-black mt-1" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
+                  <div class="border-bottom my-2"></div>
+                </div>
+                <small class="text-muted d-block">Sisa Saldo</small>
+                <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(project.balance) }}</div>
               </div>
-              <small class="text-muted d-block">Sisa Saldo</small>
-              <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(project.balance) }}</div>
+            </div>
+            <div class="mb-2" v-if="(project as any).panen_total <= 0">
+              <div class="mobile-card p-3 h-100">
+                <small class="text-muted d-block">Total Transaksi</small>
+                <div class="fs-6 fw-black text-primary mt-1">{{ (project.transactions || []).length }}</div>
+              </div>
             </div>
           </div>
-          <div class="mb-2" v-if="(project as any).panen_total <= 0">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Total Transaksi</small>
-              <div class="fs-6 fw-black text-primary mt-1">{{ (project.transactions || []).length }}</div>
-            </div>
-          </div>
-        </div>
 
           <!-- Charts -->
-          <div class="mobile-card container-padded mb-3 mt-3 mx-2" v-if="barSeries[0].data.length > 0">
-            <h6 class="fw-bold text-dark mb-3">Arus Kas Bulanan</h6>
-            <VueApexCharts type="bar" height="240" :options="barOptions" :series="barSeries" />
-          </div>
-
-          <div class="mobile-card container-padded mb-3 mx-2">
-            <h6 class="fw-bold text-dark mb-3">Pengeluaran per Kategori</h6>
-            <div v-if="donutSeries.length > 0">
-              <VueApexCharts type="donut" height="240" :options="donutOptions" :series="donutSeries" />
+          <div class="row mb-3">
+            <div class="col-12 col-md-6 mb-3" v-if="barSeries[0].data.length > 0">
+              <div class="mobile-card container-padded mb-3 mt-3 h-100">
+                <h6 class="fw-bold text-dark mb-3">Arus Kas Bulanan</h6>
+                <VueApexCharts type="bar" height="240" :options="barOptions" :series="barSeries" />
+              </div>
             </div>
-            <div v-else class="text-center py-4 text-muted">Belum ada data pengeluaran.</div>
+
+            <div class="col-12 col-md-6 mb-3">
+              <div class="mobile-card container-padded mb-3 mt-3 h-100">
+                <h6 class="fw-bold text-dark mb-3">Pengeluaran per Kategori</h6>
+                <div v-if="donutSeries.length > 0">
+                  <VueApexCharts type="donut" height="240" :options="donutOptions" :series="donutSeries" />
+                </div>
+                <div v-else class="text-center py-4 text-muted">Belum ada data pengeluaran.</div>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -836,16 +842,22 @@ onUnmounted(() => clearInterval(interval))
             <h6 class="fw-bold mb-2">Import / Export Excel</h6>
             <p class="text-muted small mb-4">Unggah data transaksi menggunakan file Excel atau unduh semua riwayat transaksi buku kas ini ke file Excel.</p>
             
-            <div class="d-flex flex-column gap-3">
-              <ion-button class="btn-action warning w-100" expand="block" style="margin: 0;" @click="handleImport">
-                <ion-icon :icon="cloudUploadOutline" slot="start" /> Import File Excel
-              </ion-button>
-              <ion-button class="btn-action info w-100" expand="block" style="margin: 0;" @click="downloadTemplate">
-                <ion-icon :icon="listOutline" slot="start" /> Download Template Excel
-              </ion-button>
-              <ion-button class="btn-action success w-100" expand="block" style="margin: 0;" @click="exportToExcel">
-                <ion-icon :icon="cloudDownloadOutline" slot="start" /> Export ke Excel
-              </ion-button>
+            <div class="row g-2">
+              <div class="col-12 col-md-4">
+                <ion-button class="btn-action warning w-100" expand="block" style="margin: 0;" @click="handleImport">
+                  <ion-icon :icon="cloudUploadOutline" slot="start" /> Import
+                </ion-button>
+              </div>
+              <div class="col-12 col-md-4">
+                <ion-button class="btn-action info w-100" expand="block" style="margin: 0;" @click="downloadTemplate">
+                  <ion-icon :icon="listOutline" slot="start" /> Template
+                </ion-button>
+              </div>
+              <div class="col-12 col-md-4">
+                <ion-button class="btn-action success w-100" expand="block" style="margin: 0;" @click="exportToExcel">
+                  <ion-icon :icon="cloudDownloadOutline" slot="start" /> Export
+                </ion-button>
+              </div>
             </div>
           </div>
         </div>
