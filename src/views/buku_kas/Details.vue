@@ -399,7 +399,7 @@ async function saveWorkbook(wb: XLSX.WorkBook, fileName: string) {
     });
     await Share.share({
       title: 'Download Excel',
-      url: uri,
+      files: [uri],
       dialogTitle: 'Simpan file',
     });
     return;
@@ -476,14 +476,15 @@ const donutOptions = computed(() => ({
     type: 'donut',
     height: 240,
     width: '100%',
-    toolbar: { show: false }
+    toolbar: { show: false },
+    zoom: { enabled: false },
+    selection: { enabled: false },
   },
   plotOptions: {
     pie: {
+      expandOnClick: false,
       donut: {
         size: '75%',
-        customRoundEdges: true,
-        expandOnClick: false
       }
     }
   },
@@ -735,19 +736,16 @@ onUnmounted(() => clearInterval(interval))
           <!-- Charts -->
           <div class="row mb-3">
             <div class="col-12 col-md-6 mb-3" v-if="barSeries[0].data.length > 0">
-              <div class="mobile-card container-padded mb-3 mt-3 h-100">
+              <div class="mobile-card container-padded mb-3 mt-3 h-100 clickable-card">
                 <h6 class="fw-bold text-dark mb-3">Arus Kas Bulanan</h6>
                 <VueApexCharts type="bar" height="240" :options="barOptions" :series="barSeries" />
               </div>
             </div>
 
-            <div class="col-12 col-md-6 mb-3">
-              <div class="mobile-card container-padded mb-3 mt-3 h-100">
+            <div class="col-12 col-md-6 mb-3" v-if="donutSeries.length > 0">
+              <div class="mobile-card container-padded mb-3 mt-3 h-100 clickable-card">
                 <h6 class="fw-bold text-dark mb-3">Pengeluaran per Kategori</h6>
-                <div v-if="donutSeries.length > 0">
-                  <VueApexCharts type="donut" height="240" :options="donutOptions" :series="donutSeries" />
-                </div>
-                <div v-else class="text-center py-4 text-muted">Belum ada data pengeluaran.</div>
+                <VueApexCharts type="donut" height="240" :options="donutOptions" :series="donutSeries" />
               </div>
             </div>
           </div>
@@ -911,7 +909,7 @@ onUnmounted(() => clearInterval(interval))
                 </div>
                 <div class="form-section">
                     <label class="form-label">Nominal</label>
-                    <input type="number" v-model.number="formTx.amount" class="form-control app-control"/>
+                    <NumberInput v-model="formTx.amount" />
                 </div>
                 <div class="form-section">
                     <label class="form-label">Deskripsi</label>

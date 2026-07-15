@@ -10,6 +10,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import { seedDatabase } from './db/schema'
+import NumberInput from './components/NumberInput.vue'
 
 
 
@@ -39,6 +40,7 @@ async function initializeApp() {
   app.use(IonicVue);
   app.use(store);
   app.use(router);
+  app.component('NumberInput', NumberInput);
 
   const vm = app.mount('#app');
   // expose app for header toggle interop

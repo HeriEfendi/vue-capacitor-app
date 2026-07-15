@@ -5,39 +5,58 @@
         <div class="app-hero">
           <div>
             <ion-title class="app-hero-title">{{ isEdit ? 'Edit Pengeluaran' : 'Tambah Pengeluaran' }}</ion-title>
-            <p class="app-hero-subtitle">Input cepat nominal, kategori, dan tanggal dengan layout mobile yang rapi.</p>
+            <p class="app-hero-subtitle">Catat pengeluaran Anda dan potong saldo akun bank secara otomatis.</p>
           </div>
         </div>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="app-content-wrap">
-      <div v-if="!loaded" class="loading-state">Memuat data...</div>
+      <div v-if="!loaded" class="loading-state text-center py-5">
+        <ion-spinner />
+        <p>Memuat data...</p>
+      </div>
 
       <ion-card v-else class="mobile-card mx-3">
         <ion-card-content>
           <div class="form-stack">
             <div class="field-group">
-              <label class="field-label">Deskripsi</label>
-              <input type="text" v-model="form.description" class="form-control app-control" placeholder="Deskripsi pengeluaran" />
+              <label class="field-label">Deskripsi / Keperluan</label>
+              <input type="text" v-model="form.description" class="form-control app-control" placeholder="Contoh: Beli Bahan Baku, Bayar Listrik Toko" />
             </div>
+            
             <div class="field-group">
-              <label class="field-label">Jumlah</label>
-              <input type="number" v-model.number="form.amount" class="form-control app-control" placeholder="0" />
+              <label class="field-label">Jumlah (Rp)</label>
+              <NumberInput v-model="form.amount" placeholder="0" />
             </div>
+
             <div class="field-group">
               <label class="field-label">Tanggal</label>
               <input type="date" v-model="form.date" class="form-control app-control" />
             </div>
+
             <div class="field-group">
               <label class="field-label">Kategori</label>
-              <input type="text" v-model="form.category" class="form-control app-control" placeholder="Kategori" />
+              <select v-model="form.category" class="form-control app-control">
+                <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Sumber Dana / Rekening</label>
+              <select v-model="form.accountId" class="form-control app-control">
+                <option :value="null">-- Tanpa Potong Saldo (Hanya Catat) --</option>
+                <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
+              </select>
+              <small class="text-muted" v-if="form.accountId">Memilih akun bank akan otomatis memotong saldo tabungan terkait.</small>
             </div>
           </div>
 
-          <div class="mobile-card-footer mt-3">
+          <div class="mobile-card-footer mt-4">
             <ion-button class="btn-action light" router-link="/expenses">Batal</ion-button>
-            <ion-button class="btn-action primary" @click="onSubmit">{{ isEdit ? 'Simpan Perubahan' : 'Simpan' }}</ion-button>
+            <ion-button class="btn-action primary" @click="onSubmit" :disabled="!form.description || form.amount <= 0">
+              {{ isEdit ? 'Simpan Perubahan' : 'Simpan' }}
+            </ion-button>
           </div>
         </ion-card-content>
       </ion-card>
@@ -49,51 +68,144 @@
 import { computed, ref } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { useRoute, useRouter } from 'vue-router'
-import { expensesRepo } from '../../../db/repositories'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonIcon, IonCard, IonCardContent, IonInput } from '@ionic/vue';
-import { chevronBackOutline } from 'ionicons/icons'
+import { expensesRepo, savingAccountsRepo, savingTransactionsRepo } from '../../../db/repositories'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonSpinner, IonCard, IonCardContent } from '@ionic/vue';
 
 export default {
   name: 'AccountingExpensesFormView',
-  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonIcon, IonCard, IonCardContent, IonInput },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonSpinner, IonCard, IonCardContent },
   setup() {
     const route = useRoute()
     const router = useRouter()
     const loaded = ref(false)
-    const form = ref({ description: '', amount: 0, date: new Date().toISOString().slice(0, 10), category: '' })
-    const isEdit = computed(() => Boolean(route.params.id))
+    const accounts = ref([])
     
+    const categories = [
+      'Makanan & Minuman',
+      'Transportasi & Bensin',
+      'Servis Kendaraan',
+      'Kebutuhan Rumah Tangga',
+      'Amal & Sosial',
+      'Hiburan & Liburan',
+      'Tagihan & Utilitas',
+      'Lain-lain'
+    ]
+
+    const form = ref({
+      description: '',
+      amount: null,
+      date: new Date().toISOString().slice(0, 10),
+      category: 'Makanan & Minuman',
+      accountId: null,
+      savingTxId: null
+    })
+
+    const isEdit = computed(() => Boolean(route.params.id))
+
     const resetForm = () => {
-      form.value = { description: '', amount: 0, date: new Date().toISOString().slice(0, 10), category: '' }
+      form.value = {
+        description: '',
+        amount: null,
+        date: new Date().toISOString().slice(0, 10),
+        category: 'Makanan & Minuman',
+        accountId: null,
+        savingTxId: null
+      }
     }
 
     const load = async () => {
-      if (!isEdit.value) {
-        resetForm()
+      loaded.value = false
+      try {
+        accounts.value = await savingAccountsRepo.getAll()
+        
+        if (!isEdit.value) {
+          resetForm()
+          loaded.value = true
+          return
+        }
+
+        const data = await expensesRepo.getById(Number(route.params.id))
+        if (!data) return router.push('/expenses')
+
+        form.value = {
+          description: data.description || '',
+          amount: data.amount || 0,
+          date: (data.date || new Date().toISOString()).slice(0, 10),
+          category: data.category || 'Makanan & Minuman',
+          accountId: data.accountId || null,
+          savingTxId: data.savingTxId || null
+        }
+      } catch (err) {
+        console.error('Failed to load expense form data:', err)
+      } finally {
         loaded.value = true
-        return
       }
-      const data = await expensesRepo.getById(Number(route.params.id))
-      if (!data) return router.push('/expenses')
-      form.value = {
-        description: data.description || '',
-        amount: data.amount || 0,
-        date: (data.date || new Date().toISOString()).slice(0, 10),
-        category: data.category || '',
-      }
-      loaded.value = true
     }
 
     const onSubmit = async () => {
-      const payload = { ...form.value, amount: Number(form.value.amount) }
-      if (isEdit.value) await expensesRepo.update(Number(route.params.id), payload)
-      else await expensesRepo.add(payload)
-      await router.push('/expenses')
+      const payload = {
+        ...form.value,
+        amount: Number(form.value.amount),
+        accountId: form.value.accountId ? Number(form.value.accountId) : null
+      }
+
+      try {
+        if (isEdit.value) {
+          // If previously had a linked saving transaction
+          if (payload.savingTxId) {
+            if (payload.accountId) {
+              // Update existing linked transaction
+              await savingTransactionsRepo.update(payload.savingTxId, {
+                accountId: payload.accountId,
+                amount: payload.amount,
+                date: payload.date,
+                description: `Pengeluaran: ${payload.description}`
+              })
+            } else {
+              // Remove the saving transaction because accountId was unselected
+              await savingTransactionsRepo.delete(payload.savingTxId)
+              payload.savingTxId = null
+            }
+          } else if (payload.accountId) {
+            // Create a new saving transaction because accountId was selected
+            const tx = await savingTransactionsRepo.add({
+              accountId: payload.accountId,
+              type: 'WITHDRAWAL',
+              amount: payload.amount,
+              date: payload.date,
+              category: 'Pengeluaran',
+              description: `Pengeluaran: ${payload.description}`
+            })
+            payload.savingTxId = tx.id
+          }
+
+          await expensesRepo.update(Number(route.params.id), payload)
+        } else {
+          // Create new expense
+          if (payload.accountId) {
+            const tx = await savingTransactionsRepo.add({
+              accountId: payload.accountId,
+              type: 'WITHDRAWAL',
+              amount: payload.amount,
+              date: payload.date,
+              category: 'Pengeluaran',
+              description: `Pengeluaran: ${payload.description}`
+            })
+            payload.savingTxId = tx.id
+          }
+
+          await expensesRepo.add(payload)
+        }
+
+        await router.push('/expenses')
+      } catch (err) {
+        console.error('Failed to save expense:', err)
+      }
     }
 
     onIonViewWillEnter(load)
 
-    return { form, onSubmit, loaded, isEdit, chevronBackOutline }
+    return { form, onSubmit, loaded, isEdit, categories, accounts }
   }
 }
 </script>

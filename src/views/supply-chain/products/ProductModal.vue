@@ -29,13 +29,13 @@
             <div class="col-6">
               <div class="field-group">
                 <label class="field-label">Harga (IDR)</label>
-                <input type="number" v-model.number="product.price" class="form-control app-control" />
+                <NumberInput v-model="product.price" placeholder="0" />
               </div>
             </div>
             <div class="col-6">
               <div class="field-group">
                 <label class="field-label">Stok</label>
-                <input type="number" v-model.number="product.stock" class="form-control app-control" />
+                <NumberInput v-model="product.stock" placeholder="0" />
               </div>
             </div>
           </div>

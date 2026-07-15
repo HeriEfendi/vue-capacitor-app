@@ -50,6 +50,50 @@ db.version(7).stores({
   stockMutations: '++id, productId, type, changeQuantity, beforeStock, afterStock, createdAt, notes'
 });
 
+// Version 8: Add saving_accounts and saving_transactions for bank-like savings management
+db.version(8).stores({
+  projects: 'id',
+  todos: 'id',
+  team_todos: 'id',
+  users: 'id',
+  transactions: 'id, project_id',
+  ceklok_logs: 'id',
+  ceklok_settings: 'key',
+  categories: 'id, name',
+  products: '++id, name, price, stock, categoryId, featured',
+  savings: '++id, createdAt, name, amount',
+  debts: '++id, createdAt, name, amount, dueDate',
+  incomes: '++id, createdAt, name, amount',
+  expenses: '++id, createdAt, description, amount, date, category',
+  dailyLedger: '++id, createdAt, description, amount, type',
+  sales: '++id, createdAt, totalAmount, paymentMethod, amountPaid, changeAmount, items, notes',
+  stockMutations: '++id, productId, type, changeQuantity, beforeStock, afterStock, createdAt, notes',
+  saving_accounts: '++id, name, category',
+  saving_transactions: '++id, accountId, type, date'
+});
+
+// Version 9: Standardize database tables and prevent SchemaDiff warnings
+db.version(9).stores({
+  projects: 'id',
+  todos: 'id',
+  team_todos: 'id',
+  users: 'id',
+  transactions: 'id, project_id',
+  ceklok_logs: 'id',
+  ceklok_settings: 'key',
+  categories: 'id, name',
+  products: '++id, name, price, stock, categoryId, featured',
+  savings: '++id, createdAt, name, amount',
+  debts: '++id, createdAt, name, amount, dueDate',
+  incomes: '++id, createdAt, name, amount',
+  expenses: '++id, createdAt, description, amount, date, category',
+  dailyLedger: '++id, createdAt, description, amount, type',
+  sales: '++id, createdAt, totalAmount, paymentMethod, amountPaid, changeAmount, items, notes',
+  stockMutations: '++id, productId, type, changeQuantity, beforeStock, afterStock, createdAt, notes',
+  saving_accounts: '++id, name, category',
+  saving_transactions: '++id, accountId, type, date'
+});
+
 let databaseSeeded = false;
 
 export async function seedDatabase() {

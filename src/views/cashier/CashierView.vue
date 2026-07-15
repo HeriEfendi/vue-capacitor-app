@@ -377,7 +377,7 @@
           <div v-if="paymentMethod === 'cash'">
             <div class="form-section px-0 mb-3">
               <label class="form-label">Uang Diterima (Tunai)</label>
-              <input type="number" class="form-control app-control fs-6 fw-bold text-dark" v-model.number="amountPaid" />
+              <NumberInput v-model="amountPaid" input-class="form-control app-control fs-6 fw-bold text-dark" />
             </div>
 
             <!-- Quick Cash Buttons -->

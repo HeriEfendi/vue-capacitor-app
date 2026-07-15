@@ -192,7 +192,7 @@ async function handleBackup() {
       });
       await Share.share({
         title: 'Backup Database',
-        url: uri,
+        files: [uri],
         dialogTitle: 'Simpan file Backup',
       });
       showToast('Berhasil mengekspor backup!', 'success');
@@ -207,6 +207,11 @@ async function handleBackup() {
     loading.value = false;
   }
 }
+
+// Map for renamed tables to maintain backward compatibility
+const TABLE_NAME_MAP = {
+  capitalCosts: 'savings',
+};
 
 /**
  * RESTORE DATABASE
@@ -244,8 +249,11 @@ async function handleFileChange(e) {
       // Wrap the restore operation in a write transaction covering all stores
       await db.transaction('rw', db.tables, async () => {
         for (const sheetName of workbook.SheetNames) {
-          // Check if sheetName is a valid table in Dexie
-          const table = db.tables.find((t) => t.name === sheetName);
+          // Resolve target table name (handling renamed tables for backward compatibility)
+          const targetTableName = TABLE_NAME_MAP[sheetName] || sheetName;
+
+          // Check if targetTableName is a valid table in Dexie
+          const table = db.tables.find((t) => t.name === targetTableName);
           if (!table) continue;
 
           const sheet = workbook.Sheets[sheetName];
@@ -260,18 +268,31 @@ async function handleFileChange(e) {
               const cleaned = { ...row };
               delete cleaned.__rowNum__;
 
-              // Parse stringified objects/arrays back
+              // Parse and coerce types dynamically
               for (const key of Object.keys(cleaned)) {
                 const val = cleaned[key];
                 if (typeof val === 'string') {
+                  // Check if it's stringified JSON (array or object)
                   if (
                     (val.startsWith('[') && val.endsWith(']')) ||
                     (val.startsWith('{') && val.endsWith('}'))
                   ) {
                     try {
                       cleaned[key] = JSON.parse(val);
+                      continue;
                     } catch {
                       // fallback to string if parsing fails
+                    }
+                  }
+
+                  // Coerce numeric strings to numbers for known numeric/ID field patterns
+                  const isIdField = key === 'id' || key.endsWith('Id') || key.endsWith('_id');
+                  const isNumericField = /price|stock|amount|qty|quantity|discount|balance|total|sum|count|hours|minutes|rate/i.test(key);
+
+                  if (isIdField || isNumericField) {
+                    const num = Number(val);
+                    if (!isNaN(num) && val.trim() !== '') {
+                      cleaned[key] = num;
                     }
                   }
                 }
@@ -282,7 +303,7 @@ async function handleFileChange(e) {
             await table.bulkAdd(cleanedRows);
           }
 
-          restoredTables.push(sheetName);
+          restoredTables.push(targetTableName);
           totalRecords += rows.length;
         }
       });

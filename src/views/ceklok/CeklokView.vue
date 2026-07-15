@@ -1098,28 +1098,45 @@ export default {
          cutoffDay = startOfPeriod.getDay();
       }
 
-      const start = getStartOfWeeklyPeriod(now, cutoffDay);
-      const end = new Date(start.getTime() + 7 * 86400000);
+      const weekStart = getStartOfWeeklyPeriod(now, cutoffDay);
+      let weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+
+      let finalStart = new Date(weekStart);
+      let finalEnd = new Date(weekEnd);
+
+      if (settings.value.cutoffType === 'monthly') {
+        const { start: periodStart, end: periodEnd } = getMonthlyPeriodDates(now, settings.value);
+        const periodEndLimit = new Date(periodEnd);
+        periodEndLimit.setDate(periodEndLimit.getDate() - 1);
+
+        if (finalStart < periodStart) {
+          finalStart = new Date(periodStart);
+        }
+        if (finalEnd > periodEndLimit) {
+          finalEnd = new Date(periodEndLimit);
+        }
+      }
+
+      finalStart.setHours(0, 0, 0, 0);
+      finalEnd.setHours(23, 59, 59, 999);
+
       return logs.value
         .filter(log => {
           const d = new Date(log.clockIn);
-          return d >= start && d < end;
+          return d >= finalStart && d <= finalEnd;
         })
         .reduce((sum, log) => sum + log.totalWorkHours, 0);
     });
 
     const totalMonthHours = computed(() => {
       const now = new Date();
-      let start;
-      if (settings.value.cutoffType === 'weekly') {
-        // Mode mingguan: gunakan periode 1 bulan kalender (atau sesuaikan jika ingin periode mingguan digabung)
-        // Disini saya samakan dengan periode awal bulan aktif
-        start = new Date(now.getFullYear(), now.getMonth(), 1);
-      } else {
-        start = getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
-      }
+      const { start, end } = getMonthlyPeriodDates(now, settings.value);
       return logs.value
-        .filter(log => new Date(log.clockIn) >= start)
+        .filter(log => {
+          const d = new Date(log.clockIn);
+          return d >= start && d < end;
+        })
         .reduce((sum, log) => sum + log.totalWorkHours, 0);
     });
 
@@ -1160,11 +1177,11 @@ export default {
     const getStartOfMonthlyPeriod = (date, cutoffDate) => {
       const result = new Date(date);
       const dayOfMonth = result.getDate();
-      if (dayOfMonth >= cutoffDate) {
-        result.setDate(cutoffDate);
+      if (dayOfMonth > cutoffDate) {
+        result.setDate(cutoffDate + 1);
       } else {
         result.setMonth(result.getMonth() - 1);
-        result.setDate(cutoffDate);
+        result.setDate(cutoffDate + 1);
       }
       result.setHours(0, 0, 0, 0);
       return result;
@@ -1188,9 +1205,7 @@ export default {
       const now = new Date();
       let cutoffDay = settings.value.cutoffDay;
       
-      // Jika null (mode bulanan), cari periode aktif sekarang
       if (cutoffDay === null || cutoffDay === undefined) {
-        // Tentukan start tanggal berdasarkan cutoff bulan ini vs bulan lalu
         let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), settings.value.cutoffDate + 1);
         if (now.getDate() <= settings.value.cutoffDate) {
           startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
@@ -1198,10 +1213,34 @@ export default {
         cutoffDay = startOfPeriod.getDay();
       }
 
-      const start = getStartOfWeeklyPeriod(now, cutoffDay);
-      const end = new Date(start);
-      end.setDate(end.getDate() + 6);
-      return `${start.getDate()} ${start.toLocaleString('id-ID', { month: 'short' })} - ${end.getDate()} ${end.toLocaleString('id-ID', { month: 'short' })}`;
+      const weekStart = getStartOfWeeklyPeriod(now, cutoffDay);
+      let weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+
+      let finalStart = new Date(weekStart);
+      let finalEnd = new Date(weekEnd);
+
+      if (settings.value.cutoffType === 'monthly') {
+        const { start: periodStart, end: periodEnd } = getMonthlyPeriodDates(now, settings.value);
+        const periodEndLimit = new Date(periodEnd);
+        periodEndLimit.setDate(periodEndLimit.getDate() - 1);
+
+        if (finalStart < periodStart) {
+          finalStart = new Date(periodStart);
+        }
+        if (finalEnd > periodEndLimit) {
+          finalEnd = new Date(periodEndLimit);
+        }
+      }
+
+      finalStart.setHours(0, 0, 0, 0);
+      finalEnd.setHours(23, 59, 59, 999);
+
+      if (finalStart.getDate() === finalEnd.getDate() && finalStart.getMonth() === finalEnd.getMonth() && finalStart.getFullYear() === finalEnd.getFullYear()) {
+        return `${finalStart.getDate()} ${finalStart.toLocaleString('id-ID', { month: 'short' })}`;
+      }
+
+      return `${finalStart.getDate()} ${finalStart.toLocaleString('id-ID', { month: 'short' })} - ${finalEnd.getDate()} ${finalEnd.toLocaleString('id-ID', { month: 'short' })}`;
     });
 
     const monthlyPeriodRange = computed(() => {
@@ -1225,9 +1264,9 @@ export default {
         const start = getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
         const end = new Date(start.getTime());
         end.setMonth(end.getMonth() + 1);
-        const startDay = settings.value.cutoffDate + 1;
-        const endDay = settings.value.cutoffDate;
-        return `${startDay} ${start.toLocaleString('id-ID', { month: 'short' })} - ${endDay} ${end.toLocaleString('id-ID', { month: 'short' })}`;
+        const lastDay = new Date(end);
+        lastDay.setDate(lastDay.getDate() - 1);
+        return `${start.getDate()} ${start.toLocaleString('id-ID', { month: 'short' })} - ${lastDay.getDate()} ${lastDay.toLocaleString('id-ID', { month: 'short' })}`;
       }
     });
 
@@ -1240,21 +1279,42 @@ export default {
          if (now.getDate() <= settings.value.cutoffDate) startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
          cutoffDay = startOfPeriod.getDay();
       }
-      const start = getStartOfWeeklyPeriod(now, cutoffDay);
-      
+      const weekStart = getStartOfWeeklyPeriod(now, cutoffDay);
+      let weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+
+      let finalStart = new Date(weekStart);
+      let finalEnd = new Date(weekEnd);
+
+      if (settings.value.cutoffType === 'monthly') {
+        const { start: periodStart, end: periodEnd } = getMonthlyPeriodDates(now, settings.value);
+        const periodEndLimit = new Date(periodEnd);
+        periodEndLimit.setDate(periodEndLimit.getDate() - 1);
+
+        if (finalStart < periodStart) {
+          finalStart = new Date(periodStart);
+        }
+        if (finalEnd > periodEndLimit) {
+          finalEnd = new Date(periodEndLimit);
+        }
+      }
+
+      finalStart.setHours(0, 0, 0, 0);
+      finalEnd.setHours(23, 59, 59, 999);
+
       const baseLabels = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
       const labels = [];
-      for(let i=0; i<7; i++) labels.push(baseLabels[(start.getDay() + i) % 7]);
-      
       const data = [];
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(start);
-        d.setDate(start.getDate() + i);
-        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+      const temp = new Date(finalStart);
+      while (temp <= finalEnd) {
+        labels.push(baseLabels[temp.getDay()]);
+        const dateStr = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(2, '0')}-${String(temp.getDate()).padStart(2, '0')}`;
         const hours = logs.value
           .filter(log => log.date === dateStr)
           .reduce((sum, log) => sum + log.totalWorkHours, 0);
         data.push(Number(hours.toFixed(2)));
+        temp.setDate(temp.getDate() + 1);
       }
       return { series: [{ name: 'Jam Kerja', data: data }], labels: labels };
     });

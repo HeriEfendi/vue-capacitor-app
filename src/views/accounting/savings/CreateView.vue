@@ -21,7 +21,7 @@
             </div>
             <div class="field-group">
               <label class="field-label">Jumlah</label>
-              <input type="number" v-model.number="form.amount" class="form-control app-control" placeholder="0" />
+              <NumberInput v-model="form.amount" placeholder="0" />
             </div>
             <div class="field-group">
               <label class="field-label">Tanggal</label>
