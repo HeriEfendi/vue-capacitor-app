@@ -684,71 +684,88 @@ onUnmounted(() => clearInterval(interval))
         <div v-if="activeTab === 'dashboard'" class="ion-padding">
           
           <!-- Summary Grid -->
-          <div class="project-actions d-grid gap-2 mx-2">
-            <div class="mb-2">
-              <div class="mobile-card p-3 h-100">
-                <small class="text-muted d-block">Modal</small>
-                <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).modal_total || 0) }}</div>
-              </div>
-            </div>
-            <div class="mb-2">
-              <div class="mobile-card p-3 h-100">
-                <small class="text-muted d-block">Pengeluaran</small>
-                <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(project.total_expenses) }}</div>
-              </div>
-            </div>
-            <div class="mb-2" v-if="(project as any).panen_total > 0">
-              <div class="mobile-card p-3 h-100">
-                <small class="text-muted d-block">Pendapatan</small>
-                <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).panen_total || 0) }}</div>
-                
-                <div class="d-flex justify-content-between align-items-center border-top mt-2 pt-2">
-                  <div class="d-flex flex-column align-items-start">
-                    <small class="text-muted">Margin</small>
-                    <span class="fw-bold mt-1" :class="profitPercent >= 0 ? 'text-success' : 'text-danger'">{{ profitPercent }}%</span>
-                  </div>
-                  <div class="d-flex flex-column align-items-end">
-                    <small class="text-muted">ROI</small>
-                    <span class="fw-bold mt-1" :class="roi >= 0 ? 'text-success' : 'text-danger'">{{ roi }}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="mb-2">
-              <div class="mobile-card p-3 h-100">
-                <div v-if="(project as any).panen_total > 0" class="mb-2">
-                  <small class="text-muted d-block">Keuntungan</small>
-                  <div class="fs-6 fw-black mt-1" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
-                  <div class="border-bottom my-2"></div>
-                </div>
-                <small class="text-muted d-block">Sisa Saldo</small>
-                <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(project.balance) }}</div>
-              </div>
-            </div>
-            <div class="mb-2" v-if="(project as any).panen_total <= 0">
-              <div class="mobile-card p-3 h-100">
-                <small class="text-muted d-block">Total Transaksi</small>
-                <div class="fs-6 fw-black text-primary mt-1">{{ (project.transactions || []).length }}</div>
-              </div>
-            </div>
-          </div>
+          <ion-grid class="mx-2">
+            <ion-row>
+              <ion-col size="6" size-sm="6" size-md="3">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="py-3">
+                    <small class="text-muted d-block text-xs">Modal</small>
+                    <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).modal_total || 0) }}</div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="6" size-sm="6" size-md="3">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="py-3">
+                    <small class="text-muted d-block text-xs">Pengeluaran</small>
+                    <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(project.total_expenses) }}</div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="6" size-sm="6" size-md="3" v-if="(project as any).panen_total > 0">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="py-3">
+                    <small class="text-muted d-block text-xs">Pendapatan</small>
+                    <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).panen_total || 0) }}</div>
+                    <div class="d-flex justify-content-between align-items-center border-top mt-2 pt-2">
+                      <div class="d-flex flex-column align-items-start">
+                        <small class="text-muted text-xs">Margin</small>
+                        <span class="fw-bold mt-1 text-xs" :class="profitPercent >= 0 ? 'text-success' : 'text-danger'">{{ profitPercent }}%</span>
+                      </div>
+                      <div class="d-flex flex-column align-items-end">
+                        <small class="text-muted text-xs">ROI</small>
+                        <span class="fw-bold mt-1 text-xs" :class="roi >= 0 ? 'text-success' : 'text-danger'">{{ roi }}%</span>
+                      </div>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="6" size-sm="6" size-md="3">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="py-3">
+                    <div v-if="(project as any).panen_total > 0" class="mb-2">
+                      <small class="text-muted d-block text-xs">Keuntungan</small>
+                      <div class="fs-6 fw-black mt-1" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
+                      <div class="border-bottom my-2"></div>
+                    </div>
+                    <small class="text-muted d-block text-xs">Sisa Saldo</small>
+                    <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(project.balance) }}</div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="6" size-sm="6" size-md="3" v-if="(project as any).panen_total <= 0">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="py-3">
+                    <small class="text-muted d-block text-xs">Total Transaksi</small>
+                    <div class="fs-6 fw-black text-primary mt-1">{{ (project.transactions || []).length }}</div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
 
           <!-- Charts -->
-          <div class="row mb-3">
-            <div class="col-12 col-md-6 mb-3" v-if="barSeries[0].data.length > 0">
-              <div class="mobile-card container-padded mb-3 mt-3 h-100 clickable-card">
-                <h6 class="fw-bold text-dark mb-3">Arus Kas Bulanan</h6>
-                <VueApexCharts type="bar" height="240" :options="barOptions" :series="barSeries" />
-              </div>
-            </div>
+          <ion-grid class="mx-2">
+            <ion-row>
+              <ion-col size="12" size-sm="6" size-lg="6" v-if="barSeries[0].data.length > 0">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="container-padded">
+                    <h6 class="fw-bold text-dark mb-3">Arus Kas Bulanan</h6>
+                    <VueApexCharts type="bar" height="240" :options="barOptions" :series="barSeries" />
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
 
-            <div class="col-12 col-md-6 mb-3" v-if="donutSeries.length > 0">
-              <div class="mobile-card container-padded mb-3 mt-3 h-100 clickable-card">
-                <h6 class="fw-bold text-dark mb-3">Pengeluaran per Kategori</h6>
-                <VueApexCharts type="donut" height="240" :options="donutOptions" :series="donutSeries" />
-              </div>
-            </div>
-          </div>
+              <ion-col size="12" size-sm="6" size-lg="6" v-if="donutSeries.length > 0">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="container-padded">
+                    <h6 class="fw-bold text-dark mb-3">Pengeluaran per Kategori</h6>
+                    <VueApexCharts type="donut" height="240" :options="donutOptions" :series="donutSeries" />
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
 
         </div>
 

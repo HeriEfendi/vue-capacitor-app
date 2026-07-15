@@ -110,70 +110,82 @@
       <!-- TAB 2: DASHBOARD (Stats & Charts) -->
       <div v-if="activeTab === 'dashboard'" class="ion-padding">
         <!-- KPI Row -->
-        <div class="project-actions d-grid gap-2 m-2">
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Jam Kerja (Minggu Ini)</small>
-              <div class="fs-3 fw-black text-indigo mt-1">{{ Math.floor(totalWeekHours) }}.{{ String(Math.round((totalWeekHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
-              <div class="progress mt-2" style="height: 6px;">
-                <div class="progress-bar bg-indigo" role="progressbar" :style="{ width: Math.min(100, (totalWeekHours / 40) * 100) + '%' }"></div>
-              </div>
-              <small class="text-muted mt-1 d-block small" >Target: 40 Jam / Minggu</small>
-            </div>
-          </div>
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Jam Kerja (Periode)</small>
-              <div class="fs-3 fw-black text-teal mt-1">{{ Math.floor(totalMonthHours) }}.{{ String(Math.round((totalMonthHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
-              <div class="progress mt-2" style="height: 6px;">
-                <div class="progress-bar bg-teal" role="progressbar" :style="{ width: Math.min(100, (totalMonthHours / 160) * 100) + '%' }"></div>
-              </div>
-              <small class="text-muted mt-1 d-block small" >Target: 160 Jam / Periode</small>
-            </div>
-          </div>
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Hari Kerja</small>
-              <div class="fs-3 fw-black text-amber mt-1">{{ daysWorkedThisMonth }} <span class="fs-6 fw-normal">Hari</span></div>
-              <small class="text-muted mt-1 d-block small" >Periode aktif</small>
-            </div>
-          </div>
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Rata-rata Harian</small>
-              <div class="fs-3 fw-black text-primary mt-1">{{ Math.floor(avgDailyHours) }}.{{ String(Math.round((avgDailyHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
-              <small class="text-muted mt-1 d-block small" >Hari aktif</small>
-            </div>
-          </div>
-        </div>
+        <ion-grid class="mx-2">
+          <ion-row>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Jam Kerja (Minggu Ini)</small>
+                  <div class="fs-4 fw-black text-indigo mt-1">{{ Math.floor(totalWeekHours) }}.{{ String(Math.round((totalWeekHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
+                  <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-indigo" role="progressbar" :style="{ width: Math.min(100, (totalWeekHours / 40) * 100) + '%' }"></div>
+                  </div>
+                  <small class="text-muted mt-1 d-block small">Target: 40 Jam / Minggu</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Jam Kerja (Periode)</small>
+                  <div class="fs-4 fw-black text-teal mt-1">{{ Math.floor(totalMonthHours) }}.{{ String(Math.round((totalMonthHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
+                  <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-teal" role="progressbar" :style="{ width: Math.min(100, (totalMonthHours / 160) * 100) + '%' }"></div>
+                  </div>
+                  <small class="text-muted mt-1 d-block small">Target: 160 Jam / Periode</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Hari Kerja</small>
+                  <div class="fs-4 fw-black text-amber mt-1">{{ daysWorkedThisMonth }} <span class="fs-6 fw-normal">Hari</span></div>
+                  <small class="text-muted mt-1 d-block small">Periode aktif</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Rata-rata Harian</small>
+                  <div class="fs-4 fw-black text-primary mt-1">{{ Math.floor(avgDailyHours) }}.{{ String(Math.round((avgDailyHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
+                  <small class="text-muted mt-1 d-block small">Hari aktif</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
 
-        <!-- Weekly Chart -->
-        <div class="mobile-card container-padded mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold text-dark mb-0">Grafik Harian Minggu Ini</h6>
-            <span class="badge bg-light text-muted border small">{{ weeklyPeriodRange }}</span>
-          </div>
-          <div v-if="weeklyChartSeries.series[0].data.length > 0">
-            <VueApexCharts type="bar" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries.series" />
-          </div>
-          <div v-else class="text-center py-4 text-muted">
-            Belum ada data untuk minggu ini.
-          </div>
-        </div>
+        <ion-grid class="mx-2">
+          <ion-row>
+            <ion-col size="12" size-lg="6">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="container-padded">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Grafik Harian Minggu Ini</h6>
+                    <span class="badge bg-light text-muted border small">{{ weeklyPeriodRange }}</span>
+                  </div>
+                  <VueApexCharts v-if="weeklyChartSeries.series[0].data.length > 0" type="bar" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries.series" />
+                  <div v-else class="text-center py-4 text-muted">Belum ada data untuk minggu ini.</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
 
-        <!-- Monthly Chart -->
-        <div class="mobile-card container-padded mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold text-dark mb-0">Grafik Mingguan Bulan Ini</h6>
-            <span class="badge bg-light text-muted border small">{{ monthlyPeriodRange }}</span>
-          </div>
-          <div v-if="monthlyChartSeries[0].data.length > 0">
-            <VueApexCharts type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
-          </div>
-          <div v-else class="text-center py-4 text-muted">
-            Belum ada data untuk bulan ini.
-          </div>
-        </div>
+            <ion-col size="12" size-lg="6">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="container-padded">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Grafik Mingguan Bulan Ini</h6>
+                    <span class="badge bg-light text-muted border small">{{ monthlyPeriodRange }}</span>
+                  </div>
+                  <VueApexCharts v-if="monthlyChartSeries[0].data.length > 0" type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
+                  <div v-else class="text-center py-4 text-muted">Belum ada data untuk bulan ini.</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
       </div>
 
       <!-- TAB 3: RIWAYAT (History List) -->

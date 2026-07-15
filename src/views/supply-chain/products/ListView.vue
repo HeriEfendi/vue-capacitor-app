@@ -58,35 +58,38 @@
       </div>
 
       <!-- Product Grid -->
-      <div class="p-2">
-        <div class="row g-1">
-          <div v-for="product in filteredProducts" :key="product.id" class="col-6 col-sm-4 col-md-3 mb-3">
-            <div class="mobile-card h-100 p-2 d-flex flex-column">
-              <div class="position-relative text-center rounded-3 overflow-hidden mb-2" style="height: 100px; background: #f0edff;">
-                <img v-if="product.imageURL" :src="product.imageURL" class="w-100 h-100" style="object-fit: cover;" />
-                <div v-else class="d-flex h-100 align-items-center justify-content-center text-muted"><ion-icon :icon="basketOutline" style="font-size:2rem;" /></div>
-                <span v-if="product.featured === 1" class="badge bg-warning text-dark position-absolute top-0 start-0 m-1" style="font-size: 0.6rem;">Unggulan</span>
-              </div>
-              <div class="flex-grow-1">
-                <span class="badge bg-secondary mb-1" style="font-size: 0.6rem;">{{ getCategoryName(product.categoryId) }}</span>
-                <h6 class="fw-bold mb-1 text-truncate" style="font-size: 0.85rem;">{{ product.name }}</h6>
-                <p class="text-indigo fw-bold mb-2" style="font-size: 0.8rem;">{{ formatPrice(product.price) }}</p>
-              </div>
-              <div class="border-top pt-2 mt-auto">
-                <div class="mb-2">
-                    <span v-if="product.stock === 0" class="badge bg-danger w-100">Habis</span>
-                    <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark w-100" style="font-size: 0.7rem;">Stok: {{ product.stock }}</span>
-                    <span v-else class="badge bg-success w-100" style="font-size: 0.7rem;">Stok: {{ product.stock }}</span>
+      <ion-grid class="mx-2">
+        <ion-row>
+          <ion-col v-for="product in filteredProducts" :key="product.id" size="6" size-sm="4" size-md="3">
+            <ion-card class="mobile-card m-0 h-100 d-flex flex-column">
+              <ion-card-content class="p-2 d-flex flex-column h-100">
+                <div class="position-relative text-center rounded-3 overflow-hidden mb-2" style="height: 100px; background: #f0edff;">
+                  <img v-if="product.imageURL" :src="product.imageURL" class="w-100 h-100" style="object-fit: cover;" />
+                  <div v-else class="d-flex h-100 align-items-center justify-content-center text-muted"><ion-icon :icon="basketOutline" style="font-size:2rem;" /></div>
+                  <span v-if="product.featured === 1" class="badge bg-warning text-dark position-absolute top-0 start-0 m-1" style="font-size: 0.6rem;">Unggulan</span>
                 </div>
-                <div class="d-flex gap-1">
-                  <button class="btn btn-light btn-sm flex-fill text-primary" @click="openEdit(product)"><ion-icon :icon="createOutline" /></button>
-                  <button class="btn btn-light btn-sm flex-fill text-danger" @click="confirmDelete(product.id)"><ion-icon :icon="trashOutline" /></button>
+                <div class="flex-grow-1">
+                  <span class="badge bg-secondary mb-1" style="font-size: 0.6rem;">{{ getCategoryName(product.categoryId) }}</span>
+                  <h6 class="fw-bold mb-1 text-dark" style="font-size: 0.85rem;">{{ product.name }}</h6>
+                  <p class="text-indigo fw-bold mb-2" style="font-size: 0.8rem;">{{ formatPrice(product.price) }}</p>
+                  
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                <div class="border-top pt-2 mt-auto">
+                  <div class="mb-2">
+                      <span v-if="product.stock === 0" class="badge bg-danger w-100">Habis</span>
+                      <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark w-100" style="font-size: 0.7rem;">Stok: {{ product.stock }}</span>
+                      <span v-else class="badge bg-success w-100" style="font-size: 0.7rem;">Stok: {{ product.stock }}</span>
+                  </div>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-light btn-sm flex-fill text-primary" @click="openEdit(product)"><ion-icon :icon="createOutline" /></button>
+                    <button class="btn btn-light btn-sm flex-fill text-danger" @click="confirmDelete(product.id)"><ion-icon :icon="trashOutline" /></button>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
 
       <!-- Delete Alert -->
       <ion-alert

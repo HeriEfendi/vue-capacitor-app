@@ -243,26 +243,34 @@ onIonViewWillEnter(fetchProjects)
     </ion-header>
 
     <ion-content fullscreen class="app-content-wrap">
-        <div class="row m-2 g-2">
-          <div class="col-6 col-sm-4 col-md-3 mb-2">
-            <div class="mobile-card p-3 h-100 transition-all">
-              <small class="text-muted d-block">Total Modal</small>
-              <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency(totalDepositsAll) }}</div>
-            </div>
-          </div>
-          <div class="col-6 col-sm-4 col-md-3 mb-2">
-            <div class="mobile-card p-3 h-100 transition-all">
-              <small class="text-muted d-block">Total Pengeluaran</small>
-              <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(totalExpensesAll) }}</div>
-            </div>
-          </div>
-          <div class="col-12 col-sm-4 col-md-3 mb-2">
-            <div class="mobile-card p-3 h-100 transition-all">
-              <small class="text-muted d-block">Total Sisa Saldo</small>
-              <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(totalBalanceAll) }}</div>
-            </div>
-          </div>
-        </div>
+        <ion-grid class="mx-2">
+          <ion-row>
+            <ion-col size="6" size-sm="4" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Total Modal</small>
+                  <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency(totalDepositsAll) }}</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="4" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Total Pengeluaran</small>
+                  <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(totalExpensesAll) }}</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="12" size-sm="4" size-md="6" size-lg="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Total Sisa Saldo</small>
+                  <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(totalBalanceAll) }}</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
 
         <div v-if="loading" class="loading-state">
           <ion-spinner />

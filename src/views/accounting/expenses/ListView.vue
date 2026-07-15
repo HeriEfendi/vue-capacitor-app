@@ -31,101 +31,134 @@
     <ion-content class="app-content-wrap">
       <!-- DASHBOARD TAB -->
       <div v-if="activeTab === 'dashboard'" class="ion-padding">
-        <!-- Monthly Budget Card -->
-        <div class="mobile-card p-3 mb-3 border-0 bg-light shadow-sm">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <small class="text-muted text-uppercase fw-bold text-xs">Anggaran Bulanan</small>
-            <button v-if="!editingBudget" class="btn btn-link btn-sm p-0 text-primary fw-bold text-xs" @click="startEditBudget">
-              <ion-icon :icon="pencilOutline" class="me-1" /> Atur Limit
-            </button>
-          </div>
 
-          <!-- Inline Budget Edit Form -->
-          <div v-if="editingBudget" class="d-flex align-items-center gap-2 mb-2">
-            <NumberInput v-model="budgetDraft" placeholder="Contoh: 3.000.000" input-class="form-control app-control form-control-sm flex-grow-1" />
-            <button class="btn btn-success btn-sm fw-bold px-3" @click="saveBudget">Simpan</button>
-            <button class="btn btn-light btn-sm" @click="editingBudget = false">Batal</button>
-          </div>
 
-          <div v-else class="d-flex justify-content-between align-items-end">
-            <div>
-              <span class="fs-5 fw-black text-dark">{{ formatPrice(summary.monthly) }}</span>
-              <span class="text-muted text-xs"> terpakai dari {{ formatPrice(budget) }}</span>
-            </div>
-            <span class="badge text-xs" :class="budgetProgress >= 100 ? 'bg-danger' : 'bg-success'">
-              {{ budgetProgress }}%
-            </span>
-          </div>
+        <ion-grid class="mx-2">
+          <ion-row>
+            
+            <!-- Monthly Budget Card -->
+            <ion-col size="12" size-sm="12" size-md="12" size-lg="6">
+              <ion-card class="mobile-card m-0">
+                <ion-card-content>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <small class="text-muted text-uppercase fw-bold text-xs">Anggaran Bulanan</small>
+                    <button v-if="!editingBudget" class="btn btn-link btn-sm p-0 text-primary fw-bold text-xs" @click="startEditBudget">
+                      <ion-icon :icon="pencilOutline" class="me-1" /> Atur Limit
+                    </button>
+                  </div>
 
-          <!-- Progress Bar -->
-          <div class="progress mt-2" style="height: 10px; border-radius: 5px;">
-            <div class="progress-bar" role="progressbar"
-                 :style="{ width: budgetProgress + '%' }"
-                 :class="budgetProgress >= 100 ? 'bg-danger' : (budgetProgress >= 80 ? 'bg-warning' : 'bg-teal')"
-                 aria-valuemin="0" aria-valuemax="100"></div>
-          </div>
-          <small class="text-danger d-block mt-1 fw-bold text-xs" v-if="budgetProgress >= 100">
-            ⚠️ Pengeluaran telah melebihi batas anggaran bulanan!
-          </small>
-        </div>
+                  <!-- Inline Budget Edit Form -->
+                  <div v-if="editingBudget" class="d-flex align-items-center gap-2 mb-2">
+                    <NumberInput v-model="budgetDraft" placeholder="Contoh: 3.000.000" input-class="form-control app-control form-control-sm flex-grow-1" />
+                    <button class="btn btn-success btn-sm fw-bold px-3" @click="saveBudget">Simpan</button>
+                    <button class="btn btn-light btn-sm" @click="editingBudget = false">Batal</button>
+                  </div>
 
-        <!-- Metric Grid -->
-        <div class="project-actions d-grid gap-2 mx-2 mb-3">
-          <div class="mobile-card p-3 h-100">
-            <small class="text-muted d-block text-xs">Hari Ini</small>
-            <div class="fs-6 fw-black text-teal mt-1">{{ formatPrice(summary.daily) }}</div>
-          </div>
-          <div class="mobile-card p-3 h-100">
-            <small class="text-muted d-block text-xs">Minggu Ini</small>
-            <div class="fs-6 fw-black text-indigo mt-1">{{ formatPrice(summary.weekly) }}</div>
-          </div>
-        </div>
+                  <div v-else class="d-flex justify-content-between align-items-end">
+                    <div>
+                      <span class="fs-5 fw-black text-dark">{{ formatPrice(summary.monthly) }}</span>
+                      <span class="text-muted text-xs"> terpakai dari {{ formatPrice(budget) }}</span>
+                    </div>
+                    <span class="badge text-xs" :class="budgetProgress >= 100 ? 'bg-danger' : 'bg-success'">
+                      {{ budgetProgress }}%
+                    </span>
+                  </div>
 
-        <!-- Donut Chart: Category breakdown -->
-        <div class="mobile-card container-padded mb-3">
-          <h6 class="fw-bold text-dark mb-3">Porsi Pengeluaran per Kategori</h6>
-          <VueApexCharts v-if="donutSeries.length > 0 && donutSeries.some(d => d > 0)" type="donut" height="240" :options="donutOptions" :series="donutSeries" />
-          <div v-else class="text-center py-5 text-muted">Belum ada pengeluaran di bulan ini untuk dianalisa.</div>
-        </div>
+                  <!-- Progress Bar -->
+                  <div class="progress mt-2" style="height: 10px; border-radius: 5px;">
+                    <div class="progress-bar" role="progressbar"
+                        :style="{ width: budgetProgress + '%' }"
+                        :class="budgetProgress >= 100 ? 'bg-danger' : (budgetProgress >= 80 ? 'bg-warning' : 'bg-teal')"
+                        aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <small class="text-danger d-block mt-1 fw-bold text-xs" v-if="budgetProgress >= 100">
+                    ⚠️ Pengeluaran telah melebihi batas anggaran bulanan!
+                  </small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
 
-        <!-- Daily Chart -->
-        <div class="mobile-card container-padded mb-3">
-          <h6 class="fw-bold text-dark mb-3">Grafik Harian</h6>
-          <VueApexCharts v-if="dailyChartSeries[0].data.some(d => d > 0)" type="bar" height="240" :options="dailyChartOptions" :series="dailyChartSeries" />
-          <div v-else class="text-center py-4 text-muted">Belum ada data harian.</div>
-        </div>
+            <!-- Metric Grid -->
+            <ion-col size="6" size-md="6" size-lg="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content>
+                  <small class="text-muted d-block text-xs">Hari Ini</small>
+                  <div class="fs-6 fw-black text-teal mt-1">{{ formatPrice(summary.daily) }}</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
 
-        <!-- Weekly Trend Chart -->
-        <div class="mobile-card container-padded mb-3">
-          <h6 class="fw-bold text-dark mb-3">Trend Mingguan (5 Minggu Terakhir)</h6>
-          <VueApexCharts v-if="weeklyChartSeries[0].data.some(d => d > 0)" type="area" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries" />
-          <div v-else class="text-center py-4 text-muted">Belum ada data grafik mingguan.</div>
-        </div>
+            <ion-col size="6" size-md="6" size-lg="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content>
+                  <small class="text-muted d-block text-xs">Minggu Ini</small>
+                  <div class="fs-6 fw-black text-indigo mt-1">{{ formatPrice(summary.weekly) }}</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
 
-        <!-- Monthly Chart -->
-        <div class="mobile-card container-padded mb-3">
-          <h6 class="fw-bold text-dark mb-3">Grafik Bulanan</h6>
-          <VueApexCharts v-if="monthlyChartSeries[0].data.some(d => d > 0)" type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
-          <div v-else class="text-center py-4 text-muted">Belum ada data bulanan.</div>
-        </div>
+        <!-- Charts Grid -->
+        <ion-grid class="mx-2">
+          <ion-row>
+            <ion-col size="12" size-sm="6" size-lg="4">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="container-padded">
+                  <h6 class="fw-bold text-dark mb-3">Grafik Harian</h6>
+                  <VueApexCharts v-if="dailyChartSeries[0].data.some(d => d > 0)" type="bar" height="240" :options="dailyChartOptions" :series="dailyChartSeries" />
+                  <div v-else class="text-center py-4 text-muted">Belum ada data harian.</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="12" size-sm="6" size-lg="4">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="container-padded">
+                  <h6 class="fw-bold text-dark mb-3">Trend 5 Minggu Terakhir</h6>
+                  <VueApexCharts v-if="weeklyChartSeries[0].data.some(d => d > 0)" type="area" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries" />
+                  <div v-else class="text-center py-4 text-muted">Belum ada data grafik mingguan.</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="12" size-sm="6" size-lg="4">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="container-padded">
+                  <h6 class="fw-bold text-dark mb-3">Grafik Bulanan</h6>
+                  <VueApexCharts v-if="monthlyChartSeries[0].data.some(d => d > 0)" type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
+                  <div v-else class="text-center py-4 text-muted">Belum ada data bulanan.</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="12" size-sm="6" size-lg="4">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="container-padded">
+                  <h6 class="fw-bold text-dark mb-3">Porsi Pengeluaran per Kategori</h6>
+                  <VueApexCharts v-if="donutSeries.length > 0 && donutSeries.some(d => d > 0)" type="donut" height="240" :options="donutOptions" :series="donutSeries" />
+                  <div v-else class="text-center py-5 text-muted">Belum ada pengeluaran di bulan ini untuk dianalisa.</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
       </div>
 
       <!-- RIWAYAT & DETAIL TAB -->
       <div v-if="activeTab === 'riwayat'" class="ion-padding">
         <!-- Search & Filter Controls -->
-        <div class="mobile-card p-3 mb-3">
+        <div class="mobile-card p-3 mb-3 mx-3">
           <div class="row g-2">
             <div class="col-12 col-md-4">
-              <input type="text" v-model="filterSearch" class="form-control app-control" placeholder="Cari keperluan pengeluaran..." />
+              <input type="text" v-model="filterSearch" class="form-control form-control-sm app-control" placeholder="Cari keperluan pengeluaran..." />
             </div>
             <div class="col-6 col-md-4">
-              <select v-model="filterCategory" class="form-control app-control">
+              <select v-model="filterCategory" class="form-control form-control-sm app-control">
                 <option value="">Semua Kategori</option>
                 <option v-for="cat in allCategories" :key="cat" :value="cat">{{ cat }}</option>
               </select>
             </div>
             <div class="col-6 col-md-4">
-              <select v-model="filterAccount" class="form-control app-control">
+              <select v-model="filterAccount" class="form-control form-control-sm app-control">
                 <option value="">Semua Sumber Dana</option>
                 <option :value="-1">Tanpa Potong Saldo</option>
                 <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
@@ -135,31 +168,25 @@
         </div>
 
         <!-- Expenses List Grid -->
-        <div v-if="filteredExpenses.length" class="row">
-          <div v-for="expense in filteredExpenses" :key="expense.id" class="col-12 col-md-6 mb-2">
-            <div class="mobile-card p-3 h-100 border-start border-4 border-danger">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span class="pill-badge primary text-xs">{{ expense.category || 'Umum' }}</span>
-                    <span class="pill-badge secondary text-xs" v-if="expense.accountId">
-                      💳 {{ getAccountName(expense.accountId) }}
-                    </span>
-                  </div>
-                  <h6 class="fw-bold text-dark mt-2 mb-0">{{ expense.description }}</h6>
-                  <small class="text-muted d-block mt-1">{{ formatDate(expense.date) }}</small>
-                </div>
-                <div class="text-end">
-                  <span class="text-danger fw-black fs-6">{{ formatPrice(expense.amount) }}</span>
-                  <div class="d-flex align-items-center justify-content-end gap-2 mt-2">
-                    <button class="btn btn-light btn-sm text-secondary" @click="$router.push(`/expenses/${expense.id}/edit`)" title="Edit">
-                      <ion-icon :icon="pencilOutline" />
-                    </button>
-                    <button class="btn btn-light btn-sm text-danger" @click="onDelete(expense.id)" title="Hapus">
-                      <ion-icon :icon="trashOutline" />
-                    </button>
-                  </div>
-                </div>
+        <div v-if="filteredExpenses.length" class="row mx-1">
+          <div v-for="expense in filteredExpenses" :key="expense.id" class="col-12 col-md-4 mb-1">
+            <div class="mobile-card-sm px-2 py-1 mb-1 h-100 d-flex align-items-center justify-content-between gap-2">
+              <div class="d-flex flex-column" style="flex: 1; min-width: 0;">
+                <span class="badge bg-primary mb-1 small align-self-start">{{ expense.category || 'Umum' }}</span>
+                <h6 class="fw-bold text-dark mb-0 text-truncate medium w-100">{{ expense.description }}</h6>
+              </div>
+              <div class="d-flex flex-column align-items-end text-end me-3" style="flex: 2; min-width: 0;">
+                <small class="text-muted medium">{{ formatDate(expense.date) }}</small>
+                <span class="text-primary fw-bold medium">{{ formatPrice(expense.amount) }}</span>
+              </div>
+
+              <div class="d-flex align-items-center gap-1" style="flex: 0;">
+                <button class="btn btn-light btn-sm text-primary p-1" @click="$router.push(`/expenses/${expense.id}/edit`)" title="Edit">
+                  <ion-icon :icon="createOutline" />
+                </button>
+                <button class="btn btn-light btn-sm text-danger p-1" @click="onDelete(expense.id)" title="Hapus">
+                  <ion-icon :icon="trashOutline" />
+                </button>
               </div>
             </div>
           </div>
@@ -176,7 +203,7 @@
 <script>
 import { ref, computed, defineAsyncComponent } from 'vue'
 import { onIonViewWillEnter, IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonButtons, IonSegment, IonSegmentButton, IonLabel, alertController } from '@ionic/vue';
-import { addOutline, trashOutline, pencilOutline } from 'ionicons/icons';
+import { addOutline, trashOutline, pencilOutline, createOutline } from 'ionicons/icons';
 import { expensesRepo, savingAccountsRepo, savingTransactionsRepo } from '../../../db/repositories'
 import { db } from '../../../db/schema'
 import { useRouter } from 'vue-router'
@@ -365,7 +392,11 @@ export default {
       },
       xaxis: { categories: ['M-4', 'M-3', 'M-2', 'M-1', 'Minggu Ini'] },
       yaxis: { labels: { formatter: (val) => new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(val) } },
-      tooltip: { y: { formatter: (val) => 'Rp ' + new Intl.NumberFormat('id-ID').format(val) } }
+      tooltip: { y: { formatter: (val) => 'Rp ' + new Intl.NumberFormat('id-ID').format(val) } },
+      dataLabels: {
+        enabled: true,
+        formatter: (val) => val > 0 ? new Intl.NumberFormat('id-ID').format(val) : ''
+      }
     };
 
     // Daily trend
@@ -441,7 +472,7 @@ export default {
 
     return {
       activeTab, expenses, onDelete, formatPrice, formatDate,
-      addOutline, trashOutline, pencilOutline, summary, createExpense,
+      addOutline, trashOutline, createOutline, pencilOutline, summary, createExpense,
       weeklyChartSeries, weeklyChartOptions, budget, budgetProgress,
       editingBudget, budgetDraft, startEditBudget, saveBudget,
       donutSeries, donutOptions, accounts, getAccountName, filterSearch,
