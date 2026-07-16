@@ -168,23 +168,23 @@
         </div>
 
         <!-- Expenses List Grid -->
-        <div v-if="filteredExpenses.length" class="row mx-1">
-          <div v-for="expense in filteredExpenses" :key="expense.id" class="col-12 col-md-4 mb-1">
-            <div class="mobile-card-sm px-2 py-1 mb-1 h-100 d-flex align-items-center justify-content-between gap-2">
+        <div v-if="filteredExpenses.length" class="row mx-2 mb-2">
+          <div v-for="expense in filteredExpenses" :key="expense.id" class="col-12 col-sm-6 col-lg-4 g-2 m-0 mb-1 px-2">
+            <div class="mobile-card-sm h-100 d-flex align-items-center justify-content-between p-2">
               <div class="d-flex flex-column" style="flex: 1; min-width: 0;">
                 <span class="badge bg-primary mb-1 small align-self-start">{{ expense.category || 'Umum' }}</span>
                 <h6 class="fw-bold text-dark mb-0 text-truncate medium w-100">{{ expense.description }}</h6>
               </div>
-              <div class="d-flex flex-column align-items-end text-end me-3" style="flex: 2; min-width: 0;">
+              <div class="d-flex flex-column align-items-end text-end me-2" style="flex: 2; min-width: 0;">
                 <small class="text-muted medium">{{ formatDate(expense.date) }}</small>
                 <span class="text-primary fw-bold medium">{{ formatPrice(expense.amount) }}</span>
               </div>
 
               <div class="d-flex align-items-center gap-1" style="flex: 0;">
-                <button class="btn btn-light btn-sm text-primary p-1" @click="$router.push(`/expenses/${expense.id}/edit`)" title="Edit">
+                <button class="btn btn-light btn-sm text-primary me-1" @click="$router.push(`/expenses/${expense.id}/edit`)" title="Edit">
                   <ion-icon :icon="createOutline" />
                 </button>
-                <button class="btn btn-light btn-sm text-danger p-1" @click="onDelete(expense.id)" title="Hapus">
+                <button class="btn btn-light btn-sm text-danger" @click="onDelete(expense.id)" title="Hapus">
                   <ion-icon :icon="trashOutline" />
                 </button>
               </div>

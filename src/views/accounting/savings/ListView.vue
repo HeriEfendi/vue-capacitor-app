@@ -6,14 +6,14 @@
         <div class="app-hero">
           <div class="d-flex align-items-center justify-content-between">
             <ion-title class="app-hero-title">Tabungan & Aset</ion-title>
-            <div class="d-flex gap-2">
+            <!-- <div class="d-flex gap-2">
               <ion-button class="btn-action secondary btn-sm" @click="openTransferModal">
                 <ion-icon slot="start" :icon="swapHorizontalOutline" /> Transfer
               </ion-button>
               <ion-button class="btn-action primary btn-sm" @click="openTxModal('DEPOSIT')">
                 <ion-icon slot="start" :icon="addOutline" /> Setor/Tarik
               </ion-button>
-            </div>
+            </div> -->
           </div>
           <p class="app-hero-subtitle">Kelola akun bank, simpanan, dan mutasi aset keuangan Anda.</p>
         </div>
@@ -45,7 +45,7 @@
       <div v-else>
         <!-- ==================== TAB 1: ACCOUNTS LIST ==================== -->
         <div v-if="activeTab === 'akun'" class="ion-padding">
-          <div class="d-flex justify-content-between align-items-center mb-3 mx-2">
+          <div class="d-flex justify-content-between align-items-center mb-3 mx-3">
             <h6 class="fw-bold text-dark m-0">Rekening & Aset Anda</h6>
             <button class="btn btn-action primary btn-sm" @click="openAccountModal()">
               <ion-icon :icon="addOutline" class="me-1" /> Tambah Akun
@@ -53,7 +53,7 @@
           </div>
 
           <!-- Total Wealth Banner -->
-          <div class="mobile-card p-4 mb-4 bg-teal text-white border-0 shadow-lg position-relative overflow-hidden">
+          <div class="mobile-card p-4 mb-4 bg-teal text-white border-0 shadow-lg position-relative overflow-hidden mx-3">
             <div style="position: absolute; right: -20px; bottom: -20px; font-size: 6rem; opacity: 0.15;">
               <ion-icon :icon="walletOutline" />
             </div>
@@ -66,9 +66,9 @@
           </div>
 
           <!-- Accounts Cards Grid -->
-          <div class="row">
-            <div v-for="acc in accountsWithBalance" :key="acc.id" class="col-12 col-md-6 mb-3">
-              <div class="mobile-card p-3 h-100 clickable-card position-relative border-start border-4" :class="getCategoryBorderClass(acc.category)">
+          <div class="row mx-0 mb-2">
+            <div v-for="acc in accountsWithBalance" :key="acc.id" class="col-12 col-sm-6 col-lg-4 g-0 m-0 mb-3">
+              <div class="mobile-card container-padded h-100 border-start border-4" :class="getCategoryBorderClass(acc.category)">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
                     <span class="pill-badge mb-1 d-inline-block text-xs" :class="getCategoryBadgeClass(acc.category)">{{ acc.category }}</span>
@@ -112,7 +112,7 @@
         <!-- ==================== TAB 2: TRANSACTIONS LIST ==================== -->
         <div v-if="activeTab === 'mutasi'" class="ion-padding">
           <!-- Filters & Search -->
-          <div class="mobile-card p-3 mb-3">
+          <div class="mobile-card p-3 mb-3 mx-3">
             <div class="row g-2">
               <div class="col-12 col-md-4">
                 <input type="text" v-model="filterSearch" class="form-control app-control" placeholder="Cari deskripsi mutasi..." />
@@ -134,7 +134,7 @@
           </div>
 
           <!-- Transaction Items -->
-          <div v-for="tx in filteredTransactions" :key="tx.id" class="mobile-card p-3 mb-3 border-start border-4" :class="tx.type === 'DEPOSIT' ? 'border-success' : 'border-danger'">
+          <div v-for="tx in filteredTransactions" :key="tx.id" class="mobile-card p-3 mx-3 mb-3 border-start border-4" :class="tx.type === 'DEPOSIT' ? 'border-success' : 'border-danger'">
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <div class="d-flex align-items-center gap-2">
@@ -198,7 +198,7 @@
     <!-- Modal 1: Manage Account (Add / Edit) -->
     <ion-modal :is-open="showAccountModal" @didDismiss="showAccountModal = false">
       <ion-header>
-        <ion-toolbar class="app-toolbar px-3">
+        <ion-toolbar class="app-toolbar">
           <ion-title class="fw-black text-dark">{{ editingAccount ? 'Edit Akun Tabungan' : 'Tambah Akun Tabungan' }}</ion-title>
           <ion-buttons slot="end">
             <ion-button @click="showAccountModal = false"><ion-icon :icon="closeOutline" /></ion-button>
@@ -206,7 +206,7 @@
         </ion-toolbar>
       </ion-header>
       <ion-content class="app-content-wrap ion-padding">
-        <div class="form-stack">
+        <div class="form-stack px-3">
           <div class="field-group">
             <label class="field-label">Nama Akun / Bank</label>
             <input type="text" v-model="accountForm.name" class="form-control app-control" placeholder="Contoh: BCA Tabungan, E-Wallet Shopee, Emas Antam" />
@@ -291,7 +291,7 @@
     <!-- Modal 3: Transfer Between Accounts -->
     <ion-modal :is-open="showTransferModal" @didDismiss="showTransferModal = false">
       <ion-header>
-        <ion-toolbar class="app-toolbar px-3">
+        <ion-toolbar class="app-toolbar px-0">
           <ion-title class="fw-black text-dark">Transfer Antar Rekening</ion-title>
           <ion-buttons slot="end">
             <ion-button @click="showTransferModal = false"><ion-icon :icon="closeOutline" /></ion-button>
@@ -299,7 +299,7 @@
         </ion-toolbar>
       </ion-header>
       <ion-content class="app-content-wrap ion-padding">
-        <div class="form-stack">
+        <div class="form-stack mx-3">
           <div class="field-group">
             <label class="field-label">Dari Rekening / Akun</label>
             <select v-model="transferForm.fromAccountId" class="form-control app-control">
@@ -325,7 +325,7 @@
             <input type="text" v-model="transferForm.description" class="form-control app-control" placeholder="Keterangan transfer..." />
           </div>
         </div>
-        <div class="mt-4 d-flex justify-content-end gap-2">
+        <div class="mt-4 d-flex justify-content-end gap-2 mx-3">
           <ion-button class="btn-action light" @click="showTransferModal = false">Batal</ion-button>
           <ion-button class="btn-action primary" @click="saveTransfer" :disabled="!transferForm.fromAccountId || !transferForm.toAccountId || transferForm.amount <= 0">Proses Transfer</ion-button>
         </div>

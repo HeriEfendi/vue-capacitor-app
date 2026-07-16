@@ -159,7 +159,7 @@
 
         <ion-grid class="mx-2">
           <ion-row>
-            <ion-col size="12" size-lg="6">
+            <ion-col size="12" size-sm="6" size-lg="6">
               <ion-card class="mobile-card m-0 h-100">
                 <ion-card-content class="container-padded">
                   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -172,7 +172,7 @@
               </ion-card>
             </ion-col>
 
-            <ion-col size="12" size-lg="6">
+            <ion-col size="12" size-sm="6" size-lg="6">
               <ion-card class="mobile-card m-0 h-100">
                 <ion-card-content class="container-padded">
                   <div class="d-flex justify-content-between align-items-center mb-3">

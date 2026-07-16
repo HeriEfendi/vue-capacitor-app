@@ -290,7 +290,7 @@
       <!-- TAB 3: RIWAYAT TRANSAKSI -->
       <div v-if="activeTab === 'riwayat'" class="ion-padding">
         <!-- Actions & Export -->
-        <div class="d-flex justify-content-between align-items-center mx-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mx-4 mb-3">
           <h6 class="fw-bold text-dark mb-0">Daftar Transaksi</h6>
           <button class="btn btn-action success btn-sm" @click="exportExcel">
             <ion-icon :icon="downloadOutline" class="me-1" /> Export Excel
@@ -303,13 +303,13 @@
         </div>
 
         <!-- Transaction Cards -->
-        <div v-else class="row g-0">
+        <div v-else class="row mx-2 mb-2">
           <div 
             v-for="sale in salesHistory" 
             :key="sale.id" 
-            class="col-12 col-md-6 mb-3"
+            class="col-12 col-sm-6 col-lg-4 g-0 m-0 mb-3"
           >
-            <div class="mobile-card container-padded h-100 border-start border-4 border-teal">
+            <div class="mobile-card container-padded h-100 border-start border-4 border-teal mx-2">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                   <span class="badge bg-indigo mb-1 me-1">INV-{{ sale.id }}</span>

@@ -109,14 +109,14 @@
           <p class="text-muted">Tidak ada produk yang sesuai dengan filter.</p>
         </div>
 
-        <div v-else class="row mx-1">
+        <div v-else class="row mx-2">
           <div 
             v-for="prod in filteredProducts" 
             :key="prod.id" 
-            class="col-12 col-md-6 mb-2 px-1"
+            class="col-12 col-md-6 g-2"
           >
             <div 
-              class="mobile-card p-2 mb-2 cursor-pointer clickable-card h-100"
+              class="mobile-card-sm p-2 mb-2 cursor-pointer clickable-card h-100"
               @click="openAdjustment(prod)"
             >
               <div class="d-flex align-items-center justify-content-between h-100">
