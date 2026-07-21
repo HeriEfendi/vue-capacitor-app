@@ -27,34 +27,6 @@
         </ion-segment>
       </div>
 
-      <!-- Search & Filters Segment (Only visible in tasks tab) -->
-      <div v-show="activeTab === 'tasks'" class="px-3 py-2">
-        <div class="search-input-wrap mb-2 position-relative">
-          <input
-            type="text"
-            v-model="searchQuery"
-            class="form-control form-control-sm app-control"
-            placeholder="Cari task, target, atau status..."
-            style="padding-left: 32px;"
-          />
-          <ion-icon :icon="searchOutline" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;" />
-        </div>
-
-        <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center">
-          <ion-segment v-model="filterStatus" class="custom-segment flex-fill">
-            <ion-segment-button value="ALL"><ion-label>Semua</ion-label></ion-segment-button>
-            <ion-segment-button value="TO DO"><ion-label>To Do</ion-label></ion-segment-button>
-            <ion-segment-button value="IN PROGRESS"><ion-label>In Progress</ion-label></ion-segment-button>
-            <ion-segment-button value="DONE"><ion-label>Done</ion-label></ion-segment-button>
-            <ion-segment-button value="OVERDUE"><ion-label>Overdue</ion-label></ion-segment-button>
-          </ion-segment>
-
-          <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-action outline btn-sm" @click="refreshTasks">Refresh</button>
-            <button class="btn btn-action success btn-sm" @click="exportExcel">Export</button>
-          </div>
-        </div>
-      </div>
     </ion-header>
 
     <ion-content class="app-content-wrap">
@@ -138,6 +110,42 @@
 
       <!-- TASKS LIST TAB CONTENT -->
       <div v-show="activeTab === 'tasks'">
+        <!-- Search & Filter Bar -->
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between mt-2">
+          <!-- Search input -->
+          <div class="w-100 px-3 py-1 search-container">
+            <div class="search-input-wrap position-relative">
+              <input
+                type="text"
+                v-model="searchQuery"
+                class="form-control form-control-sm app-control"
+                style="padding-left: 30px;"
+                placeholder="Cari task, target, atau status..."
+              />
+              <ion-icon
+                :icon="searchOutline"
+                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;"
+              />
+            </div>
+          </div>
+
+          <!-- Filter chips -->
+          <div class="mx-3 my-2 d-flex gap-2 overflow-x-auto" style="scrollbar-width: none;">
+            <button
+              v-for="opt in statusFilterOptions"
+              :key="opt.value"
+              class="btn btn-action primary chip-btn btn-md"
+              :class="filterStatus === opt.value ? 'pill-badge primary' : 'pill-badge secondary'"
+              @click="filterStatus = opt.value"
+              style="margin: 0;"
+            >
+              {{ opt.label }}
+              <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount(opt.value) }}</ion-badge>
+            </button>
+            <button class="btn btn-action outline chip-btn btn-md" style="margin: 0;" @click="refreshTasks">Refresh</button>
+            <button class="btn btn-action success chip-btn btn-md" style="margin: 0;" @click="exportExcel">Export</button>
+          </div>
+        </div>
         <!-- Empty State -->
         <div v-if="filteredTasks.length === 0" class="empty-state text-center py-5 mobile-card container-padded mx-3 mt-3">
           <ion-icon :icon="calendarOutline" style="font-size: 3rem;" class="mb-2 text-muted" />
@@ -301,7 +309,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, defineAsyncComponent } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonModal, IonButtons, IonSegment, IonSegmentButton, IonLabel, IonAlert, IonFooter, IonGrid, IonRow, IonCol } from '@ionic/vue';
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonModal, IonButtons, IonSegment, IonSegmentButton, IonLabel, IonAlert, IonFooter, IonGrid, IonRow, IonCol, IonBadge } from '@ionic/vue';
 import { addOutline, trashOutline, closeOutline, searchOutline, calendarOutline, pencilOutline, ellipseOutline, timeOutline, checkmarkCircle } from 'ionicons/icons';
 import { TodoRepository } from '@/db/todoRepository'
 import AppToast from '@/components/AppToast.vue';
@@ -382,6 +390,21 @@ const filteredTasks = computed(() => {
     return 0
   })
 })
+
+const statusFilterOptions = [
+  { label: 'Semua', value: 'ALL' },
+  { label: 'To Do', value: 'TO DO' },
+  { label: 'In Progress', value: 'IN PROGRESS' },
+  { label: 'Done', value: 'DONE' },
+  { label: 'Overdue', value: 'OVERDUE' },
+]
+
+const filterCount = (status: string) => {
+  const today = new Date().toISOString().split('T')[0]
+  if (status === 'ALL') return tasks.value.length
+  if (status === 'OVERDUE') return tasks.value.filter(t => t.due_date && t.status !== 'DONE' && t.due_date < today).length
+  return tasks.value.filter(t => t.status === status).length
+}
 
 const statusChartOptions = {
   chart: { type: 'donut', toolbar: { show: false } },

@@ -5,11 +5,6 @@
         <div class="app-hero" style="display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <ion-title class="app-hero-title" style="padding: 0;">Backup & Restore</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="openSettingsModal">
-                <ion-icon :icon="settingsOutline" />
-              </ion-button>
-            </ion-buttons>
           </div>
           <p class="app-hero-subtitle" style="margin: 0;">Ekspor seluruh data database ke Excel atau Impor kembali kapan saja.</p>
         </div>
@@ -45,9 +40,9 @@
               <ion-icon :icon="informationCircleOutline" />
               <span>Setiap tabel database akan disimpan sebagai lembar sheet terpisah di file Excel.</span>
             </div>
-            <button class="btn btn-action primary btn-lg w-100" @click="handleBackup">
-              <ion-icon slot="start" :icon="downloadOutline" /> Ekspor ke Excel
-            </button>
+            <ion-button class="btn-action success w-100" expand="block" style="margin: 0;" @click="handleBackup">
+              <ion-icon :icon="cloudDownloadOutline" slot="start" /> Ekspor ke Excel
+            </ion-button>
           </ion-card-content>
         </ion-card>
 
@@ -78,9 +73,9 @@
                 class="hidden-file-input"
                 @change="handleFileChange"
               />
-              <button class="btn btn-action dark btn-lg w-100" @click="triggerFileSelect">
-                <ion-icon slot="start" :icon="documentTextOutline" /> Pilih File Excel & Restore
-              </button>
+              <ion-button class="btn-action warning w-100" expand="block" style="margin: 0;" @click="triggerFileSelect">
+                <ion-icon :icon="cloudUploadOutline" slot="start" /> Pilih File Excel & Restore
+              </ion-button>
             </div>
           </ion-card-content>
         </ion-card>
@@ -88,10 +83,10 @@
 
       <!-- App Toast for info -->
       <app-toast
-        :show="toast.show"
-        :text="toast.text"
-        :color="toast.color"
-        @close="toast.show = false"
+        :is-open="toast.show"
+        :message="toast.text"
+        :color="toast.color === 'danger' ? 'error' : toast.color"
+        @dismiss="toast.show = false"
       />
     </ion-content>
   </ion-page>
@@ -105,6 +100,8 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
+  IonButtons,
+  IonButton,
   IonCard,
   IonCardHeader,
   IonCardTitle,
@@ -121,6 +118,7 @@ import {
   alertCircleOutline,
   downloadOutline,
   documentTextOutline,
+  settingsOutline,
 } from 'ionicons/icons';
 import { db } from '@/db/schema';
 import * as XLSX from 'xlsx';
@@ -148,6 +146,34 @@ function triggerFileSelect() {
 }
 
 /**
+ * HELPER: Save Workbook (Supporting Native Share & Web Download like Details.vue)
+ */
+async function saveWorkbook(wb, fileName) {
+  const XLSX = await import('xlsx');
+  if (Capacitor.isNativePlatform()) {
+    const base64 = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+    const path = `backup_${fileName}`;
+    await Filesystem.writeFile({
+      path,
+      data: base64,
+      directory: Directory.Cache,
+    });
+    const { uri } = await Filesystem.getUri({
+      path,
+      directory: Directory.Cache,
+    });
+    await Share.share({
+      title: 'Backup Database',
+      files: [uri],
+      dialogTitle: 'Simpan file Backup',
+    });
+    return;
+  }
+
+  XLSX.writeFile(wb, fileName);
+}
+
+/**
  * BACKUP DATABASE
  * Export all Dexie tables to a single Excel file
  */
@@ -155,6 +181,9 @@ async function handleBackup() {
   loading.value = true;
   loadingMessage.value = 'Mengekspor database ke Excel...';
   try {
+    const XLSX = await import('xlsx');
+    if (!db.isOpen()) await db.open();
+
     const wb = XLSX.utils.book_new();
 
     for (const table of db.tables) {
@@ -172,34 +201,14 @@ async function handleBackup() {
         return cleaned;
       });
 
-      // Create sheet. If empty, create empty sheet with headers if possible, or just empty
+      // Create sheet. If empty, create empty sheet with headers if possible
       const ws = cleanedData.length > 0 ? XLSX.utils.json_to_sheet(cleanedData) : XLSX.utils.aoa_to_sheet([]);
       XLSX.utils.book_append_sheet(wb, ws, table.name);
     }
 
     const fileName = `FinancialApp_Backup_${new Date().toISOString().split('T')[0]}.xlsx`;
-
-    if (Capacitor.isNativePlatform()) {
-      const base64 = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
-      await Filesystem.writeFile({
-        path: fileName,
-        data: base64,
-        directory: Directory.Cache,
-      });
-      const { uri } = await Filesystem.getUri({
-        path: fileName,
-        directory: Directory.Cache,
-      });
-      await Share.share({
-        title: 'Backup Database',
-        files: [uri],
-        dialogTitle: 'Simpan file Backup',
-      });
-      showToast('Berhasil mengekspor backup!', 'success');
-    } else {
-      XLSX.writeFile(wb, fileName);
-      showToast('Berhasil mendownload file backup!', 'success');
-    }
+    await saveWorkbook(wb, fileName);
+    showToast('Berhasil mengekspor backup database!', 'success');
   } catch (err) {
     console.error('Export failed:', err);
     showToast('Gagal mengekspor database: ' + err.message, 'danger');
@@ -236,6 +245,9 @@ async function handleFileChange(e) {
   const reader = new FileReader();
   reader.onload = async (ev) => {
     try {
+      const XLSX = await import('xlsx');
+      if (!db.isOpen()) await db.open();
+
       const data = new Uint8Array(ev.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
 
@@ -249,17 +261,15 @@ async function handleFileChange(e) {
       // Wrap the restore operation in a write transaction covering all stores
       await db.transaction('rw', db.tables, async () => {
         for (const sheetName of workbook.SheetNames) {
-          // Resolve target table name (handling renamed tables for backward compatibility)
           const targetTableName = TABLE_NAME_MAP[sheetName] || sheetName;
 
-          // Check if targetTableName is a valid table in Dexie
           const table = db.tables.find((t) => t.name === targetTableName);
           if (!table) continue;
 
           const sheet = workbook.Sheets[sheetName];
           const rows = XLSX.utils.sheet_to_json(sheet);
 
-          // 1. Wipe the table completely as requested
+          // 1. Wipe table
           await table.clear();
 
           // 2. Parse and insert new rows if any
@@ -268,11 +278,9 @@ async function handleFileChange(e) {
               const cleaned = { ...row };
               delete cleaned.__rowNum__;
 
-              // Parse and coerce types dynamically
               for (const key of Object.keys(cleaned)) {
                 const val = cleaned[key];
                 if (typeof val === 'string') {
-                  // Check if it's stringified JSON (array or object)
                   if (
                     (val.startsWith('[') && val.endsWith(']')) ||
                     (val.startsWith('{') && val.endsWith('}'))
@@ -281,11 +289,10 @@ async function handleFileChange(e) {
                       cleaned[key] = JSON.parse(val);
                       continue;
                     } catch {
-                      // fallback to string if parsing fails
+                      // ignore
                     }
                   }
 
-                  // Coerce numeric strings to numbers for known numeric/ID field patterns
                   const isIdField = key === 'id' || key.endsWith('Id') || key.endsWith('_id');
                   const isNumericField = /price|stock|amount|qty|quantity|discount|balance|total|sum|count|hours|minutes|rate/i.test(key);
 
@@ -309,11 +316,9 @@ async function handleFileChange(e) {
       });
 
       showToast(`Restore berhasil! Memulihkan ${restoredTables.length} tabel (${totalRecords} baris data).`, 'success');
-      alert(`Database berhasil dipulihkan!\n\nTabel yang dipulihkan:\n${restoredTables.map(t => `- ${t}`).join('\n')}`);
     } catch (err) {
       console.error('Restore failed:', err);
       showToast('Gagal memulihkan database: ' + err.message, 'danger');
-      alert('Gagal memulihkan database: ' + err.message);
     } finally {
       loading.value = false;
       e.target.value = ''; // Reset file input
@@ -324,7 +329,7 @@ async function handleFileChange(e) {
     console.error(err);
     showToast('Gagal membaca file.', 'danger');
     loading.value = false;
-    e.target.value = ''; // Reset file input;
+    e.target.value = ''; // Reset file input
   };
 
   reader.readAsArrayBuffer(file);

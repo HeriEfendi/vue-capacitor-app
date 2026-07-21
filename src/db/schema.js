@@ -94,6 +94,29 @@ db.version(9).stores({
   saving_transactions: '++id, accountId, type, date'
 });
 
+// Version 10: Add reminders table
+db.version(10).stores({
+  projects: 'id',
+  todos: 'id',
+  team_todos: 'id',
+  users: 'id',
+  transactions: 'id, project_id',
+  ceklok_logs: 'id',
+  ceklok_settings: 'key',
+  categories: 'id, name',
+  products: '++id, name, price, stock, categoryId, featured',
+  savings: '++id, createdAt, name, amount',
+  debts: '++id, createdAt, name, amount, dueDate',
+  incomes: '++id, createdAt, name, amount',
+  expenses: '++id, createdAt, description, amount, date, category',
+  dailyLedger: '++id, createdAt, description, amount, type',
+  sales: '++id, createdAt, totalAmount, paymentMethod, amountPaid, changeAmount, items, notes',
+  stockMutations: '++id, productId, type, changeQuantity, beforeStock, afterStock, createdAt, notes',
+  saving_accounts: '++id, name, category',
+  saving_transactions: '++id, accountId, type, date',
+  reminders: '++id, date, recurring'
+});
+
 let databaseSeeded = false;
 
 export async function seedDatabase() {

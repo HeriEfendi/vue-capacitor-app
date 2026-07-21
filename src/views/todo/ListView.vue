@@ -7,7 +7,7 @@
             <ion-title class="app-hero-title" style="padding: 0;">To Do Team</ion-title>
             <ion-buttons style="margin: 0;">
               <button class="btn btn-action primary btn-md" @click="openModal()">
-                <ion-icon :icon="addOutline" class="me-1" /> Tambah Task
+                <ion-icon :icon="addOutline" class="me-1" /> Tambah
               </button>
             </ion-buttons>
           </div>
@@ -25,38 +25,6 @@
             <ion-label>Daftar Tugas</ion-label>
           </ion-segment-button>
         </ion-segment>
-      </div>
-
-      <!-- Search & Filters Segment (Only visible in tasks tab) -->
-      <div v-show="activeTab === 'tasks'" class="px-3 py-2">
-        <div class="search-input-wrap mb-2 position-relative">
-          <input
-            type="text"
-            v-model="searchQuery"
-            class="form-control form-control-sm app-control"
-            style="padding-left: 32px;"
-            placeholder="Cari task, assignee, label..."
-          />
-          <ion-icon
-            :icon="searchOutline"
-            style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;"
-          />
-        </div>
-
-        <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center">
-          <ion-segment v-model="activeFilter" class="custom-segment flex-fill">
-            <ion-segment-button value="ALL"><ion-label>Semua</ion-label></ion-segment-button>
-            <ion-segment-button value="TO DO"><ion-label>To Do</ion-label></ion-segment-button>
-            <ion-segment-button value="IN PROGRESS"><ion-label>In Progress</ion-label></ion-segment-button>
-            <ion-segment-button value="DONE"><ion-label>Done</ion-label></ion-segment-button>
-            <ion-segment-button value="OVERDUE"><ion-label>Overdue</ion-label></ion-segment-button>
-          </ion-segment>
-
-          <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-action outline btn-sm" @click="refreshTasks">Refresh</button>
-            <button class="btn btn-action success btn-sm" @click="exportExcel">Export</button>
-          </div>
-        </div>
       </div>
     </ion-header>
 
@@ -142,6 +110,42 @@
 
       <!-- TASKS LIST TAB CONTENT -->
       <div v-show="activeTab === 'tasks'">
+        <!-- Search & Filter Bar -->
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between mt-2">
+          <!-- Search input -->
+          <div class="w-100 px-3 py-1 search-container">
+            <div class="search-input-wrap position-relative">
+              <input
+                type="text"
+                v-model="searchQuery"
+                class="form-control form-control-sm app-control"
+                style="padding-left: 30px;"
+                placeholder="Cari task, assignee, label..."
+              />
+              <ion-icon
+                :icon="searchOutline"
+                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;"
+              />
+            </div>
+          </div>
+
+          <!-- Filter chips -->
+          <div class="mx-3 my-2 d-flex gap-2 overflow-x-auto" style="scrollbar-width: none;">
+            <button
+              v-for="opt in statusFilterOptions"
+              :key="opt.value"
+              class="btn btn-action primary chip-btn btn-md"
+              :class="activeFilter === opt.value ? 'pill-badge primary' : 'pill-badge secondary'"
+              @click="activeFilter = opt.value"
+              style="margin: 0;"
+            >
+              {{ opt.label }}
+              <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount(opt.value) }}</ion-badge>
+            </button>
+            <button class="btn btn-action outline chip-btn btn-md" style="margin: 0;" @click="refreshTasks">Refresh</button>
+            <button class="btn btn-action success chip-btn btn-md" style="margin: 0;" @click="exportExcel">Export</button>
+          </div>
+        </div>
         <div v-if="loading" class="loading-state">
           <ion-spinner />
           <p>Memuat task...</p>
@@ -357,13 +361,28 @@ export default {
       }
     }
 
+    const statusFilterOptions = [
+      { label: 'Semua', value: 'ALL' },
+      { label: 'To Do', value: 'TO DO' },
+      { label: 'In Progress', value: 'IN PROGRESS' },
+      { label: 'Done', value: 'DONE' },
+      { label: 'Overdue', value: 'OVERDUE' },
+    ]
+
+    const filterCount = (status: string) => {
+      const today = new Date().toISOString().split('T')[0]
+      if (status === 'ALL') return tasks.value.length
+      if (status === 'OVERDUE') return tasks.value.filter((t: any) => t.due_date && t.status !== 'DONE' && t.due_date < today).length
+      return tasks.value.filter((t: any) => t.status === status).length
+    }
+
     const filteredTasks = computed(() => {
       const filter = activeFilter.value
       const query = searchQuery.value.trim().toLowerCase()
       const today = new Date().toISOString().split('T')[0]
 
       return tasks.value
-        .filter(task => {
+        .filter((task: any) => {
           if (filter === 'OVERDUE') {
             if (!task.due_date || task.status === 'DONE') return false
             return task.due_date < today
@@ -373,9 +392,9 @@ export default {
           if (!query) return true
           return [task.title, task.description, task.label, task.assignee?.name, task.reporter?.name]
             .filter(Boolean)
-            .some(value => String(value).toLowerCase().includes(query))
+            .some((value: any) => String(value).toLowerCase().includes(query))
         })
-        .sort((a, b) => {
+        .sort((a: any, b: any) => {
           if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
           if (a.due_date) return -1
           if (b.due_date) return 1
@@ -578,6 +597,8 @@ export default {
       loading,
       activeFilter,
       filteredTasks,
+      statusFilterOptions,
+      filterCount,
       openModal,
       saveTask,
       updateStatus,
