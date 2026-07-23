@@ -30,7 +30,7 @@ android {
             def appName = "hk-umkm"
             def versionName = variant.versionName
             def buildType = variant.buildType.name
-            outputFileName = "${appName}-${versionName}-${buildType}-apprealis.apk"
+            outputFileName = "${appName}-${versionName}-${buildType}.apk"
         }
     }
 }
