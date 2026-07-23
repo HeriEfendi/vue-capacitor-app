@@ -373,6 +373,9 @@ export default {
         updateCount('/buku_kas', projects.length)
         updateCount('/ceklok', ceklokLogs.length)
 
+        const allReminders = await ReminderRepository.getAll().catch(() => [])
+        updateCount('/reminders', allReminders.length)
+
         const { savingsRepo, ProductRepository, salesRepo, expensesRepo } = await import('../db/repositories')
         updateCount('/expenses', (await expensesRepo.getAll()).length)
 
