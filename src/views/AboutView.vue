@@ -58,6 +58,12 @@ import { mailOutline, logoGithub } from 'ionicons/icons';
 
 export default {
   name: 'AboutView',
-  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButtons, IonBackButton, IonButton, IonIcon }
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButtons, IonBackButton, IonButton, IonIcon },
+  data() {
+    return {
+      mailOutline,
+      logoGithub,
+    }
+  }
 }
 </script>
