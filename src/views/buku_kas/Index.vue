@@ -17,6 +17,8 @@ interface Project {
   total_expenses: number
   balance: number
   created_at: string
+  updated_at?: string
+  lastActivity?: string   // computed, tidak disimpan ke DB
   transactions: any[]
 }
 
@@ -78,17 +80,36 @@ async function fetchProjects() {
     if (!db.isOpen()) await db.open()
     const rawProjects = await db.table('projects').toArray()
 
-    // Hitung totals dari tabel transactions terpisah untuk setiap project
-    projects.value = await Promise.all(rawProjects.map(async (p) => {
-      const totals = await calcProjectTotals(p.id)
+    // Hitung totals dan lastActivity dari tabel transactions terpisah
+    const enriched = await Promise.all(rawProjects.map(async (p) => {
+      const [totals, txs] = await Promise.all([
+        calcProjectTotals(p.id),
+        db.table('transactions').where('project_id').equals(p.id).toArray(),
+      ])
+
+      // Cari tanggal transaksi terbaru
+      const latestTxDate = txs.reduce((max: string, t: any) => {
+        const d = t.updated_at || t.date || ''
+        return d > max ? d : max
+      }, '')
+
+      // lastActivity = mana yang lebih baru: project sendiri atau transaksi terakhir
+      const projectStamp = p.updated_at || p.created_at || ''
+      const lastActivity = latestTxDate > projectStamp ? latestTxDate : projectStamp
+
       return {
         ...p,
         total_deposits: totals.total_deposits,
         total_expenses: totals.total_expenses,
         balance: totals.balance,
-        transactions: [], // tidak perlu dimuat di halaman index
+        lastActivity,
+        transactions: [],
       }
     }))
+
+    // Urutkan terbaru dulu berdasarkan lastActivity
+    enriched.sort((a, b) => (b.lastActivity || '').localeCompare(a.lastActivity || ''))
+    projects.value = enriched
   } catch (e) {
     showSnackbar('Gagal memuat data buku kas', 'error')
   } finally {
@@ -101,6 +122,7 @@ async function createProject() {
   submitting.value = true
   try {
     if (!db.isOpen()) await db.open()
+    const now = new Date().toISOString()
     const newProject: Project = {
       id: Date.now(),
       name: formNew.value.name,
@@ -109,12 +131,14 @@ async function createProject() {
       total_deposits: 0,
       total_expenses: 0,
       balance: 0,
-      created_at: new Date().toISOString(),
-      transactions: [], // hanya di state lokal, tidak disimpan ke DB
+      created_at: now,
+      updated_at: now,
+      lastActivity: now,
+      transactions: [],
     }
     projects.value.unshift(newProject)
-    // Simpan ke DB tanpa field transactions
-    const { transactions: _tx, ...projectToSave } = newProject as any
+    // Simpan ke DB tanpa field transactions & lastActivity
+    const { transactions: _tx, lastActivity: _la, ...projectToSave } = newProject as any
     await db.table('projects').put(projectToSave)
     dialogCreate.value = false
     formNew.value = { name: '', description: '', status: 'Active' }
@@ -163,11 +187,15 @@ async function updateProject() {
     if (!db.isOpen()) await db.open()
     const pIndex = projects.value.findIndex(p => p.id === editingId.value)
     if (pIndex !== -1) {
-      const updatedProject = { ...projects.value[pIndex], ...formEdit.value };
+      const now = new Date().toISOString()
+      const updatedProject = { ...projects.value[pIndex], ...formEdit.value, updated_at: now, lastActivity: now };
       projects.value[pIndex] = { ...updatedProject };
-      projects.value = [...projects.value]; // Force reactivity
-      // Simpan tanpa field transactions
-      const { transactions: _tx, ...toSave } = updatedProject as any
+      // Re-sort setelah update agar card langsung naik ke atas
+      projects.value = [...projects.value].sort((a, b) =>
+        (b.lastActivity || '').localeCompare(a.lastActivity || '')
+      )
+      // Simpan tanpa field transactions & lastActivity
+      const { transactions: _tx, lastActivity: _la, ...toSave } = updatedProject as any
       await db.table('projects').put(toSave)
       dialogEdit.value = false
       showSnackbar('Buku kas berhasil diupdate!', 'success')

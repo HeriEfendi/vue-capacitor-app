@@ -177,38 +177,76 @@ async function saveWorkbook(wb, fileName) {
  * BACKUP DATABASE
  * Export all Dexie tables to a single Excel file
  */
+// Excel hard limit per cell is 32,767 characters
+const EXCEL_CELL_LIMIT = 32000;
+
+/**
+ * Sanitize a single cell value so it never exceeds Excel's 32,767-char limit.
+ * Objects/arrays are JSON-serialised; oversized strings are truncated.
+ */
+function sanitizeCellValue(val) {
+  if (val === null || val === undefined) return val;
+  if (typeof val === 'object') {
+    let str = JSON.stringify(val);
+    if (str.length > EXCEL_CELL_LIMIT) {
+      str = str.slice(0, EXCEL_CELL_LIMIT) + '…[TRUNCATED]';
+    }
+    return str;
+  }
+  if (typeof val === 'string' && val.length > EXCEL_CELL_LIMIT) {
+    return val.slice(0, EXCEL_CELL_LIMIT) + '…[TRUNCATED]';
+  }
+  return val;
+}
+
 async function handleBackup() {
   loading.value = true;
-  loadingMessage.value = 'Mengekspor database ke Excel...';
+  loadingMessage.value = 'Mempersiapkan ekspor...';
+  const skippedTables = [];
   try {
     const XLSX = await import('xlsx');
     if (!db.isOpen()) await db.open();
 
     const wb = XLSX.utils.book_new();
+    const tables = db.tables;
 
-    for (const table of db.tables) {
-      const data = await table.toArray();
-      
-      // Clean up and serialize nested objects or arrays to JSON strings
-      const cleanedData = data.map((row) => {
-        const cleaned = { ...row };
-        for (const key of Object.keys(cleaned)) {
-          const val = cleaned[key];
-          if (val !== null && typeof val === 'object') {
-            cleaned[key] = JSON.stringify(val);
+    for (let i = 0; i < tables.length; i++) {
+      const table = tables[i];
+      loadingMessage.value = `Mengekspor tabel ${i + 1}/${tables.length}: ${table.name}…`;
+      try {
+        const data = await table.toArray();
+
+        // Sanitize every cell – no value may exceed EXCEL_CELL_LIMIT chars
+        const cleanedData = data.map((row) => {
+          const cleaned = { ...row };
+          for (const key of Object.keys(cleaned)) {
+            cleaned[key] = sanitizeCellValue(cleaned[key]);
           }
-        }
-        return cleaned;
-      });
+          return cleaned;
+        });
 
-      // Create sheet. If empty, create empty sheet with headers if possible
-      const ws = cleanedData.length > 0 ? XLSX.utils.json_to_sheet(cleanedData) : XLSX.utils.aoa_to_sheet([]);
-      XLSX.utils.book_append_sheet(wb, ws, table.name);
+        const ws =
+          cleanedData.length > 0
+            ? XLSX.utils.json_to_sheet(cleanedData)
+            : XLSX.utils.aoa_to_sheet([[]]);
+        XLSX.utils.book_append_sheet(wb, ws, table.name);
+      } catch (tableErr) {
+        console.warn(`Tabel "${table.name}" dilewati karena error:`, tableErr);
+        skippedTables.push(table.name);
+        // Still add an empty sheet so the sheet count stays consistent
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['ERROR: ' + tableErr.message]]), table.name);
+      }
     }
 
+    loadingMessage.value = 'Menyimpan file…';
     const fileName = `FinancialApp_Backup_${new Date().toISOString().split('T')[0]}.xlsx`;
     await saveWorkbook(wb, fileName);
-    showToast('Berhasil mengekspor backup database!', 'success');
+
+    if (skippedTables.length > 0) {
+      showToast(`Backup selesai (${skippedTables.length} tabel dilewati: ${skippedTables.join(', ')})`, 'warning');
+    } else {
+      showToast('Berhasil mengekspor backup database!', 'success');
+    }
   } catch (err) {
     console.error('Export failed:', err);
     showToast('Gagal mengekspor database: ' + err.message, 'danger');

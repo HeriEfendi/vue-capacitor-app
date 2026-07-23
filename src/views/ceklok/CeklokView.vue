@@ -33,7 +33,7 @@
 
     <ion-content class="app-content-wrap">
       <!-- TAB 1: PRESENSI (Clock In/Out) -->
-      <div v-if="activeTab === 'presensi'" class="ion-padding">
+      <div v-show="activeTab === 'presensi'" class="ion-padding">
         <div class="row">
           <!-- Column 1: Live Status -->
           <div class="col-12 col-md-4 mb-3">
@@ -108,7 +108,7 @@
       </div>
 
       <!-- TAB 2: DASHBOARD (Stats & Charts) -->
-      <div v-if="activeTab === 'dashboard'" class="ion-padding">
+      <div v-show="activeTab === 'dashboard'" class="ion-padding">
         <!-- KPI Row -->
         <ion-grid class="mx-2">
           <ion-row>
@@ -166,7 +166,7 @@
                     <h6 class="fw-bold text-dark mb-0">Grafik Harian Minggu Ini</h6>
                     <span class="badge bg-light text-muted border small">{{ weeklyPeriodRange }}</span>
                   </div>
-                  <VueApexCharts v-if="weeklyChartSeries.series[0].data.length > 0" type="bar" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries.series" />
+                  <VueApexCharts v-if="weeklyChartSeries.series[0].data.length > 0" :key="'weekly-' + logs.length" type="bar" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries.series" />
                   <div v-else class="text-center py-4 text-muted">Belum ada data untuk minggu ini.</div>
                 </ion-card-content>
               </ion-card>
@@ -179,7 +179,7 @@
                     <h6 class="fw-bold text-dark mb-0">Grafik Mingguan Bulan Ini</h6>
                     <span class="badge bg-light text-muted border small">{{ monthlyPeriodRange }}</span>
                   </div>
-                  <VueApexCharts v-if="monthlyChartSeries[0].data.length > 0" type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
+                  <VueApexCharts v-if="monthlyChartSeries[0].data.length > 0" :key="'monthly-' + logs.length" type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
                   <div v-else class="text-center py-4 text-muted">Belum ada data untuk bulan ini.</div>
                 </ion-card-content>
               </ion-card>
@@ -189,7 +189,7 @@
       </div>
 
       <!-- TAB 3: RIWAYAT (History List) -->
-      <div v-if="activeTab === 'riwayat'" class="ion-padding">
+      <div v-show="activeTab === 'riwayat'" class="ion-padding">
         <!-- Filter and Export Actions -->
         <div class="d-flex justify-content-between align-items-center mx-3 mb-3">
           <button class="btn btn-action primary btn-md" @click="openCorrectionModal">
@@ -507,7 +507,7 @@ import { onIonViewWillEnter } from '@ionic/vue';
 import { 
   IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonButton,
   IonContent, IonSegment, IonSegmentButton, IonLabel, IonIcon, IonBadge, 
-  IonModal, IonAlert, IonFooter
+  IonModal, IonAlert, IonFooter, IonGrid, IonRow, IonCol, IonCard, IonCardContent
 } from '@ionic/vue';
 import { 
   settingsOutline, playOutline, stopOutline, cafeOutline, calendarOutline, 
@@ -523,7 +523,7 @@ export default {
   components: {
     IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonButton,
     IonContent, IonSegment, IonSegmentButton, IonLabel, IonIcon, IonBadge, 
-    IonModal, IonAlert, VueApexCharts, IonFooter
+    IonModal, IonAlert, VueApexCharts, IonFooter, IonGrid, IonRow, IonCol, IonCard, IonCardContent
   },
   setup() {
     // Nav & States
@@ -1325,7 +1325,7 @@ export default {
         const hours = logs.value
           .filter(log => log.date === dateStr)
           .reduce((sum, log) => sum + log.totalWorkHours, 0);
-        data.push(Number(hours.toFixed(2)));
+        data.push(Number.isFinite(hours) ? Number(hours.toFixed(2)) : 0);
         temp.setDate(temp.getDate() + 1);
       }
       return { series: [{ name: 'Jam Kerja', data: data }], labels: labels };
@@ -1348,9 +1348,9 @@ export default {
         },
         xaxis: {
           categories: weeklyChartSeries.value.labels,
-          labels: { style: { colors: '#64748b', fontWeight: 600 } }
+          labels: { style: { colors: ['#64748b'], fontWeight: 600 } }
         },
-        yaxis: { labels: { style: { colors: '#64748b' } }, title: { text: 'Jam', style: { color: '#64748b' } } },
+        yaxis: { labels: { style: { colors: ['#64748b'] } }, title: { text: 'Jam', style: { color: '#64748b' } } },
         grid: { borderColor: '#e2e8f0', strokeDashArray: 4 }
       };
     });
@@ -1372,13 +1372,13 @@ export default {
         const logDate = new Date(log.clockIn);
         const weekIdx = Math.min(4, Math.floor((logDate.getTime() - periodStart.getTime()) / (86400000 * 7)));
         if (weekIdx >= 0) {
-          data[weekIdx] += log.totalWorkHours;
+          data[weekIdx] += (log.totalWorkHours || 0);
         }
       });
 
       return [{
         name: 'Total Jam',
-        data: data.map(v => Number(v.toFixed(2)))
+        data: data.map(v => Number.isFinite(v) ? Number(v.toFixed(2)) : 0)
       }];
     });
 
@@ -1418,11 +1418,11 @@ export default {
             }
             return `${weekStart.getDate()} - ${weekEnd.getDate()}`;
           }),
-          labels: { style: { colors: '#64748b', fontWeight: 600 } }
+          labels: { style: { colors: ['#64748b'], fontWeight: 600 } }
         },
         yaxis: {
           labels: { 
-            style: { colors: '#64748b' },
+            style: { colors: ['#64748b'] },
             formatter: (val) => val.toFixed(0)
           }
         },

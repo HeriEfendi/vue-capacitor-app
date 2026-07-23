@@ -41,7 +41,6 @@
       :style="{ bottom: fabPos.y + 'px', right: fabPos.x + 'px' }"
       @mousedown="startDrag"
       @touchstart.prevent="startDrag"
-      @click.stop="openSettings"
       :class="{ dragging: isDragging }"
     >
       <ion-icon :icon="settingsOutline" />
@@ -61,7 +60,7 @@
       </ion-header>
 
       <ion-content class="">
-        <p class="settings-hint">Aktifkan/nonaktifkan menu dan seret untuk mengatur urutan.</p>
+        <p class="settings-hint ms-4">Aktifkan/nonaktifkan menu dan seret untuk mengatur urutan.</p>
 
         <div class="menu-settings-list mx-2">
           <div
@@ -314,19 +313,24 @@ export default {
     const fabPos = ref({ x: 20, y: 28 })
     const isDragging = ref(false)
     let dragStart = null
-    let lastClick = 0
+    // Threshold lebih besar agar tap biasa tidak dianggap drag di Android
+    const DRAG_THRESHOLD = 10
 
     function startDrag(e) {
       const touch = e.touches ? e.touches[0] : e
       dragStart = { clientX: touch.clientX, clientY: touch.clientY, x: fabPos.value.x, y: fabPos.value.y }
       isDragging.value = false
+      let hasMoved = false
 
       const moveHandler = ev => {
         const t = ev.touches ? ev.touches[0] : ev
         const dx = t.clientX - dragStart.clientX
         const dy = t.clientY - dragStart.clientY
-        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) isDragging.value = true
-        if (!isDragging.value) return
+        if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
+          hasMoved = true
+          isDragging.value = true
+        }
+        if (!hasMoved) return
         fabPos.value = {
           x: Math.max(8, dragStart.x - dx),
           y: Math.max(8, dragStart.y - dy)
@@ -337,7 +341,11 @@ export default {
         document.removeEventListener('touchmove', moveHandler)
         document.removeEventListener('mouseup', upHandler)
         document.removeEventListener('touchend', upHandler)
-        setTimeout(() => { isDragging.value = false }, 100)
+        if (!hasMoved) {
+          // Ini tap murni, langsung buka modal tanpa bergantung @click
+          openSettings()
+        }
+        setTimeout(() => { isDragging.value = false }, 50)
       }
       document.addEventListener('mousemove', moveHandler)
       document.addEventListener('touchmove', moveHandler, { passive: false })

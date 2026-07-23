@@ -118,14 +118,14 @@
 <script>
 import { ref, onMounted, computed, toRaw } from 'vue'
 import { ProductRepository, CategoryRepository } from '../../../db/repositories'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonButtons, IonBackButton, IonAlert, toastController } from '@ionic/vue';
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonButtons, IonBackButton, IonAlert, IonCard, IonCardContent, toastController } from '@ionic/vue';
 import { addOutline, trashOutline, createOutline, basketOutline, closeOutline } from 'ionicons/icons';
 import { readProductImage, saveProductImageFromBase64, deleteProductImage } from '../../../composables/useProductImage';
 import ProductModal from './ProductModal.vue';
 
 export default {
   name: 'ProductsListView',
-  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonButtons, IonBackButton, IonAlert, ProductModal },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonButtons, IonBackButton, IonAlert, IonCard, IonCardContent, ProductModal },
   setup() {
     const products = ref([])
     const categories = ref([])

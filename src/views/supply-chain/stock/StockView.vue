@@ -289,7 +289,7 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { ProductRepository, CategoryRepository, stockMutationsRepo } from '../../../db/repositories'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, toastController } from '@ionic/vue';
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonBadge, toastController } from '@ionic/vue';
 import { basketOutline, addOutline, removeOutline, downloadOutline, calendarOutline, documentTextOutline, searchOutline } from 'ionicons/icons';
 import { readProductImage } from '../../../composables/useProductImage';
 import * as XLSX from 'xlsx';
@@ -298,7 +298,7 @@ export default {
   name: 'StockView',
   components: {
     IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon,
-    IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal
+    IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonBadge
   },
   setup() {
     const activeTab = ref('monitoring')
@@ -507,7 +507,9 @@ export default {
       addOutline,
       removeOutline,
       downloadOutline,
-      calendarOutline
+      calendarOutline,
+      documentTextOutline,
+      searchOutline
     }
   }
 }

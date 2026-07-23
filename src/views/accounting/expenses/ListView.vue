@@ -30,7 +30,7 @@
 
     <ion-content class="app-content-wrap">
       <!-- DASHBOARD TAB -->
-      <div v-if="activeTab === 'dashboard'" class="ion-padding">
+      <div v-show="activeTab === 'dashboard'" class="ion-padding">
 
 
         <ion-grid class="mx-2">
@@ -106,7 +106,7 @@
               <ion-card class="mobile-card m-0 h-100">
                 <ion-card-content class="container-padded">
                   <h6 class="fw-bold text-dark mb-3">Grafik Harian</h6>
-                  <VueApexCharts v-if="dailyChartSeries[0].data.some(d => d > 0)" type="bar" height="240" :options="dailyChartOptions" :series="dailyChartSeries" />
+                  <VueApexCharts v-if="dailyChartSeries[0].data.some(d => d > 0)" :key="'daily-' + expenses.length" type="bar" height="240" :options="dailyChartOptions" :series="dailyChartSeries" />
                   <div v-else class="text-center py-4 text-muted">Belum ada data harian.</div>
                 </ion-card-content>
               </ion-card>
@@ -115,7 +115,7 @@
               <ion-card class="mobile-card m-0 h-100">
                 <ion-card-content class="container-padded">
                   <h6 class="fw-bold text-dark mb-3">Trend 5 Minggu Terakhir</h6>
-                  <VueApexCharts v-if="weeklyChartSeries[0].data.some(d => d > 0)" type="area" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries" />
+                  <VueApexCharts v-if="weeklyChartSeries[0].data.some(d => d > 0)" :key="'weekly-' + expenses.length" type="area" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries" />
                   <div v-else class="text-center py-4 text-muted">Belum ada data grafik mingguan.</div>
                 </ion-card-content>
               </ion-card>
@@ -124,7 +124,7 @@
               <ion-card class="mobile-card m-0 h-100">
                 <ion-card-content class="container-padded">
                   <h6 class="fw-bold text-dark mb-3">Grafik Bulanan</h6>
-                  <VueApexCharts v-if="monthlyChartSeries[0].data.some(d => d > 0)" type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
+                  <VueApexCharts v-if="monthlyChartSeries[0].data.some(d => d > 0)" :key="'monthly-' + expenses.length" type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
                   <div v-else class="text-center py-4 text-muted">Belum ada data bulanan.</div>
                 </ion-card-content>
               </ion-card>
@@ -133,7 +133,7 @@
               <ion-card class="mobile-card m-0 h-100">
                 <ion-card-content class="container-padded">
                   <h6 class="fw-bold text-dark mb-3">Porsi Pengeluaran per Kategori</h6>
-                  <VueApexCharts v-if="donutSeries.length > 0 && donutSeries.some(d => d > 0)" type="donut" height="240" :options="donutOptions" :series="donutSeries" />
+                  <VueApexCharts v-if="donutSeries.length > 0 && donutSeries.some(d => d > 0)" :key="'donut-' + donutSeries.length" type="donut" height="240" :options="donutOptions" :series="donutSeries" />
                   <div v-else class="text-center py-5 text-muted">Belum ada pengeluaran di bulan ini untuk dianalisa.</div>
                 </ion-card-content>
               </ion-card>
@@ -144,7 +144,7 @@
       </div>
 
       <!-- RIWAYAT & DETAIL TAB -->
-      <div v-if="activeTab === 'riwayat'" class="ion-padding">
+      <div v-show="activeTab === 'riwayat'" class="ion-padding">
         <!-- Search & Filter Controls -->
         <div class="mobile-card p-3 mb-3 mx-3">
           <div class="row g-2">
@@ -202,7 +202,7 @@
 
 <script>
 import { ref, computed, defineAsyncComponent } from 'vue'
-import { onIonViewWillEnter, IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonButtons, IonSegment, IonSegmentButton, IonLabel, alertController } from '@ionic/vue';
+import { onIonViewWillEnter, IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonButtons, IonSegment, IonSegmentButton, IonLabel, IonGrid, IonRow, IonCol, IonCard, IonCardContent, alertController } from '@ionic/vue';
 import { addOutline, trashOutline, pencilOutline, createOutline } from 'ionicons/icons';
 import { expensesRepo, savingAccountsRepo, savingTransactionsRepo } from '../../../db/repositories'
 import { db } from '../../../db/schema'
@@ -212,7 +212,7 @@ const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
 
 export default {
   name: 'AccountingExpensesListView',
-  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonButtons, IonSegment, IonSegmentButton, IonLabel, VueApexCharts },
+  components: { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonButtons, IonSegment, IonSegmentButton, IonLabel, IonGrid, IonRow, IonCol, IonCard, IonCardContent, VueApexCharts },
   setup() {
     const router = useRouter()
     const activeTab = ref('dashboard')
@@ -350,7 +350,7 @@ export default {
       return totals
     })
 
-    const donutSeries = computed(() => Object.values(categoryTotals.value))
+    const donutSeries = computed(() => Object.values(categoryTotals.value).map(v => Number.isFinite(v) ? Number(v) : 0))
     const donutOptions = computed(() => ({
       chart: { type: 'donut', toolbar: { show: false } },
       labels: Object.keys(categoryTotals.value),

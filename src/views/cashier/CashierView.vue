@@ -28,7 +28,7 @@
       </div>
 
       <!-- TAB 1: POS / KASIR -->
-      <div v-if="activeTab === 'pos'" class="ion-padding">
+      <div v-show="activeTab === 'pos'" class="ion-padding">
 
         <div class="row g-1">
           <!-- Right side: Shopping Cart -->
@@ -36,77 +36,73 @@
             <div class="mobile-card container-padded">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold text-dark mb-0">Keranjang Belanja</h5>
-                <span class="badge bg-indigo">{{ cartCount }} item</span>
-              </div>
-
-              <!-- Cart List -->
-              <div v-if="cart.length === 0" class="text-center py-5 text-muted">
-                <ion-icon :icon="cartOutline" style="font-size: 3rem;" class="mb-2" />
-                <p>Keranjang masih kosong.</p>
-              </div>
-
-              <div v-else>
-                <div class="cart-items-wrap mb-3" style="max-height: 280px; overflow-y: auto;">
-                  <div v-for="item in cart" :key="item.id" class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <div style="max-width: 60%;">
-                      <span class="fw-semibold text-dark text-truncate d-block" style="font-size: 0.9rem;">{{ item.name }}</span>
-                      <small class="text-muted">{{ formatPrice(item.price) }} x {{ item.quantity }}</small>
-                    </div>
-                    <div class="d-flex align-items-center gap-1">
-                      <button class="btn btn-action btn-sm warning p-1" @click="decreaseQty(item)">
-                        <ion-icon :icon="removeOutline" />
-                      </button>
-                      <span class="px-2 text-dark fw-bold" style="font-size: 0.9rem;">{{ item.quantity }}</span>
-                      <button class="btn btn-action btn-sm success p-1" @click="addToCart(item, true)">
-                        <ion-icon :icon="addOutline" />
-                      </button>
-                      <button class="btn btn-action btn-sm danger p-1 ms-2" @click="removeFromCart(item)">
-                        <ion-icon :icon="trashOutline" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Discount Selector -->
-                <div class="form-section px-0 mb-3">
-                  <label class="form-label d-flex justify-content-between">
-                    <span>Diskon</span>
-                    <strong class="text-teal">{{ discount }}%</strong>
-                  </label>
-                  <input type="range" class="form-range" min="0" max="50" step="5" v-model.number="discount" />
-                </div>
-
-                <!-- Notes Form -->
-                <div class="form-section px-0 mb-3">
-                  <label class="form-label">Catatan Pesanan</label>
-                  <input type="text" class="form-control app-control" v-model="notes" placeholder="Contoh: Tanpa es, manis" />
-                </div>
-
-                <!-- Financial Calculation Summary -->
-                <div class="bg-light rounded p-3 mb-3 border">
-                  <div class="d-flex justify-content-between text-muted mb-1 small">
-                    <span>Subtotal</span>
-                    <span>{{ formatPrice(subtotal) }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between text-muted mb-1 small" v-if="discountAmount > 0">
-                    <span>Diskon ({{ discount }}%)</span>
-                    <span class="text-danger">-{{ formatPrice(discountAmount) }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between text-muted mb-2 small">
-                    <span>Pajak (10%)</span>
-                    <span>{{ formatPrice(tax) }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between fw-black text-dark border-top pt-2 fs-5">
-                    <span>Total</span>
-                    <span class="text-indigo">{{ formatPrice(grandTotal) }}</span>
-                  </div>
-                </div>
-
-                <!-- Checkout Action -->
-                <button class="btn btn-action primary w-100 py-3 fw-bold fs-6" @click="openCheckout">
-                  Bayar / Checkout
+                <button v-if="cart.length > 0" class="btn btn-light btn-sm text-danger" @click="clearCart">
+                  Kosongkan
                 </button>
               </div>
+
+              <!-- Cart Item List -->
+              <div v-if="cart.length === 0" class="text-center py-5 text-muted">
+                <ion-icon :icon="cartOutline" style="font-size: 3rem;" class="mb-2" />
+                <p>Keranjang belanja masih kosong.</p>
+              </div>
+
+              <div v-else class="cart-items-wrap mb-3">
+                <div v-for="item in cart" :key="item.productId" class="cart-item-card mb-2 p-2 border rounded d-flex justify-content-between align-items-center">
+                  <div class="cart-item-info">
+                    <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 140px;">{{ item.name }}</h6>
+                    <small class="text-muted">{{ formatPrice(item.price) }}</small>
+                  </div>
+                  <div class="cart-item-qty d-flex align-items-center gap-1">
+                    <button class="btn btn-outline-secondary btn-sm p-1 px-2" @click="updateQty(item.productId, -1)">
+                      <ion-icon :icon="removeOutline" />
+                    </button>
+                    <span class="fw-bold mx-1">{{ item.quantity }}</span>
+                    <button class="btn btn-outline-secondary btn-sm p-1 px-2" @click="updateQty(item.productId, 1)">
+                      <ion-icon :icon="addOutline" />
+                    </button>
+                    <button class="btn btn-link text-danger btn-sm p-1 ms-1" @click="removeFromCart(item.productId)">
+                      <ion-icon :icon="trashOutline" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Summary & Checkout Button -->
+              <div v-if="cart.length > 0" class="border-top pt-3">
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Subtotal</span>
+                  <span class="fw-bold">{{ formatPrice(subtotal) }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="text-muted">Diskon (%)</span>
+                  <input type="number" min="0" max="100" v-model.number="discount" class="form-control form-control-sm text-end" style="width: 70px;" />
+                </div>
+
+                <div v-if="discountAmount > 0" class="d-flex justify-content-between text-danger mb-1">
+                  <span>Potongan Diskon</span>
+                  <span>-{{ formatPrice(discountAmount) }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Pajak (10%)</span>
+                  <span>{{ formatPrice(taxAmount) }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between fs-5 fw-black text-indigo border-top pt-2 mt-2">
+                  <span>Total Bayar</span>
+                  <span>{{ formatPrice(totalAmount) }}</span>
+                </div>
+
+                <div class="mt-3">
+                  <textarea v-model="notes" class="form-control form-control-sm mb-2" rows="2" placeholder="Catatan transaksi (opsional)..."></textarea>
+                  <button class="btn btn-action primary w-100 py-2 fs-6" @click="openCheckoutModal">
+                    Bayar Sekarang
+                  </button>
+                </div>
+              </div>
+
             </div>
           </ion-col>
 
@@ -195,12 +191,11 @@
               </div>
             </div>
           </ion-col>
-
         </div>
       </div>
 
       <!-- TAB 2: MONITORING / DASHBOARD -->
-      <div v-if="activeTab === 'dashboard'" class="ion-padding">
+      <div v-show="activeTab === 'dashboard'" class="ion-padding">
         <!-- Dashboard Metrics KPI Card -->
         <ion-grid class="mx-2">
           <ion-row>
@@ -251,7 +246,7 @@
                 <ion-card-content class="container-padded">
                   <h6 class="fw-bold text-dark mb-3">Grafik Penjualan 7 Hari Terakhir</h6>
                   <div v-if="chartSeries[0].data.length > 0">
-                    <VueApexCharts type="area" height="260" :options="chartOptions" :series="chartSeries" />
+                    <VueApexCharts :key="'sales-chart-' + salesHistory.length" type="area" height="260" :options="chartOptions" :series="chartSeries" />
                   </div>
                   <div v-else class="text-center py-4 text-muted">
                     Belum ada data penjualan 7 hari terakhir.
@@ -618,8 +613,8 @@
 <script>
 import { ref, onMounted, computed, defineAsyncComponent } from 'vue'
 import { ProductRepository, CategoryRepository, salesRepo, stockMutationsRepo } from '../../db/repositories'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonAlert, toastController } from '@ionic/vue';
-import { addOutline, removeOutline, trashOutline, cartOutline, basketOutline, printOutline, downloadOutline, calendarOutline, documentTextOutline } from 'ionicons/icons';
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonAlert, toastController, IonGrid, IonRow, IonCol, IonCard, IonCardContent } from '@ionic/vue';
+import { addOutline, removeOutline, trashOutline, cartOutline, basketOutline, printOutline, downloadOutline, calendarOutline, documentTextOutline, searchOutline as searchIcon } from 'ionicons/icons';
 import { readProductImage } from '../../composables/useProductImage';
 import * as XLSX from 'xlsx';
 
@@ -629,7 +624,8 @@ export default {
   name: 'CashierView',
   components: { 
     IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, 
-    IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonAlert, VueApexCharts 
+    IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonAlert, VueApexCharts,
+    IonGrid, IonRow, IonCol, IonCard, IonCardContent
   },
   setup() {
     const activeTab = ref('pos')
@@ -640,6 +636,8 @@ export default {
     // POS/Cart states
     const searchQuery = ref('')
     const selectedCategory = ref('all')
+    // expose icon for template
+    const searchOutline = searchIcon;
     const cart = ref([])
     const discount = ref(0)
     const notes = ref('')
@@ -936,10 +934,10 @@ export default {
         d.setDate(today.getDate() - i)
         const dateStr = d.toISOString().split('T')[0]
         
-        const daySales = salesHistory.value.filter(s => s.createdAt.startsWith(dateStr))
-        const dayTotal = daySales.reduce((sum, s) => sum + s.totalAmount, 0)
+        const daySales = salesHistory.value.filter(s => s.createdAt && s.createdAt.startsWith(dateStr))
+        const dayTotal = daySales.reduce((sum, s) => sum + (s.totalAmount || 0), 0)
         
-        seriesData.push(dayTotal)
+        seriesData.push(Number.isFinite(dayTotal) ? dayTotal : 0)
       }
 
       return [{
@@ -978,12 +976,12 @@ export default {
         },
         xaxis: {
           categories: categoriesData,
-          labels: { style: { colors: '#64748b', fontWeight: 600 } }
+          labels: { style: { colors: ['#64748b'], fontWeight: 600 } }
         },
         yaxis: {
           labels: {
             formatter: (val) => new Intl.NumberFormat('id-ID', { notation: 'compact', compactDisplay: 'short' }).format(val),
-            style: { colors: '#64748b', fontWeight: 600 }
+            style: { colors: ['#64748b'], fontWeight: 600 }
           }
         },
         tooltip: {
@@ -1089,7 +1087,8 @@ export default {
       printOutline,
       downloadOutline,
       calendarOutline,
-      documentTextOutline
+      documentTextOutline,
+      searchOutline
     }
   }
 }

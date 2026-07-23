@@ -282,88 +282,133 @@ function showSnackbar(text: string, color = 'success') {
 const fileInput = ref<HTMLInputElement | null>(null)
 function handleImport() { fileInput.value?.click() }
 
-async function onFileChange(e: Event) {
+async function processImportFile(result: ArrayBuffer) {
+  try {
+    const workbook = XLSX.read(result, { type: 'array' })
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    const json = XLSX.utils.sheet_to_json(sheet) as any[]
 
+    if (!json.length) {
+      showSnackbar('File tidak memiliki data transaksi.', 'warning')
+      return
+    }
+
+    const validCategories = [...categories.DEPOSIT_MODAL, ...categories.DEPOSIT_PENDAPATAN, ...categories.EXPENSE]
+
+    // ── Validasi semua baris dulu sebelum menyimpan apapun ──────────────────
+    const parsedRows: Transaction[] = []
+    const validationErrors: string[] = []
+
+    for (let index = 0; index < json.length; index++) {
+      const row = json[index] as any
+      const rowNumber = index + 2
+      const type = String(row['Tipe'] || '').trim()
+      const category = String(row['Kategori'] || '').trim()
+      const amount = Number(row['Nominal'])
+      const rawDate = row['Tanggal (DD/MM/YYYY)'] || row['Tanggal']
+
+      if (type !== 'DEPOSIT' && type !== 'EXPENSE') {
+        validationErrors.push(`Baris ${rowNumber}: Tipe harus DEPOSIT atau EXPENSE (dapat: "${type}")`)
+        continue
+      }
+      if (!validCategories.includes(category)) {
+        validationErrors.push(`Baris ${rowNumber}: Kategori tidak valid ("${category}")`)
+        continue
+      }
+      if (!Number.isFinite(amount) || amount <= 0) {
+        validationErrors.push(`Baris ${rowNumber}: Nominal tidak valid`)
+        continue
+      }
+      if (!rawDate) {
+        validationErrors.push(`Baris ${rowNumber}: Tanggal wajib diisi`)
+        continue
+      }
+
+      // ID belum di-set di sini, akan di-assign saat insert
+      parsedRows.push({
+        id: 0, // placeholder, diganti di bawah
+        project_id: project.value!.id,
+        type,
+        category,
+        amount,
+        date: parseDate(rawDate),
+        description: row['Deskripsi'] || ''
+      })
+    }
+
+    if (validationErrors.length > 0) {
+      console.warn('[Import] Validation errors:', validationErrors)
+      showSnackbar(
+        `${validationErrors.length} baris gagal validasi, ${parsedRows.length} baris siap disimpan.`,
+        'warning'
+      )
+      if (parsedRows.length === 0) return
+    }
+
+    if (!project.value) return
+    if (!db.isOpen()) await db.open()
+    const projectId = project.value.id
+
+    // ── Ambil max ID yang sudah ada agar ID baru tidak pernah bentrok ───────
+    // Aman untuk integer hingga Number.MAX_SAFE_INTEGER (9 * 10^15)
+    const allExisting = await db.table('transactions').toCollection().primaryKeys()
+    const maxExistingId: number = allExisting.length > 0
+      ? Math.max(...(allExisting as number[]))
+      : 0
+    
+    // ── Insert satu per satu secara berurutan ────────────────────────────────
+    let savedCount = 0
+    const insertErrors: string[] = []
+
+    for (let i = 0; i < parsedRows.length; i++) {
+      const tx = { ...parsedRows[i], id: maxExistingId + i + 1 }
+      try {
+        await db.table('transactions').add(tx) // add (bukan put) → error jika ID sudah ada
+        savedCount++
+      } catch (insertErr: any) {
+        insertErrors.push(`Baris ${i + 2}: ${insertErr.message}`)
+        console.error(`[Import] Gagal insert baris ${i + 2}:`, insertErr)
+      }
+    }
+
+    // ── Update totals project ────────────────────────────────────────────────
+    const totals = await calcProjectTotals(projectId)
+    const projectRecord = await db.table('projects').get(projectId)
+    if (projectRecord) {
+      projectRecord.total_deposits = totals.total_deposits
+      projectRecord.total_expenses = totals.total_expenses
+      projectRecord.balance = totals.balance
+      await db.table('projects').put(projectRecord)
+    }
+
+    await fetchProject()
+
+    if (insertErrors.length > 0) {
+      showSnackbar(
+        `${savedCount} tersimpan, ${insertErrors.length} gagal. Cek console untuk detail.`,
+        'warning'
+      )
+    } else {
+      showSnackbar(`${savedCount} transaksi berhasil diimpor!`, 'success')
+    }
+
+  } catch (e) {
+    console.error(e)
+    showSnackbar('Gagal memproses file: ' + (e as Error).message, 'error')
+  }
+}
+
+async function onFileChange(e: Event) {
   const target = e.target as HTMLInputElement
   if (!target.files?.length) return
   const file = target.files[0]
   const reader = new FileReader()
   reader.onload = (ev) => {
-    try {
-      const data = new Uint8Array(ev.target?.result as ArrayBuffer)
-      const workbook = XLSX.read(data, { type: 'array' })
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const json = XLSX.utils.sheet_to_json(sheet) as any[]
-      
-      const validCategories = [...categories.DEPOSIT_MODAL, ...categories.DEPOSIT_PENDAPATAN, ...categories.EXPENSE]
-      const newTransactions: Transaction[] = json.map((row: any, index: number) => {
-        const rowNumber = index + 2
-        const type = String(row['Tipe'] || '').trim()
-        const category = String(row['Kategori'] || '').trim()
-        const amount = Number(row['Nominal'])
-        const rawDate = row['Tanggal (DD/MM/YYYY)'] || row['Tanggal']
-
-        if (type !== 'DEPOSIT' && type !== 'EXPENSE') {
-          throw new Error(`Baris ${rowNumber}: Tipe harus DEPOSIT atau EXPENSE`)
-        }
-        if (!validCategories.includes(category)) {
-          throw new Error(`Baris ${rowNumber}: Kategori tidak valid`)
-        }
-        if (!Number.isFinite(amount) || amount <= 0) {
-          throw new Error(`Baris ${rowNumber}: Nominal harus angka lebih dari 0`)
-        }
-        if (!rawDate) {
-          throw new Error(`Baris ${rowNumber}: Tanggal wajib diisi`)
-        }
-
-        return {
-          id: Date.now() + Math.random(),
-          project_id: project.value!.id,
-          type,
-          category,
-          amount,
-          date: parseDate(rawDate),
-          description: row['Deskripsi'] || ''
-        }
-      })
-
-      if (project.value) {
-        (async () => {
-          let success = false;
-          try {
-            if (!project.value) throw new Error('Projek tidak ditemukan')
-            const projectId = project.value!.id
-            if (!db.isOpen()) await db.open()
-
-            // Simpan transaksi ke tabel transactions terpisah (bulkPut = upsert)
-            await db.table('transactions').bulkPut(newTransactions)
-
-            // Hitung ulang totals & update project record
-            const totals = await calcProjectTotals(projectId)
-            const projectRecord = await db.table('projects').get(projectId)
-            if (!projectRecord) throw new Error('Projek tidak ditemukan di database')
-            projectRecord.total_deposits = totals.total_deposits
-            projectRecord.total_expenses = totals.total_expenses
-            projectRecord.balance = totals.balance
-            await db.table('projects').put(projectRecord)
-
-            await fetchProject()
-            success = true;
-          } catch (e) {
-            console.error(e)
-            showSnackbar('Gagal menyimpan: ' + (e as Error).message, 'error')
-          }
-          if (success) {
-            showSnackbar('Transaksi berhasil diimpor!', 'success')
-          }
-        })()
-      }
-    } catch (e) {
-      console.error(e)
-      showSnackbar('Gagal memproses file: ' + (e as Error).message, 'error')
-    }
+    processImportFile(ev.target?.result as ArrayBuffer)
   }
+  reader.onerror = () => showSnackbar('Gagal membaca file.', 'error')
   reader.readAsArrayBuffer(file)
+  target.value = '' // reset agar file sama bisa dipilih lagi
 }
 
 
@@ -506,7 +551,13 @@ const donutOptions = computed(() => ({
   responsive: [{ breakpoint: 480, options: { chart: { width: '100%' }, legend: { position: 'bottom' } } }]
 }))
 
-const donutSeries = computed(() => Object.values(categoryTotals.value))
+const donutSeries = computed(() =>
+  Object.values(categoryTotals.value).map(v => (Number.isFinite(v) ? v : 0))
+)
+
+const chartDonutReady = computed(() =>
+  donutSeries.value.length > 0 && donutSeries.value.some(v => v > 0)
+)
 
 const categoryTotals = computed(() => {
   const totals: Record<string, number> = {}
@@ -592,18 +643,20 @@ const barOptions = computed(() => {
   }
 })
 
-const barSeries = computed(() => {
-  return [
-    {
-      name: 'Uang Masuk',
-      data: cashFlowData.value.income
-    },
-    {
-      name: 'Uang Keluar',
-      data: cashFlowData.value.expense
-    }
-  ]
-})
+const barSeries = computed(() => [
+  {
+    name: 'Uang Masuk',
+    data: cashFlowData.value.income.map(v => (Number.isFinite(v) ? v : 0))
+  },
+  {
+    name: 'Uang Keluar',
+    data: cashFlowData.value.expense.map(v => (Number.isFinite(v) ? v : 0))
+  }
+])
+
+const chartBarReady = computed(() =>
+  cashFlowData.value.months.length > 0
+)
 
 onMounted(async () => {
   // Jalankan migrasi data lama (idempotent — aman dijalankan berulang)
@@ -681,7 +734,7 @@ onUnmounted(() => clearInterval(interval))
       <div v-else-if="project">
         
         <!-- ==================== TAB 1: DASHBOARD ==================== -->
-        <div v-if="activeTab === 'dashboard'" class="ion-padding">
+        <div v-show="activeTab === 'dashboard'" class="ion-padding">
           
           <!-- Summary Grid -->
           <ion-grid class="mx-2">
@@ -747,20 +800,28 @@ onUnmounted(() => clearInterval(interval))
           <!-- Charts -->
           <ion-grid class="mx-2">
             <ion-row>
-              <ion-col size="12" size-sm="6" size-lg="6" v-if="barSeries[0].data.length > 0">
+              <ion-col size="12" size-sm="6" size-lg="6" v-if="chartBarReady">
                 <ion-card class="mobile-card m-0 h-100">
                   <ion-card-content class="container-padded">
                     <h6 class="fw-bold text-dark mb-3">Arus Kas Bulanan</h6>
-                    <VueApexCharts type="bar" height="240" :options="barOptions" :series="barSeries" />
+                    <VueApexCharts
+                      :key="'bar-' + cashFlowData.months.length"
+                      type="bar" height="240"
+                      :options="barOptions" :series="barSeries"
+                    />
                   </ion-card-content>
                 </ion-card>
               </ion-col>
 
-              <ion-col size="12" size-sm="6" size-lg="6" v-if="donutSeries.length > 0">
+              <ion-col size="12" size-sm="6" size-lg="6" v-if="chartDonutReady">
                 <ion-card class="mobile-card m-0 h-100">
                   <ion-card-content class="container-padded">
                     <h6 class="fw-bold text-dark mb-3">Pengeluaran per Kategori</h6>
-                    <VueApexCharts type="donut" height="240" :options="donutOptions" :series="donutSeries" />
+                    <VueApexCharts
+                      :key="'donut-' + donutSeries.length"
+                      type="donut" height="240"
+                      :options="donutOptions" :series="donutSeries"
+                    />
                   </ion-card-content>
                 </ion-card>
               </ion-col>
@@ -770,7 +831,7 @@ onUnmounted(() => clearInterval(interval))
         </div>
 
         <!-- ==================== TAB 2: TRANSAKSI ==================== -->
-        <div v-if="activeTab === 'transaksi'" class="ion-padding px-1">
+        <div v-show="activeTab === 'transaksi'" class="ion-padding px-1">
           
           <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between">
             <!-- Search input -->
