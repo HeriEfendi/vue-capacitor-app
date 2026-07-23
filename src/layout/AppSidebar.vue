@@ -46,7 +46,7 @@
 
 <script>
 import { IonMenu, IonContent, IonList, IonItem, IonLabel, IonIcon, menuController } from '@ionic/vue';
-import { checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline, timeOutline, cartOutline, layersOutline } from 'ionicons/icons';
+import { checkmarkCircleOutline, documentTextOutline, walletOutline, arrowDownCircleOutline, arrowUpCircleOutline, cardOutline, basketOutline, listOutline, peopleOutline, personOutline, logOutOutline, timeOutline, cartOutline, layersOutline, informationCircleOutline, cloudDownloadOutline, alarmOutline } from 'ionicons/icons';
 
 export default {
   name: 'AppSidebar',
@@ -59,13 +59,14 @@ export default {
           { label: 'To Do', path: '/todo-personal', icon: checkmarkCircleOutline, desc: 'Task pribadi', accent: '#2563eb' },
           { label: 'To Do Team', path: '/todo', icon: checkmarkCircleOutline, desc: 'Task tim', accent: '#7c3aed' },
           { label: 'Ceklok', path: '/ceklok', icon: timeOutline, desc: 'Presensi & jam kerja', accent: '#0d9488' },
+          { label: 'Pengingat', path: '/reminders', icon: alarmOutline, desc: 'Hari penting & notifikasi', accent: '#f59e0b' },
         ],
       },
       {
         title: 'Keuangan',
         items: [
           { label: 'Buku Kas', path: '/buku_kas', icon: documentTextOutline, desc: 'Bisnis, hobi & renovasi', accent: '#059669' },
-          { label: 'Tabungan', path: '/capital', icon: walletOutline, desc: 'Modal usaha', accent: '#d97706' },
+          { label: 'Tabungan', path: '/savings', icon: walletOutline, desc: 'Modal usaha', accent: '#d97706' },
           { label: 'Pengeluaran', path: '/expenses', icon: arrowDownCircleOutline, desc: 'Dana keluar', accent: '#dc2626' },
           { label: 'Pendapatan', path: '/incomes', icon: arrowUpCircleOutline, desc: 'Dana masuk', accent: '#16a34a' },
           { label: 'Utang', path: '/debts', icon: cardOutline, desc: 'Catatan utang', accent: '#9333ea' },
@@ -84,7 +85,9 @@ export default {
         title: 'General Setting',
         items: [
           { label: 'Users', path: '/users', icon: peopleOutline, desc: 'Data pengguna', accent: '#0f766e' },
-          { label: 'Profile', path: '/profile', icon: personOutline, desc: 'Profil developer', accent: '#2563eb' },
+          { label: 'Backup & Restore', path: '/backup-restore', icon: cloudDownloadOutline, desc: 'Ekspor & Impor Database', accent: '#6366f1' },
+          { label: 'Tentang Aplikasi', path: '/about', icon: informationCircleOutline, desc: 'Tentang & Developer', accent: '#0ea5e9' },
+          { label: 'Profile', path: '/profile', icon: personOutline, desc: 'Data profil', accent: '#0ea5e9' },
         ],
       },
     ]

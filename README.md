@@ -1,4 +1,4 @@
-# HDEV Mobile
+# HK UMKM (Hasil Karya UMKM)
 
 Aplikasi mobile all-in-one untuk produktivitas pribadi, keuangan UMKM, dan manajemen rantai pasok. Dibangun dengan **Vue 3 + Ionic + Capacitor** sehingga berjalan sebagai Progressive Web App (PWA) di browser maupun sebagai aplikasi native Android.
 

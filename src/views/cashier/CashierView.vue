@@ -28,7 +28,7 @@
       </div>
 
       <!-- TAB 1: POS / KASIR -->
-      <div v-if="activeTab === 'pos'" class="ion-padding">
+      <div v-show="activeTab === 'pos'" class="ion-padding">
 
         <div class="row g-1">
           <!-- Right side: Shopping Cart -->
@@ -36,112 +36,120 @@
             <div class="mobile-card container-padded">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold text-dark mb-0">Keranjang Belanja</h5>
-                <span class="badge bg-indigo">{{ cartCount }} item</span>
-              </div>
-
-              <!-- Cart List -->
-              <div v-if="cart.length === 0" class="text-center py-5 text-muted">
-                <ion-icon :icon="cartOutline" style="font-size: 3rem;" class="mb-2" />
-                <p>Keranjang masih kosong.</p>
-              </div>
-
-              <div v-else>
-                <div class="cart-items-wrap mb-3" style="max-height: 280px; overflow-y: auto;">
-                  <div v-for="item in cart" :key="item.id" class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <div style="max-width: 60%;">
-                      <span class="fw-semibold text-dark text-truncate d-block" style="font-size: 0.9rem;">{{ item.name }}</span>
-                      <small class="text-muted">{{ formatPrice(item.price) }} x {{ item.quantity }}</small>
-                    </div>
-                    <div class="d-flex align-items-center gap-1">
-                      <button class="btn btn-action btn-sm warning p-1" @click="decreaseQty(item)">
-                        <ion-icon :icon="removeOutline" />
-                      </button>
-                      <span class="px-2 text-dark fw-bold" style="font-size: 0.9rem;">{{ item.quantity }}</span>
-                      <button class="btn btn-action btn-sm success p-1" @click="addToCart(item, true)">
-                        <ion-icon :icon="addOutline" />
-                      </button>
-                      <button class="btn btn-action btn-sm danger p-1 ms-2" @click="removeFromCart(item)">
-                        <ion-icon :icon="trashOutline" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Discount Selector -->
-                <div class="form-section px-0 mb-3">
-                  <label class="form-label d-flex justify-content-between">
-                    <span>Diskon</span>
-                    <strong class="text-teal">{{ discount }}%</strong>
-                  </label>
-                  <input type="range" class="form-range" min="0" max="50" step="5" v-model.number="discount" />
-                </div>
-
-                <!-- Notes Form -->
-                <div class="form-section px-0 mb-3">
-                  <label class="form-label">Catatan Pesanan</label>
-                  <input type="text" class="form-control app-control" v-model="notes" placeholder="Contoh: Tanpa es, manis" />
-                </div>
-
-                <!-- Financial Calculation Summary -->
-                <div class="bg-light rounded p-3 mb-3 border">
-                  <div class="d-flex justify-content-between text-muted mb-1 small">
-                    <span>Subtotal</span>
-                    <span>{{ formatPrice(subtotal) }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between text-muted mb-1 small" v-if="discountAmount > 0">
-                    <span>Diskon ({{ discount }}%)</span>
-                    <span class="text-danger">-{{ formatPrice(discountAmount) }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between text-muted mb-2 small">
-                    <span>Pajak (10%)</span>
-                    <span>{{ formatPrice(tax) }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between fw-black text-dark border-top pt-2 fs-5">
-                    <span>Total</span>
-                    <span class="text-indigo">{{ formatPrice(grandTotal) }}</span>
-                  </div>
-                </div>
-
-                <!-- Checkout Action -->
-                <button class="btn btn-action primary w-100 py-3 fw-bold fs-6" @click="openCheckout">
-                  Bayar / Checkout
+                <button v-if="cart.length > 0" class="btn btn-light btn-sm text-danger" @click="clearCart">
+                  Kosongkan
                 </button>
               </div>
+
+              <!-- Cart Item List -->
+              <div v-if="cart.length === 0" class="text-center py-5 text-muted">
+                <ion-icon :icon="cartOutline" style="font-size: 3rem;" class="mb-2" />
+                <p>Keranjang belanja masih kosong.</p>
+              </div>
+
+              <div v-else class="cart-items-wrap mb-3">
+                <div v-for="item in cart" :key="item.productId" class="cart-item-card mb-2 p-2 border rounded d-flex justify-content-between align-items-center">
+                  <div class="cart-item-info">
+                    <h6 class="fw-bold text-dark mb-0 text-truncate" style="max-width: 140px;">{{ item.name }}</h6>
+                    <small class="text-muted">{{ formatPrice(item.price) }}</small>
+                  </div>
+                  <div class="cart-item-qty d-flex align-items-center gap-1">
+                    <button class="btn btn-outline-secondary btn-sm p-1 px-2" @click="updateQty(item.productId, -1)">
+                      <ion-icon :icon="removeOutline" />
+                    </button>
+                    <span class="fw-bold mx-1">{{ item.quantity }}</span>
+                    <button class="btn btn-outline-secondary btn-sm p-1 px-2" @click="updateQty(item.productId, 1)">
+                      <ion-icon :icon="addOutline" />
+                    </button>
+                    <button class="btn btn-link text-danger btn-sm p-1 ms-1" @click="removeFromCart(item.productId)">
+                      <ion-icon :icon="trashOutline" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Summary & Checkout Button -->
+              <div v-if="cart.length > 0" class="border-top pt-3">
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Subtotal</span>
+                  <span class="fw-bold">{{ formatPrice(subtotal) }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="text-muted">Diskon (%)</span>
+                  <input type="number" min="0" max="100" v-model.number="discount" class="form-control form-control-sm text-end" style="width: 70px;" />
+                </div>
+
+                <div v-if="discountAmount > 0" class="d-flex justify-content-between text-danger mb-1">
+                  <span>Potongan Diskon</span>
+                  <span>-{{ formatPrice(discountAmount) }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Pajak (10%)</span>
+                  <span>{{ formatPrice(taxAmount) }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between fs-5 fw-black text-indigo border-top pt-2 mt-2">
+                  <span>Total Bayar</span>
+                  <span>{{ formatPrice(totalAmount) }}</span>
+                </div>
+
+                <div class="mt-3">
+                  <textarea v-model="notes" class="form-control form-control-sm mb-2" rows="2" placeholder="Catatan transaksi (opsional)..."></textarea>
+                  <button class="btn btn-action primary w-100 py-2 fs-6" @click="openCheckoutModal">
+                    Bayar Sekarang
+                  </button>
+                </div>
+              </div>
+
             </div>
           </ion-col>
 
           <!-- Left side: Products catalog -->
           <ion-col size="12" size-lg="8">
-            <div class="mobile-card container-padded mb-3">
+            
+        <!-- Filters & Search -->
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between mb-3">
+          <!-- Search input -->
+          <div class="w-100 px-3 py-1 search-container">
+            <div class="search-input-wrap position-relative">
               <input 
                 type="text" 
                 v-model="searchQuery" 
-                class="form-control app-control mb-3" 
+                class="form-control form-control-sm app-control" 
+                style="padding-left: 30px;" 
                 placeholder="Cari produk..." 
               />
-
-              <!-- Category filter chips -->
-              <div class="filter-chips--mobile">
-                <button 
-                  type="button" 
-                  class="btn btn-action btn-sm me-1"
-                  :class="selectedCategory === 'all' ? 'primary' : 'light'"
-                  @click="selectedCategory = 'all'"
-                >
-                  Semua
-                </button>
-                <button 
-                  v-for="cat in categories" 
-                  :key="cat.id"
-                  type="button" 
-                  class="btn btn-action btn-sm me-1"
-                  :class="selectedCategory === cat.id ? 'primary' : 'light'"
-                  @click="selectedCategory = cat.id"
-                >
-                  {{ cat.name }}
-                </button>
-              </div>
+              <ion-icon 
+                :icon="searchOutline" 
+                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;" 
+              />
             </div>
+          </div>
+
+          <!-- Category filter chips -->
+          <div class="mx-3 my-2 d-flex gap-2 overflow-x-auto" style="scrollbar-width: none;">
+            <button
+              class="btn btn-action btn-md" 
+              :class="selectedCategory === 'all' ? 'pill-badge primary' : 'pill-badge secondary'" 
+              @click="selectedCategory = 'all'"
+              style="white-space: nowrap;"
+            >
+              Semua
+            </button>
+            <button
+              v-for="cat in categories" 
+              :key="cat.id"
+              class="btn btn-action btn-md" 
+              :class="selectedCategory === cat.id ? 'pill-badge primary' : 'pill-badge secondary'" 
+              @click="selectedCategory = cat.id"
+              style="white-space: nowrap;"
+            >
+              {{ cat.name }}
+            </button>
+          </div>
+        </div>
 
             <!-- Products Grid -->
             <div v-if="filteredProducts.length === 0" class="empty-state text-center py-5 mobile-card container-padded">
@@ -149,157 +157,186 @@
               <p class="text-muted">Tidak ada produk tersedia.</p>
             </div>
 
-            <div v-else class="project-actions d-grid gap-2 m-2 mb-0">
-              <div v-for="product in filteredProducts" :key="product.id" class="mb-2">
+            <div v-else class="row mx-1">
+              <div 
+                v-for="product in filteredProducts" 
+                :key="product.id" 
+                class="col-12 col-md-6 mb-2 px-1"
+              >
                 <div 
-                  class="mobile-card h-100 p-2 d-flex flex-column justify-content-between cursor-pointer pos-product-card"
+                  class="mobile-card p-2 h-100 cursor-pointer clickable-card"
                   :class="{ 'opacity-50': product.stock === 0 }"
                   @click="product.stock > 0 && addToCart(product)"
                 >
-                  <div>
-                    <div class="text-center rounded-3 bg-light overflow-hidden mb-2 position-relative" style="height: 100px; display: grid; place-items: center;">
-                      <img :src="product.imageURL" :alt="product.name" style="max-width: 100%; max-height: 100%; object-fit: cover;" />
-                      <span v-if="product.stock === 0" class="badge bg-danger position-absolute top-0 end-0 m-1">Habis</span>
-                      <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark position-absolute top-0 end-0 m-1">Sisa {{ product.stock }}</span>
+                  <div class="d-flex align-items-center justify-content-between h-100">
+                    <div class="d-flex align-items-center gap-3" style="max-width: 65%;">
+                      <div class="rounded-3 bg-light overflow-hidden flex-shrink-0" style="width: 50px; height: 50px; display: grid; place-items: center;">
+                        <img v-if="product.imageURL" :src="product.imageURL" :alt="product.name" style="width: 100%; height: 100%; object-fit: cover;" />
+                        <ion-icon v-else :icon="basketOutline" style="font-size: 1.5rem; color: #adb5bd;" />
+                      </div>
+                      <div class="text-truncate">
+                        <h6 class="fw-bold text-dark mb-1 text-truncate medium">{{ product.name }}</h6>
+                        <span class="badge bg-secondary mb-0 small">{{ getCategoryName(product.categoryId) }}</span>
+                      </div>
                     </div>
-                    <div class="px-1 text-start">
-                      <h6 class="fw-bold text-dark mb-1 text-truncate" :title="product.name">{{ product.name }}</h6>
-                      <span class="text-muted small d-block mb-1">{{ getCategoryName(product.categoryId) }}</span>
+
+                    <div class="text-end">
+                      <span class="text-indigo fw-bold d-block mb-1" style="font-size: 0.85rem;">{{ formatPrice(product.price) }}</span>
+                      <span v-if="product.stock === 0" class="badge bg-danger fs-6 px-2 py-1">Habis</span>
+                      <span v-else-if="product.stock <= 5" class="badge bg-warning text-dark fs-6 px-2 py-1">Sisa {{ product.stock }}</span>
+                      <span v-else class="badge bg-success medium px-2 py-1">Stok: {{ product.stock }}</span>
                     </div>
-                  </div>
-                  <div class="px-1 d-flex justify-content-between align-items-center mt-auto">
-                    <span class="text-indigo fw-bold" style="font-size: 0.85rem;">{{ formatPrice(product.price) }}</span>
-                    <button class="btn btn-action success btn-sm p-1 d-flex align-items-center" :disabled="product.stock === 0">
-                      <ion-icon :icon="addOutline" style="font-size: 1rem;" />
-                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </ion-col>
-
         </div>
       </div>
 
       <!-- TAB 2: MONITORING / DASHBOARD -->
-      <div v-if="activeTab === 'dashboard'" class="ion-padding">
+      <div v-show="activeTab === 'dashboard'" class="ion-padding">
         <!-- Dashboard Metrics KPI Card -->
-        <div class="row g-2 mb-4">
-          <div class="col-6 col-md-3">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Penjualan Hari Ini</small>
-              <div class="fs-4 fw-black text-indigo mt-1">{{ formatPrice(kpiMetrics.salesToday) }}</div>
-              <small class="text-muted small mt-1 d-block">{{ kpiMetrics.countToday }} Transaksi</small>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Pendapatan Bulan Ini</small>
-              <div class="fs-4 fw-black text-teal mt-1">{{ formatPrice(kpiMetrics.salesMonth) }}</div>
-              <small class="text-muted small mt-1 d-block">{{ kpiMetrics.countMonth }} Transaksi</small>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Transaksi Total</small>
-              <div class="fs-4 fw-black text-amber mt-1">{{ salesHistory.length }}</div>
-              <small class="text-muted small mt-1 d-block">Seluruh transaksi</small>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Rata-rata Keranjang</small>
-              <div class="fs-4 fw-black text-primary mt-1">{{ formatPrice(kpiMetrics.avgBasket) }}</div>
-              <small class="text-muted small mt-1 d-block">Per transaksi</small>
-            </div>
-          </div>
-        </div>
+        <ion-grid class="mx-2">
+          <ion-row>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Penjualan Hari Ini</small>
+                  <div class="fs-6 fw-black text-indigo mt-1">{{ formatPrice(kpiMetrics.salesToday) }}</div>
+                  <small class="text-muted small mt-1 d-block">{{ kpiMetrics.countToday }} Transaksi</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Pendapatan Bulan Ini</small>
+                  <div class="fs-6 fw-black text-teal mt-1">{{ formatPrice(kpiMetrics.salesMonth) }}</div>
+                  <small class="text-muted small mt-1 d-block">{{ kpiMetrics.countMonth }} Transaksi</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Transaksi Total</small>
+                  <div class="fs-6 fw-black text-amber mt-1">{{ salesHistory.length }}</div>
+                  <small class="text-muted small mt-1 d-block">Seluruh transaksi</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Rata-rata Keranjang</small>
+                  <div class="fs-6 fw-black text-primary mt-1">{{ formatPrice(kpiMetrics.avgBasket) }}</div>
+                  <small class="text-muted small mt-1 d-block">Per transaksi</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
 
-        <!-- Sales Trend Chart -->
-        <div class="mobile-card p-3 mb-4">
-          <h6 class="fw-bold text-dark mb-3">Grafik Penjualan 7 Hari Terakhir</h6>
-          <div v-if="chartSeries[0].data.length > 0">
-            <VueApexCharts type="area" height="260" :options="chartOptions" :series="chartSeries" />
-          </div>
-          <div v-else class="text-center py-4 text-muted">
-            Belum ada data penjualan 7 hari terakhir.
-          </div>
-        </div>
+        <ion-grid class="mx-2">
+          <ion-row>
+            <!-- Sales Trend Chart -->
+            <ion-col size="12" size-lg="6">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="container-padded">
+                  <h6 class="fw-bold text-dark mb-3">Grafik Penjualan 7 Hari Terakhir</h6>
+                  <div v-if="chartSeries[0].data.length > 0">
+                    <VueApexCharts :key="'sales-chart-' + salesHistory.length" type="area" height="260" :options="chartOptions" :series="chartSeries" />
+                  </div>
+                  <div v-else class="text-center py-4 text-muted">
+                    Belum ada data penjualan 7 hari terakhir.
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
 
-        <!-- Top Selling Products -->
-        <div class="mobile-card p-3 mb-4">
-          <h6 class="fw-bold text-dark mb-3">Produk Terlaris</h6>
-          <div v-if="topProducts.length === 0" class="text-center py-3 text-muted">
-            Belum ada data produk terjual.
-          </div>
-          <div v-else class="list-group list-group-flush">
-            <div v-for="(p, index) in topProducts" :key="index" class="list-group-item d-flex justify-content-between align-items-center py-2 px-1">
-              <div>
-                <span class="fw-black text-indigo me-2">#{{ index + 1 }}</span>
-                <span class="text-dark fw-bold">{{ p.name }}</span>
-              </div>
-              <div class="text-end">
-                <span class="badge bg-success me-2">{{ p.qtySold }} terjual</span>
-                <span class="fw-semibold text-muted">{{ formatPrice(p.revenue) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+            <!-- Top Selling Products -->
+            <ion-col size="12" size-lg="6">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="container-padded">
+                  <h6 class="fw-bold text-dark mb-3">Produk Terlaris</h6>
+                  <div v-if="topProducts.length === 0" class="text-center py-3 text-muted">
+                    Belum ada data produk terjual.
+                  </div>
+                  <div v-else class="list-group list-group-flush">
+                    <div v-for="(p, index) in topProducts" :key="index" class="list-group-item d-flex justify-content-between align-items-center py-2 px-1">
+                      <div>
+                        <span class="fw-black text-indigo me-2 medium">#{{ index + 1 }}</span>
+                        <span class="text-dark fw-bold medium">{{ p.name }}</span>
+                      </div>
+                      <div class="text-end">
+                        <span class="pill-badge done small border me-2">{{ p.qtySold }} terjual</span>
+                        <span class="fw-semibold text-muted medium">{{ formatPrice(p.revenue) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
       </div>
 
       <!-- TAB 3: RIWAYAT TRANSAKSI -->
       <div v-if="activeTab === 'riwayat'" class="ion-padding">
         <!-- Actions & Export -->
-        <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+        <div class="d-flex justify-content-between align-items-center mx-4 mb-3">
           <h6 class="fw-bold text-dark mb-0">Daftar Transaksi</h6>
           <button class="btn btn-action success btn-sm" @click="exportExcel">
             <ion-icon :icon="downloadOutline" class="me-1" /> Export Excel
           </button>
         </div>
 
-        <div v-if="salesHistory.length === 0" class="text-center py-5 text-muted mobile-card">
+        <div v-if="salesHistory.length === 0" class="d-flex justify-content-between align-items-center mx-3 mb-3">
           <ion-icon :icon="calendarOutline" style="font-size: 3rem;" class="mb-2" />
           <p>Belum ada riwayat transaksi penjualan.</p>
         </div>
 
         <!-- Transaction Cards -->
-        <div v-else>
+        <div v-else class="row mx-2 mb-2">
           <div 
             v-for="sale in salesHistory" 
             :key="sale.id" 
-            class="mobile-card p-3 mb-3 border-start border-4 border-teal"
+            class="col-12 col-sm-6 col-lg-4 g-0 m-0 mb-3"
           >
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <div>
-                <span class="badge bg-indigo mb-1 me-1">INV-{{ sale.id }}</span>
-                <span class="badge bg-secondary mb-1">{{ formatPaymentMethod(sale.paymentMethod) }}</span>
-                <h6 class="fw-bold text-dark mb-0">{{ formatDateTime(sale.createdAt) }}</h6>
+            <div class="mobile-card container-padded h-100 border-start border-4 border-teal mx-2">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <span class="badge bg-indigo mb-1 me-1">INV-{{ sale.id }}</span>
+                  <span class="badge bg-secondary mb-1">{{ formatPaymentMethod(sale.paymentMethod) }}</span>
+                  <h6 class="fw-bold text-dark mb-0">{{ formatDateTime(sale.createdAt) }}</h6>
+                </div>
+                <div class="d-flex gap-1">
+                  <button class="btn btn-light btn-sm text-primary" @click="openReceipt(sale)" title="Lihat Struk">
+                    <ion-icon :icon="documentTextOutline" /> Detail
+                  </button>
+                  <button class="btn btn-light btn-sm text-danger" @click="confirmDeleteSale(sale.id)" title="Hapus">
+                    <ion-icon :icon="trashOutline" />
+                  </button>
+                </div>
               </div>
-              <div class="d-flex gap-1">
-                <button class="btn btn-light btn-sm text-primary" @click="openReceipt(sale)" title="Lihat Struk">
-                  <ion-icon :icon="documentTextOutline" /> Detail
-                </button>
-                <button class="btn btn-light btn-sm text-danger" @click="confirmDeleteSale(sale.id)" title="Hapus">
-                  <ion-icon :icon="trashOutline" />
-                </button>
+
+              <div class="mt-2 text-muted small">
+                <strong>Item:</strong>
+                <div v-for="(item, idx) in sale.items" :key="idx" class="d-flex justify-content-between">
+                  <span>{{ item.name }} x{{ item.quantity }}</span>
+                  <span>{{ formatPrice(item.price * item.quantity) }}</span>
+                </div>
               </div>
-            </div>
 
-            <div class="mt-2 text-muted small">
-              <strong>Item:</strong>
-              <div v-for="(item, idx) in sale.items" :key="idx" class="d-flex justify-content-between">
-                <span>{{ item.name }} x{{ item.quantity }}</span>
-                <span>{{ formatPrice(item.price * item.quantity) }}</span>
+              <div class="d-flex justify-content-between fw-bold text-dark border-top pt-2 mt-2" style="font-size: 0.95rem;">
+                <span>Total Akhir:</span>
+                <span class="text-indigo">{{ formatPrice(sale.totalAmount) }}</span>
               </div>
-            </div>
 
-            <div class="d-flex justify-content-between fw-bold text-dark border-top pt-2 mt-2" style="font-size: 0.95rem;">
-              <span>Total Akhir:</span>
-              <span class="text-indigo">{{ formatPrice(sale.totalAmount) }}</span>
-            </div>
-
-            <div v-if="sale.notes" class="mt-2 p-2 bg-light rounded text-muted" style="font-size: 0.8rem; font-style: italic;">
-              "{{ sale.notes }}"
+              <div v-if="sale.notes" class="mt-2 p-2 bg-light rounded text-muted" style="font-size: 0.8rem; font-style: italic;">
+                "{{ sale.notes }}"
+              </div>
             </div>
           </div>
         </div>
@@ -351,7 +388,7 @@
           <div v-if="paymentMethod === 'cash'">
             <div class="form-section px-0 mb-3">
               <label class="form-label">Uang Diterima (Tunai)</label>
-              <input type="number" class="form-control app-control fs-4 fw-bold text-dark" v-model.number="amountPaid" />
+              <NumberInput v-model="amountPaid" input-class="form-control app-control fs-6 fw-bold text-dark" />
             </div>
 
             <!-- Quick Cash Buttons -->
@@ -366,7 +403,7 @@
             <!-- Change display -->
             <div class="d-flex justify-content-between align-items-center p-3 rounded" :class="changeAmount >= 0 ? 'bg-success-light' : 'bg-danger-light'">
               <span class="fw-semibold text-dark">Kembalian:</span>
-              <span class="fs-4 fw-black" :class="changeAmount >= 0 ? 'text-success' : 'text-danger'">
+              <span class="fs-6 fw-black" :class="changeAmount >= 0 ? 'text-success' : 'text-danger'">
                 {{ changeAmount >= 0 ? formatPrice(changeAmount) : 'Kurang ' + formatPrice(Math.abs(changeAmount)) }}
               </span>
             </div>
@@ -576,8 +613,9 @@
 <script>
 import { ref, onMounted, computed, defineAsyncComponent } from 'vue'
 import { ProductRepository, CategoryRepository, salesRepo, stockMutationsRepo } from '../../db/repositories'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonAlert, toastController } from '@ionic/vue';
-import { addOutline, removeOutline, trashOutline, cartOutline, basketOutline, printOutline, downloadOutline, calendarOutline, documentTextOutline } from 'ionicons/icons';
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonAlert, toastController, IonGrid, IonRow, IonCol, IonCard, IonCardContent } from '@ionic/vue';
+import { addOutline, removeOutline, trashOutline, cartOutline, basketOutline, printOutline, downloadOutline, calendarOutline, documentTextOutline, searchOutline as searchIcon } from 'ionicons/icons';
+import { readProductImage } from '../../composables/useProductImage';
 import * as XLSX from 'xlsx';
 
 const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
@@ -586,7 +624,8 @@ export default {
   name: 'CashierView',
   components: { 
     IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, 
-    IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonAlert, VueApexCharts 
+    IonSegment, IonSegmentButton, IonLabel, IonButtons, IonBackButton, IonModal, IonAlert, VueApexCharts,
+    IonGrid, IonRow, IonCol, IonCard, IonCardContent
   },
   setup() {
     const activeTab = ref('pos')
@@ -597,6 +636,8 @@ export default {
     // POS/Cart states
     const searchQuery = ref('')
     const selectedCategory = ref('all')
+    // expose icon for template
+    const searchOutline = searchIcon;
     const cart = ref([])
     const discount = ref(0)
     const notes = ref('')
@@ -621,13 +662,13 @@ export default {
     const loadData = async () => {
       categories.value = await CategoryRepository.getAll()
       const data = await ProductRepository.getAll()
-      data.forEach(p => {
+      await Promise.all(data.map(async (p) => {
         if (p.image) {
-          p.imageURL = typeof p.image === 'string' ? p.image : URL.createObjectURL(p.image)
+          p.imageURL = await readProductImage(p.image)
         } else {
-          p.imageURL = 'https://via.placeholder.com/200x150?text=No+Image'
+          p.imageURL = null
         }
-      })
+      }))
       products.value = data
       salesHistory.value = (await salesRepo.getAll()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     }
@@ -893,10 +934,10 @@ export default {
         d.setDate(today.getDate() - i)
         const dateStr = d.toISOString().split('T')[0]
         
-        const daySales = salesHistory.value.filter(s => s.createdAt.startsWith(dateStr))
-        const dayTotal = daySales.reduce((sum, s) => sum + s.totalAmount, 0)
+        const daySales = salesHistory.value.filter(s => s.createdAt && s.createdAt.startsWith(dateStr))
+        const dayTotal = daySales.reduce((sum, s) => sum + (s.totalAmount || 0), 0)
         
-        seriesData.push(dayTotal)
+        seriesData.push(Number.isFinite(dayTotal) ? dayTotal : 0)
       }
 
       return [{
@@ -919,7 +960,8 @@ export default {
         chart: {
           id: 'sales-trend',
           toolbar: { show: false },
-          sparkline: { enabled: false }
+          sparkline: { enabled: false },
+          zoom: { enabled: false }
         },
         dataLabels: { enabled: false },
         stroke: { curve: 'smooth', width: 3, colors: ['#6366f1'] },
@@ -934,12 +976,12 @@ export default {
         },
         xaxis: {
           categories: categoriesData,
-          labels: { style: { colors: '#64748b', fontWeight: 600 } }
+          labels: { style: { colors: ['#64748b'], fontWeight: 600 } }
         },
         yaxis: {
           labels: {
             formatter: (val) => new Intl.NumberFormat('id-ID', { notation: 'compact', compactDisplay: 'short' }).format(val),
-            style: { colors: '#64748b', fontWeight: 600 }
+            style: { colors: ['#64748b'], fontWeight: 600 }
           }
         },
         tooltip: {
@@ -1045,7 +1087,8 @@ export default {
       printOutline,
       downloadOutline,
       calendarOutline,
-      documentTextOutline
+      documentTextOutline,
+      searchOutline
     }
   }
 }

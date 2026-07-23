@@ -23,6 +23,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    // Rename output APK: [nama-proyek]-[versi]-apprealis.apk
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def appName = "hk-umkm"
+            def versionName = variant.versionName
+            def buildType = variant.buildType.name
+            outputFileName = "${appName}-${versionName}-${buildType}.apk"
+        }
+    }
 }
 
 

@@ -71,12 +71,14 @@ const createRepo = (tableName) => ({
     },
 });
 
-export const capitalCostsRepo = createRepo('capitalCosts');
+export const savingsRepo = createRepo('savings');
 export const debtsRepo = createRepo('debts');
 export const incomesRepo = createRepo('incomes');
 export const expensesRepo = createRepo('expenses');
 export const dailyLedgerRepo = createRepo('dailyLedger');
 export const salesRepo = createRepo('sales');
 export const stockMutationsRepo = createRepo('stockMutations');
+export const savingAccountsRepo = createRepo('saving_accounts');
+export const savingTransactionsRepo = createRepo('saving_transactions');
 
 

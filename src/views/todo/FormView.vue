@@ -1,15 +1,18 @@
 <template>
-  <form class="form-container" @submit.prevent="emitSave">
+  <form ref="formRef" class="form-container" @submit.prevent="emitSave">
     <section class="form-section">
-      <label class="form-label fw-semibold">Task Title / Work Description <span class="text-danger">*</span></label>
-      <input
-        v-model="localForm.title"
-        type="text"
-        class="form-control app-control"
-        placeholder="Deskripsi pekerjaan..."
-        required
-      />
-      <div class="row g-3">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Task Title / Work Description <span class="text-danger">*</span></label>
+        <input
+          v-model="localForm.title"
+          type="text"
+          class="form-control app-control"
+          placeholder="Deskripsi pekerjaan..."
+          required
+        />
+      </div>
+
+      <div class="row g-3 mb-3">
         <div class="col-md-6">
           <label class="form-label fw-semibold">Assignee</label>
           <select v-model="localForm.assignee_id" class="form-select app-control">
@@ -30,15 +33,12 @@
         </div>
       </div>
 
-      <div class="row g-3">
+      <div class="row g-3 mb-3">
         <div class="col-4">
           <label class="form-label fw-semibold">Points</label>
-          <input
-            v-model.number="localForm.story_points"
-            type="number"
-            min="1"
-            max="100"
-            class="form-control app-control"
+          <NumberInput
+            v-model="localForm.story_points"
+            placeholder="Points..."
             required
           />
         </div>
@@ -60,7 +60,8 @@
           </select>
         </div>
       </div>
-      <div class="row g-3">
+
+      <div class="row g-3 mb-3">
         <div class="col-md-6">
           <label class="form-label fw-semibold">Due Date</label>
           <input v-model="localForm.due_date" type="date" class="form-control app-control" />
@@ -75,15 +76,12 @@
           />
         </div>
       </div>
-      <label class="form-label fw-semibold">Description</label>
-      <textarea v-model="localForm.description" class="form-control app-control form-control-textarea" placeholder="Tulis detail tugas..."></textarea>
 
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Description</label>
+        <textarea v-model="localForm.description" class="form-control app-control form-control-textarea" placeholder="Tulis detail tugas..."></textarea>
+      </div>
     </section>
-
-    <div class="form-actions">
-      <button type="button" class="btn btn-action light" @click="$emit('cancel')">Cancel</button>
-      <button type="submit" class="btn btn-action primary">Save Changes</button>
-    </div>
   </form>
 </template>
 
@@ -96,6 +94,7 @@ const emit = defineEmits(['save', 'cancel'])
 
 const localForm = ref({ ...props.task })
 const users = ref<any[]>([])
+const formRef = ref<HTMLFormElement | null>(null)
 
 watch(() => props.task, (newVal) => {
   localForm.value = { ...newVal }
@@ -109,6 +108,14 @@ const emitSave = () => {
   const plainData = JSON.parse(JSON.stringify(localForm.value))
   emit('save', plainData)
 }
+
+const submit = () => {
+  if (formRef.value && formRef.value.reportValidity()) {
+    emitSave()
+  }
+}
+
+defineExpose({ submit })
 
 onMounted(fetchUsers)
 </script>

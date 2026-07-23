@@ -241,6 +241,10 @@ ion-card {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
 }
 
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}
+
 ion-header {
   box-shadow: none !important; 
 }
@@ -363,7 +367,6 @@ ion-header {
 
 .chip-btn {
   flex: 0 0 auto;
-  min-height: 36px;
   font-weight: 700;
 }
 
@@ -405,6 +408,7 @@ ion-header {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 28px;
   padding: 5px 10px;
   border-radius: 999px;
   font-size: .75rem;
@@ -417,6 +421,16 @@ ion-header {
 .pill-badge.highest, .pill-badge.high { background: #fee2e2; color: #991b1b; }
 .pill-badge.medium { background: #fef3c7; color: #92400e; }
 .pill-badge.low { background: #dbeafe; color: #1d4ed8; }
+.pill-badge.info { background: #e0f2fe; color: #0369a1; }
+.pill-badge.dark { background: #1f2937; color: #f9fafb; }
+.pill-badge.pink { background: #fce7f3; color: #be185d; }
+.pill-badge.purple { background: #f3e8ff; color: #6b21a8; }
+.pill-badge.teal { background: #ccfbf1; color: #0f766e; }
+.pill-badge.success { background: #dcfce7; color: #166534; }
+.pill-badge.primary { background: #dbeafe; color: #1e40af; }
+.pill-badge.warning { background: #fef3c7; color: #92400e; }
+.pill-badge.danger { background: #fee2e2; color: #991b1b; }
+.pill-badge.secondary { background: #fff; color: #475569; }
 
 .empty-state,
 .loading-state {
@@ -798,6 +812,23 @@ ion-footer {
   line-height: 1;
 }
 
+.small {
+  font-size: 0.65rem !important;
+}
+
+.x-small {
+  font-size: 0.55rem !important;
+}
+
+.medium {
+  font-size: 0.85rem !important;
+}
+
+.large {
+  font-size: 1rem !important;
+}
+
+
 @media (min-width: 768px) {
   .project-actions {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1103,7 +1134,15 @@ ion-footer {
   overflow: hidden;
   border-radius: 22px !important;
   background: rgba(255,255,255,.94);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, .08) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, .04) !important;
+  backdrop-filter: blur(12px);
+}
+
+.mobile-card-sm {
+  overflow: hidden;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, .04) !important;
   backdrop-filter: blur(12px);
 }
 
@@ -1170,4 +1209,17 @@ ion-footer {
 .container-padded {
   padding: 1rem;
   margin: 0 1rem;
+}
+.search-container { width: 100%; } @media (min-width: 992px) { .search-container { max-width: 400px; } }
+
+.clickable-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.clickable-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10) !important;
+}
+.clickable-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
 }

@@ -14,9 +14,7 @@
           <p class="app-hero-subtitle" style="margin: 0;">Catat waktu hadir dan pulang, serta pantau status presensi harian.</p>
         </div>
       </ion-toolbar>
-    </ion-header> 
 
-    <ion-content class="app-content-wrap">
       <!-- Tabs Segment -->
       <div class="p-3">
         <ion-segment v-model="activeTab" class="custom-segment">
@@ -31,205 +29,173 @@
           </ion-segment-button>
         </ion-segment>
       </div>
+    </ion-header> 
 
+    <ion-content class="app-content-wrap">
       <!-- TAB 1: PRESENSI (Clock In/Out) -->
-      <div v-if="activeTab === 'presensi'" class="ion-padding">
-        <!-- Live Clock Card -->
-        <div class="mobile-card container-padded text-center py-4 mb-4">
-          <div class="current-time">{{ currentTimeStr }}</div>
-          <div class="current-date">{{ currentDateStr }}</div>
-          <div class="status-indicator mt-2" :class="activeLog ? 'active' : 'inactive'">
-            <span class="dot"></span>
-            {{ activeLog ? `Sedang Kerja (${activeLog.type})` : 'Belum Mulai Kerja' }}
-          </div>
-        </div>
-
-        <!-- Big Toggle Button -->
-        <div class="d-flex justify-content-center my-4">
-          <button 
-            class="ceklok-btn" 
-            :class="activeLog ? 'stop' : 'start'"
-            @click="handleClockToggle"
-          >
-            <ion-icon :icon="activeLog ? stopOutline : playOutline" class="ceklok-btn-icon" />
-            <span class="ceklok-btn-text">{{ activeLog ? 'Selesai Kerja' : 'Mulai Kerja' }}</span>
-          </button>
-        </div>
-
-        <!-- Duration Counter -->
-        <div v-if="activeLog" class="duration-counter mobile-card container-padded mb-3">
-          <div class="row align-items-center text-center">
-            <div class="col-6 border-end">
-              <small class="text-muted d-block">Durasi Kerja</small>
-              <span class="fw-bold fs-5 text-indigo">{{ liveDurationStr }}</span>
-            </div>
-            <div class="col-6">
-              <small class="text-muted d-block">Waktu Masuk</small>
-              <span class="fw-bold fs-5 text-teal">{{ formatTime(activeLog.clockIn) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Working Details Form -->
-        <div class="mobile-card container-padded mb-3">
-          <h5 class="fw-bold mb-3 text-dark">Detail Pekerjaan</h5>
-          
-          <div class="form-section mb-3">
-            <label class="form-label">Tipe Presensi</label>
-            <div class="d-flex gap-2">
-              <button 
-                type="button" 
-                class="btn flex-fill btn-outline-teal"
-                :class="{ 'active': localType === 'WFO' }"
-                @click="localType = 'WFO'"
-                :disabled="!!activeLog"
-              >WFO</button>
-              <button 
-                type="button" 
-                class="btn flex-fill btn-outline-teal"
-                :class="{ 'active': localType === 'WFH' }"
-                @click="localType = 'WFH'"
-                :disabled="!!activeLog"
-              >WFH</button>
-              <button 
-                type="button" 
-                class="btn flex-fill btn-outline-teal"
-                :class="{ 'active': localType === 'Dinas' }"
-                @click="localType = 'Dinas'"
-                :disabled="!!activeLog"
-              >Dinas</button>
+      <div v-show="activeTab === 'presensi'" class="ion-padding">
+        <div class="row">
+          <!-- Column 1: Live Status -->
+          <div class="col-12 col-md-4 mb-3">
+            <div class="mobile-card container-padded text-center py-4 h-100">
+              <div class="current-time">{{ currentTimeStr }}</div>
+              <div class="current-date">{{ currentDateStr }}</div>
+              <div class="status-indicator mt-2" :class="activeLog ? 'active' : 'inactive'">
+                <span class="dot"></span>
+                {{ activeLog ? `Sedang Kerja (${activeLog.type})` : 'Belum Mulai Kerja' }}
+              </div>
             </div>
           </div>
 
-          <div class="form-section mb-3">
-            <label class="form-label">Catatan Aktivitas / Progress</label>
-            <textarea 
-              v-model="localNotes" 
-              class="form-control app-control" 
-              rows="3" 
-              placeholder="Tulis apa yang sedang dikerjakan hari ini..."
-              @change="saveActiveNotes"
-            ></textarea>
-          </div>
-
-          <!-- Break Controls -->
-          <div v-if="activeLog" class="form-section mt-4 pt-3 border-top">
-            <label class="form-label d-flex justify-content-between align-items-center">
-              <span>Waktu Istirahat</span>
-              <ion-badge color="warning" v-if="activeBreak">{{ activeBreak.name }}</ion-badge>
-            </label>
-
-            <div class="d-flex gap-2">
+          <!-- Column 2: Actions & Durations -->
+          <div class="col-12 col-md-4 mb-3">
+            <div class="container-padded text-center py-2 h-100 d-flex flex-column justify-content-center">
               <button 
-                v-if="!activeBreak"
-                type="button" 
-                class="btn btn-action warning w-100" 
-                @click="startBreak"
+                class="ceklok-btn mx-auto" 
+                :class="activeLog ? 'stop' : 'start'"
+                @click="handleClockToggle"
               >
-                <ion-icon :icon="cafeOutline" class="me-2" /> Mulai Istirahat
+                <ion-icon :icon="activeLog ? stopOutline : playOutline" class="ceklok-btn-icon" />
+                <span class="ceklok-btn-text">{{ activeLog ? 'Selesai Kerja' : 'Mulai Kerja' }}</span>
               </button>
-              <button 
-                v-else
-                type="button" 
-                class="btn btn-action danger w-100" 
-                @click="endBreak"
-              >
-                <ion-icon :icon="stopOutline" class="me-2" /> Selesai Istirahat
-              </button>
-            </div>
-
-            <!-- List of Breaks in this shift -->
-            <div v-if="activeLog.breaks && activeLog.breaks.length > 0" class="mt-3">
-              <small class="text-muted d-block mb-1">Daftar Istirahat Hari Ini:</small>
-              <ul class="list-group list-group-flush rounded-3 border">
-                <li 
-                  v-for="(brk, index) in activeLog.breaks" 
-                  :key="index"
-                  class="list-group-item d-flex justify-content-between align-items-center py-2"
-                >
-                  <div>
-                    <span class="fw-semibold text-dark">{{ brk.name }}</span>
-                    <span class="text-muted small ms-2">({{ formatTime(brk.start) }} - {{ brk.end ? formatTime(brk.end) : '...' }})</span>
+              
+              <div v-if="activeLog" class="duration-counter mt-4">
+                <div class="row align-items-center text-center">
+                  <div class="col-6 border-end">
+                    <small class="text-muted d-block">Durasi</small>
+                    <span class="fw-bold fs-5 text-indigo">{{ liveDurationStr }}</span>
                   </div>
-                  <span class="badge bg-secondary rounded-pill">{{ brk.durationMinutes }} menit</span>
-                </li>
-              </ul>
+                  <div class="col-6">
+                    <small class="text-muted d-block">Masuk</small>
+                    <span class="fw-bold fs-5 text-teal">{{ formatTime(activeLog.clockIn) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Details & Breaks -->
+          <div class="col-12 col-md-4 mb-3">
+            <div class="mobile-card container-padded h-100">
+              <h5 class="fw-bold mb-3 text-dark">Detail Pekerjaan</h5>
+              
+              <div class="form-section mb-3">
+                <label class="form-label">Tipe Presensi</label>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn flex-fill btn-outline-teal" :class="{ 'active': localType === 'WFO' }" @click="localType = 'WFO'" :disabled="!!activeLog">WFO</button>
+                  <button type="button" class="btn flex-fill btn-outline-teal" :class="{ 'active': localType === 'WFH' }" @click="localType = 'WFH'" :disabled="!!activeLog">WFH</button>
+                  <button type="button" class="btn flex-fill btn-outline-teal" :class="{ 'active': localType === 'Dinas' }" @click="localType = 'Dinas'" :disabled="!!activeLog">Dinas</button>
+                </div>
+              </div>
+
+              <div class="form-section mb-3">
+                <label class="form-label">Catatan</label>
+                <textarea v-model="localNotes" class="form-control app-control" rows="2" placeholder="Tulis aktivitas..." @change="saveActiveNotes"></textarea>
+              </div>
+
+              <div v-if="activeLog" class="form-section mt-4 pt-3 border-top">
+                <label class="form-label d-flex justify-content-between align-items-center">
+                  <span>Waktu Istirahat</span>
+                  <ion-badge color="warning" v-if="activeBreak">{{ activeBreak.name }}</ion-badge>
+                </label>
+                <button type="button" class="btn btn-action w-100" :class="activeBreak ? 'danger' : 'warning'" @click="activeBreak ? endBreak() : startBreak()">
+                  <ion-icon :icon="activeBreak ? stopOutline : cafeOutline" class="me-2" /> {{ activeBreak ? 'Selesai Istirahat' : 'Mulai Istirahat' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- TAB 2: DASHBOARD (Stats & Charts) -->
-      <div v-if="activeTab === 'dashboard'" class="ion-padding">
+      <div v-show="activeTab === 'dashboard'" class="ion-padding">
         <!-- KPI Row -->
-        <div class="project-actions d-grid gap-2 m-2">
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Jam Kerja (Minggu Ini)</small>
-              <div class="fs-3 fw-black text-indigo mt-1">{{ Math.floor(totalWeekHours) }}.{{ String(Math.round((totalWeekHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
-              <div class="progress mt-2" style="height: 6px;">
-                <div class="progress-bar bg-indigo" role="progressbar" :style="{ width: Math.min(100, (totalWeekHours / 40) * 100) + '%' }"></div>
-              </div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Target: 40 Jam</small>
-            </div>
-          </div>
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Jam Kerja (Bulan Ini)</small>
-              <div class="fs-3 fw-black text-teal mt-1">{{ Math.floor(totalMonthHours) }}.{{ String(Math.round((totalMonthHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
-              <div class="progress mt-2" style="height: 6px;">
-                <div class="progress-bar bg-teal" role="progressbar" :style="{ width: Math.min(100, (totalMonthHours / 160) * 100) + '%' }"></div>
-              </div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Target: 160 Jam</small>
-            </div>
-          </div>
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Hari Kerja</small>
-              <div class="fs-3 fw-black text-amber mt-1">{{ daysWorkedThisMonth }} <span class="fs-6 fw-normal">Hari</span></div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Bulan ini</small>
-            </div>
-          </div>
-          <div class="mb-2">
-            <div class="mobile-card p-3 h-100">
-              <small class="text-muted d-block">Rata-rata Harian</small>
-              <div class="fs-3 fw-black text-primary mt-1">{{ Math.floor(avgDailyHours) }}.{{ String(Math.round((avgDailyHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
-              <small class="text-muted mt-1 d-block small" style="font-size: 0.65rem;">Hari aktif</small>
-            </div>
-          </div>
-        </div>
+        <ion-grid class="mx-2">
+          <ion-row>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Jam Kerja (Minggu Ini)</small>
+                  <div class="fs-4 fw-black text-indigo mt-1">{{ Math.floor(totalWeekHours) }}.{{ String(Math.round((totalWeekHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
+                  <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-indigo" role="progressbar" :style="{ width: Math.min(100, (totalWeekHours / 40) * 100) + '%' }"></div>
+                  </div>
+                  <small class="text-muted mt-1 d-block small">Target: 40 Jam / Minggu</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Jam Kerja (Periode)</small>
+                  <div class="fs-4 fw-black text-teal mt-1">{{ Math.floor(totalMonthHours) }}.{{ String(Math.round((totalMonthHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
+                  <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-teal" role="progressbar" :style="{ width: Math.min(100, (totalMonthHours / 160) * 100) + '%' }"></div>
+                  </div>
+                  <small class="text-muted mt-1 d-block small">Target: 160 Jam / Periode</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Hari Kerja</small>
+                  <div class="fs-4 fw-black text-amber mt-1">{{ daysWorkedThisMonth }} <span class="fs-6 fw-normal">Hari</span></div>
+                  <small class="text-muted mt-1 d-block small">Periode aktif</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6" size-sm="6" size-md="3">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="py-3">
+                  <small class="text-muted d-block text-xs">Rata-rata Harian</small>
+                  <div class="fs-4 fw-black text-primary mt-1">{{ Math.floor(avgDailyHours) }}.{{ String(Math.round((avgDailyHours % 1) * 60)).padStart(2, '0') }} <span class="fs-6 fw-normal">Jam</span></div>
+                  <small class="text-muted mt-1 d-block small">Hari aktif</small>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
 
-        <!-- Weekly Chart -->
-        <div class="mobile-card container-padded mb-3">
-          <h6 class="fw-bold text-dark mb-3">Grafik Harian Minggu Ini</h6>
-          <div v-if="weeklyChartSeries[0].data.length > 0">
-            <VueApexCharts type="bar" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries" />
-          </div>
-          <div v-else class="text-center py-4 text-muted">
-            Belum ada data untuk minggu ini.
-          </div>
-        </div>
+        <ion-grid class="mx-2">
+          <ion-row>
+            <ion-col size="12" size-sm="6" size-lg="6">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="container-padded">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Grafik Harian Minggu Ini</h6>
+                    <span class="badge bg-light text-muted border small">{{ weeklyPeriodRange }}</span>
+                  </div>
+                  <VueApexCharts v-if="weeklyChartSeries.series[0].data.length > 0" :key="'weekly-' + logs.length" type="bar" height="240" :options="weeklyChartOptions" :series="weeklyChartSeries.series" />
+                  <div v-else class="text-center py-4 text-muted">Belum ada data untuk minggu ini.</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
 
-        <!-- Monthly Chart -->
-        <div class="mobile-card container-padded mb-3">
-          <h6 class="fw-bold text-dark mb-3">Grafik Mingguan Bulan Ini</h6>
-          <div v-if="monthlyChartSeries[0].data.length > 0">
-            <VueApexCharts type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
-          </div>
-          <div v-else class="text-center py-4 text-muted">
-            Belum ada data untuk bulan ini.
-          </div>
-        </div>
+            <ion-col size="12" size-sm="6" size-lg="6">
+              <ion-card class="mobile-card m-0 h-100">
+                <ion-card-content class="container-padded">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Grafik Mingguan Bulan Ini</h6>
+                    <span class="badge bg-light text-muted border small">{{ monthlyPeriodRange }}</span>
+                  </div>
+                  <VueApexCharts v-if="monthlyChartSeries[0].data.length > 0" :key="'monthly-' + logs.length" type="area" height="240" :options="monthlyChartOptions" :series="monthlyChartSeries" />
+                  <div v-else class="text-center py-4 text-muted">Belum ada data untuk bulan ini.</div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
       </div>
 
       <!-- TAB 3: RIWAYAT (History List) -->
-      <div v-if="activeTab === 'riwayat'" class="ion-padding">
+      <div v-show="activeTab === 'riwayat'" class="ion-padding">
         <!-- Filter and Export Actions -->
         <div class="d-flex justify-content-between align-items-center mx-3 mb-3">
-          <button class="btn btn-action primary btn-sm" @click="openCorrectionModal">
+          <button class="btn btn-action primary btn-md" @click="openCorrectionModal">
             <ion-icon :icon="addOutline" class="me-1" /> Koreksi Absen
           </button>
-          <button class="btn btn-action success btn-sm" @click="exportExcel">
+          <button class="btn btn-action success btn-md" @click="exportExcel">
             <ion-icon :icon="downloadOutline" class="me-1" /> Export Excel
           </button>
         </div>
@@ -256,10 +222,10 @@
                 <h6 class="fw-bold text-dark mb-1">{{ formatDateStr(log.date) }}</h6>
               </div>
               <div class="d-flex gap-1">
-                <button class="btn btn-light btn-sm text-primary" @click="editLog(log)" title="Edit">
+                <button class="btn btn-light btn-md text-primary" @click="editLog(log)" title="Edit">
                   <ion-icon :icon="createOutline" />
                 </button>
-                <button class="btn btn-light btn-sm text-danger" @click="confirmDelete(log.id)" title="Hapus">
+                <button class="btn btn-light btn-md text-danger" @click="confirmDelete(log.id)" title="Hapus">
                   <ion-icon :icon="trashOutline" />
                 </button>
               </div>
@@ -389,7 +355,7 @@
         <div class="mobile-card p-3 mb-4">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold text-dark mb-0">Preset Jam Istirahat</h6>
-            <button class="btn btn-action primary btn-sm" @click="addNewBreakPreset">
+            <button class="btn btn-action primary btn-md" @click="addNewBreakPreset">
               <ion-icon :icon="addOutline" /> Tambah
             </button>
           </div>
@@ -406,7 +372,7 @@
             >
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <input type="text" v-model="bc.name" class="form-control form-control-sm w-70 fw-bold border-0 p-0" placeholder="Nama Istirahat" />
-                <button class="btn btn-link text-danger btn-sm p-0" @click="removeBreakPreset(index)">
+                <button class="btn btn-link text-danger btn-md p-0" @click="removeBreakPreset(index)">
                   <ion-icon :icon="trashOutline" />
                 </button>
               </div>
@@ -491,7 +457,7 @@
           <div v-for="(b, idx) in correctionForm.breaks" :key="idx" class="border rounded p-2 mb-2 bg-light">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <strong>Break #{{ idx + 1 }}</strong>
-              <button class="btn btn-link text-danger btn-sm p-0" @click="removeCorrectionBreak(idx)">Hapus</button>
+              <button class="btn btn-link text-danger btn-md p-0" @click="removeCorrectionBreak(idx)">Hapus</button>
             </div>
             <div class="row g-2">
               <div class="col-4">
@@ -508,7 +474,7 @@
               </div>
             </div>
           </div>
-          <button class="btn btn-action light btn-sm w-100 mt-2" @click="addCorrectionBreak">
+          <button class="btn btn-action light btn-md w-100 mt-2" @click="addCorrectionBreak">
             + Tambah Istirahat Manual
           </button>
         </div>
@@ -541,7 +507,7 @@ import { onIonViewWillEnter } from '@ionic/vue';
 import { 
   IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonButton,
   IonContent, IonSegment, IonSegmentButton, IonLabel, IonIcon, IonBadge, 
-  IonModal, IonAlert, IonFooter
+  IonModal, IonAlert, IonFooter, IonGrid, IonRow, IonCol, IonCard, IonCardContent
 } from '@ionic/vue';
 import { 
   settingsOutline, playOutline, stopOutline, cafeOutline, calendarOutline, 
@@ -557,7 +523,7 @@ export default {
   components: {
     IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonButton,
     IonContent, IonSegment, IonSegmentButton, IonLabel, IonIcon, IonBadge, 
-    IonModal, IonAlert, VueApexCharts, IonFooter
+    IonModal, IonAlert, VueApexCharts, IonFooter, IonGrid, IonRow, IonCol, IonCard, IonCardContent
   },
   setup() {
     // Nav & States
@@ -955,6 +921,9 @@ export default {
     };
 
     const saveSettings = async () => {
+      if (settings.value.cutoffType === 'monthly') {
+        settings.value.cutoffDay = null;
+      }
       await CeklokRepository.saveSettings(settings.value);
       settingsModalVisible.value = false;
       await loadState();
@@ -1132,8 +1101,49 @@ export default {
     // Stats calculations for Dashboard
     const totalWeekHours = computed(() => {
       const now = new Date();
-      const start = getStartOfWeeklyPeriod(now, settings.value.cutoffDay);
-      const end = new Date(start.getTime() + 7 * 86400000);
+      let cutoffDay = settings.value.cutoffDay;
+      
+      // Sinkronisasi dengan mode bulanan jika cutoffDay null
+      if (cutoffDay === null || cutoffDay === undefined) {
+         let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), settings.value.cutoffDate + 1);
+         if (now.getDate() <= settings.value.cutoffDate) startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
+         cutoffDay = startOfPeriod.getDay();
+      }
+
+      const weekStart = getStartOfWeeklyPeriod(now, cutoffDay);
+      let weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+
+      let finalStart = new Date(weekStart);
+      let finalEnd = new Date(weekEnd);
+
+      if (settings.value.cutoffType === 'monthly') {
+        const { start: periodStart, end: periodEnd } = getMonthlyPeriodDates(now, settings.value);
+        const periodEndLimit = new Date(periodEnd);
+        periodEndLimit.setDate(periodEndLimit.getDate() - 1);
+
+        if (finalStart < periodStart) {
+          finalStart = new Date(periodStart);
+        }
+        if (finalEnd > periodEndLimit) {
+          finalEnd = new Date(periodEndLimit);
+        }
+      }
+
+      finalStart.setHours(0, 0, 0, 0);
+      finalEnd.setHours(23, 59, 59, 999);
+
+      return logs.value
+        .filter(log => {
+          const d = new Date(log.clockIn);
+          return d >= finalStart && d <= finalEnd;
+        })
+        .reduce((sum, log) => sum + log.totalWorkHours, 0);
+    });
+
+    const totalMonthHours = computed(() => {
+      const now = new Date();
+      const { start, end } = getMonthlyPeriodDates(now, settings.value);
       return logs.value
         .filter(log => {
           const d = new Date(log.clockIn);
@@ -1142,28 +1152,28 @@ export default {
         .reduce((sum, log) => sum + log.totalWorkHours, 0);
     });
 
-    const totalMonthHours = computed(() => {
-      const now = new Date();
-      const start = settings.value.cutoffType === 'weekly' 
-        ? new Date(now.getFullYear(), now.getMonth(), 1) 
-        : getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
-      return logs.value
-        .filter(log => new Date(log.clockIn) >= start)
-        .reduce((sum, log) => sum + log.totalWorkHours, 0);
-    });
-
     const daysWorkedThisMonth = computed(() => {
       const now = new Date();
-      const start = settings.value.cutoffType === 'weekly' 
-        ? new Date(now.getFullYear(), now.getMonth(), 1) 
-        : getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
-      return logs.value.filter(log => new Date(log.clockIn) >= start).length;
+
+      const { start, end } = getMonthlyPeriodDates(now, settings.value);
+      return logs.value.filter(log => {
+        const d = new Date(log.clockIn);
+        return d >= start && d < end;
+      }).length;
     });
 
     const avgDailyHours = computed(() => {
-      const count = daysWorkedThisMonth.value;
-      if (count === 0) return 0;
-      return totalMonthHours.value / count;
+      const completedSessions = logs.value.filter(log => {
+        const { start, end } = getMonthlyPeriodDates(new Date(), settings.value);
+        const d = new Date(log.clockIn);
+        return log.clockOut && d >= start && d < end;
+    });
+
+    const totalHours = completedSessions.reduce((sum, log) => sum + log.totalWorkHours, 0);
+    const uniqueDays = new Set(completedSessions.map(log => log.date)).size;
+
+    if (uniqueDays === 0) return 0;
+    return totalHours / uniqueDays;
     });
 
     // Helper functions for cutoff periods
@@ -1179,73 +1189,153 @@ export default {
     const getStartOfMonthlyPeriod = (date, cutoffDate) => {
       const result = new Date(date);
       const dayOfMonth = result.getDate();
-      if (dayOfMonth >= cutoffDate) {
-        result.setDate(cutoffDate);
+      if (dayOfMonth > cutoffDate) {
+        result.setDate(cutoffDate + 1);
       } else {
         result.setMonth(result.getMonth() - 1);
-        result.setDate(cutoffDate);
+        result.setDate(cutoffDate + 1);
       }
       result.setHours(0, 0, 0, 0);
       return result;
     };
 
+
+    const getMonthlyPeriodDates = (date, settings) => {
+      let start, end;
+      if (settings.cutoffType === 'weekly') {
+        start = getStartOfWeeklyPeriod(new Date(date.getFullYear(), date.getMonth(), 1), settings.cutoffDay);
+        end = new Date(start);
+        end.setDate(end.getDate() + 35);
+      } else {
+        start = getStartOfMonthlyPeriod(date, settings.cutoffDate);
+        end = new Date(start);
+        end.setMonth(end.getMonth() + 1);
+      }
+      return { start, end };
+    };
+    const weeklyPeriodRange = computed(() => {
+      const now = new Date();
+      let cutoffDay = settings.value.cutoffDay;
+      
+      if (cutoffDay === null || cutoffDay === undefined) {
+        let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), settings.value.cutoffDate + 1);
+        if (now.getDate() <= settings.value.cutoffDate) {
+          startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
+        }
+        cutoffDay = startOfPeriod.getDay();
+      }
+
+      const weekStart = getStartOfWeeklyPeriod(now, cutoffDay);
+      let weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+
+      let finalStart = new Date(weekStart);
+      let finalEnd = new Date(weekEnd);
+
+      if (settings.value.cutoffType === 'monthly') {
+        const { start: periodStart, end: periodEnd } = getMonthlyPeriodDates(now, settings.value);
+        const periodEndLimit = new Date(periodEnd);
+        periodEndLimit.setDate(periodEndLimit.getDate() - 1);
+
+        if (finalStart < periodStart) {
+          finalStart = new Date(periodStart);
+        }
+        if (finalEnd > periodEndLimit) {
+          finalEnd = new Date(periodEndLimit);
+        }
+      }
+
+      finalStart.setHours(0, 0, 0, 0);
+      finalEnd.setHours(23, 59, 59, 999);
+
+      if (finalStart.getDate() === finalEnd.getDate() && finalStart.getMonth() === finalEnd.getMonth() && finalStart.getFullYear() === finalEnd.getFullYear()) {
+        return `${finalStart.getDate()} ${finalStart.toLocaleString('id-ID', { month: 'short' })}`;
+      }
+
+      return `${finalStart.getDate()} ${finalStart.toLocaleString('id-ID', { month: 'short' })} - ${finalEnd.getDate()} ${finalEnd.toLocaleString('id-ID', { month: 'short' })}`;
+    });
+
+    const monthlyPeriodRange = computed(() => {
+      const now = new Date();
+      if (settings.value.cutoffType === 'weekly') {
+        const getFirstFri = (d) => {
+          let day = new Date(d.getFullYear(), d.getMonth(), 1);
+          while (day.getDay() !== 5) day.setDate(day.getDate() + 1);
+          return day;
+        };
+        const getNextMonthFirstFri = (d) => {
+          let day = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+          while (day.getDay() !== 5) day.setDate(day.getDate() + 1);
+          return day;
+        };
+        const start = getFirstFri(now);
+        const end = new Date(getNextMonthFirstFri(now));
+        end.setDate(end.getDate() - 1);
+        return `${start.getDate()} ${start.toLocaleString('id-ID', { month: 'short' })} - ${end.getDate()} ${end.toLocaleString('id-ID', { month: 'short' })}`;
+      } else {
+        const start = getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
+        const end = new Date(start.getTime());
+        end.setMonth(end.getMonth() + 1);
+        const lastDay = new Date(end);
+        lastDay.setDate(lastDay.getDate() - 1);
+        return `${start.getDate()} ${start.toLocaleString('id-ID', { month: 'short' })} - ${lastDay.getDate()} ${lastDay.toLocaleString('id-ID', { month: 'short' })}`;
+      }
+    });
+
     // Charts Config & Series
     const weeklyChartSeries = computed(() => {
       const now = new Date();
-      const start = getStartOfWeeklyPeriod(now, settings.value.cutoffDay);
-      
-      // Initialize 7 days array starting from cutoffDay
-      const days = [];
-      const labels = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-      const data = [];
+      let cutoffDay = settings.value.cutoffDay;
+      if (cutoffDay === null || cutoffDay === undefined) {
+         let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), settings.value.cutoffDate + 1);
+         if (now.getDate() <= settings.value.cutoffDate) startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
+         cutoffDay = startOfPeriod.getDay();
+      }
+      const weekStart = getStartOfWeeklyPeriod(now, cutoffDay);
+      let weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
 
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(start);
-        d.setDate(start.getDate() + i);
-        const dayName = labels[d.getDay()];
-        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        days.push({ dateStr: dateStr, label: dayName });
+      let finalStart = new Date(weekStart);
+      let finalEnd = new Date(weekEnd);
+
+      if (settings.value.cutoffType === 'monthly') {
+        const { start: periodStart, end: periodEnd } = getMonthlyPeriodDates(now, settings.value);
+        const periodEndLimit = new Date(periodEnd);
+        periodEndLimit.setDate(periodEndLimit.getDate() - 1);
+
+        if (finalStart < periodStart) {
+          finalStart = new Date(periodStart);
+        }
+        if (finalEnd > periodEndLimit) {
+          finalEnd = new Date(periodEndLimit);
+        }
       }
 
-      days.forEach(day => {
-        const hours = logs.value
-          .filter(log => log.date === day.dateStr)
-          .reduce((sum, log) => sum + log.totalWorkHours, 0);
-        data.push(Number(hours.toFixed(2)));
-      });
+      finalStart.setHours(0, 0, 0, 0);
+      finalEnd.setHours(23, 59, 59, 999);
 
-      return [{
-        name: 'Jam Kerja',
-        data: data
-      }];
+      const baseLabels = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      const labels = [];
+      const data = [];
+
+      const temp = new Date(finalStart);
+      while (temp <= finalEnd) {
+        labels.push(baseLabels[temp.getDay()]);
+        const dateStr = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(2, '0')}-${String(temp.getDate()).padStart(2, '0')}`;
+        const hours = logs.value
+          .filter(log => log.date === dateStr)
+          .reduce((sum, log) => sum + log.totalWorkHours, 0);
+        data.push(Number.isFinite(hours) ? Number(hours.toFixed(2)) : 0);
+        temp.setDate(temp.getDate() + 1);
+      }
+      return { series: [{ name: 'Jam Kerja', data: data }], labels: labels };
     });
 
     const weeklyChartOptions = computed(() => {
-      const now = new Date();
-      const start = getStartOfWeeklyPeriod(now, settings.value.cutoffDay);
-      const categories = [];
-      const labels = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(start);
-        d.setDate(start.getDate() + i);
-        categories.push(labels[d.getDay()]);
-      }
-
       return {
-        chart: {
-          id: 'weekly-hours',
-          toolbar: { show: false },
-          sparkline: { enabled: false }
-        },
+        chart: { id: 'weekly-hours', toolbar: { show: false }, sparkline: { enabled: false } },
         colors: ['#4f46e5'],
-        plotOptions: {
-          bar: {
-            borderRadius: 6,
-            columnWidth: '50%',
-            dataLabels: { position: 'top' }
-          }
-        },
+        plotOptions: { bar: { borderRadius: 6, columnWidth: '50%', dataLabels: { position: 'top' } } },
         dataLabels: {
           enabled: true,
           formatter: function (val) {
@@ -1254,54 +1344,41 @@ export default {
             return val > 0 ? `${h}.${String(m).padStart(2, '0')}` : '';
           },
           offsetY: -20,
-          style: {
-            fontSize: '10px',
-            colors: ['#303030']
-          }
+          style: { fontSize: '10px', colors: ['#303030'] }
         },
         xaxis: {
-          categories: categories,
-          labels: { style: { colors: '#64748b', fontWeight: 600 } }
+          categories: weeklyChartSeries.value.labels,
+          labels: { style: { colors: ['#64748b'], fontWeight: 600 } }
         },
-        yaxis: {
-          labels: { style: { colors: '#64748b' } },
-          title: { text: 'Jam', style: { color: '#64748b' } }
-        },
-        grid: {
-          borderColor: '#e2e8f0',
-          strokeDashArray: 4
-        }
+        yaxis: { labels: { style: { colors: ['#64748b'] } }, title: { text: 'Jam', style: { color: '#64748b' } } },
+        grid: { borderColor: '#e2e8f0', strokeDashArray: 4 }
       };
     });
 
     const monthlyChartSeries = computed(() => {
       const now = new Date();
-      const start = settings.value.cutoffType === 'weekly' 
-        ? new Date(now.getFullYear(), now.getMonth(), 1) 
-        : getStartOfMonthlyPeriod(now, settings.value.cutoffDate);
-      
-      // Group by weeks in month (Week 1, Week 2, Week 3, Week 4, Week 5)
-      
-      const logsInPeriod = logs.value.filter(log => new Date(log.clockIn) >= start);
-      if (logsInPeriod.length === 0) return [{ name: 'Total Jam', data: [0, 0, 0, 0, 0] }];
+      const baseMonth = now.getDate() <= settings.value.cutoffDate ? now.getMonth() - 1 : now.getMonth();
+      const cutoff = settings.value.cutoffDate;
+      const periodStart = new Date(now.getFullYear(), baseMonth, cutoff + 1);
+      const periodEnd = new Date(periodStart.getFullYear(), periodStart.getMonth() + 1, cutoff + 1);
 
-      // Group logs by week index relative to the *first* week found in the period
-      const weekGroups = new Map();
-      logsInPeriod.forEach(log => {
-        const logDate = new Date(log.clockIn);
-        const weekIdx = Math.floor((logDate.getTime() - start.getTime()) / 86400000 / 7);
-        weekGroups.set(weekIdx, (weekGroups.get(weekIdx) || 0) + log.totalWorkHours);
+      const logsInPeriod = logs.value.filter(log => {
+        const d = new Date(log.clockIn);
+        return d >= periodStart && d < periodEnd;
       });
 
-      const sortedWeekIndices = Array.from(weekGroups.keys()).sort((a, b) => a - b);
       const data = [0, 0, 0, 0, 0];
-      sortedWeekIndices.forEach((weekIdx, i) => {
-        if (i < 5) data[i] = weekGroups.get(weekIdx);
+      logsInPeriod.forEach(log => {
+        const logDate = new Date(log.clockIn);
+        const weekIdx = Math.min(4, Math.floor((logDate.getTime() - periodStart.getTime()) / (86400000 * 7)));
+        if (weekIdx >= 0) {
+          data[weekIdx] += (log.totalWorkHours || 0);
+        }
       });
 
       return [{
         name: 'Total Jam',
-        data: data.map(v => Number(v))
+        data: data.map(v => Number.isFinite(v) ? Number(v.toFixed(2)) : 0)
       }];
     });
 
@@ -1327,12 +1404,25 @@ export default {
           }
         },
         xaxis: {
-          categories: ['Mng 1', 'Mng 2', 'Mng 3', 'Mng 4', 'Mng 5'],
-          labels: { style: { colors: '#64748b', fontWeight: 600 } }
+          categories: Array.from({ length: 5 }, (_, i) => {
+            const now = new Date();
+            const baseMonth = now.getDate() <= settings.value.cutoffDate ? now.getMonth() - 1 : now.getMonth();
+            const cutoff = settings.value.cutoffDate;
+            const periodStart = new Date(now.getFullYear(), baseMonth, cutoff + 1);
+            const weekStart = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate() + (i * 7));
+            let weekEnd = new Date(weekStart);
+            if (i === 4) {
+              weekEnd = new Date(periodStart.getFullYear(), periodStart.getMonth() + 1, cutoff);
+            } else {
+              weekEnd.setDate(weekStart.getDate() + 6);
+            }
+            return `${weekStart.getDate()} - ${weekEnd.getDate()}`;
+          }),
+          labels: { style: { colors: ['#64748b'], fontWeight: 600 } }
         },
         yaxis: {
           labels: { 
-            style: { colors: '#64748b' },
+            style: { colors: ['#64748b'] },
             formatter: (val) => val.toFixed(0)
           }
         },
@@ -1353,7 +1443,25 @@ export default {
             formatter: function (val) {
               const h = Math.floor(val);
               const m = Math.round((val % 1) * 60);
-              return `${h}.${String(m).padStart(2, '0')}`;
+              return `${h}.${String(m).padStart(2, '0')} jam`;
+            }
+          },
+          title: {
+            formatter: function (seriesName, { dataPointIndex }) {
+              const i = dataPointIndex ?? 0;
+              const now = new Date();
+              const baseMonth = now.getDate() <= settings.value.cutoffDate ? now.getMonth() - 1 : now.getMonth();
+              const cutoff = settings.value.cutoffDate;
+              const periodStart = new Date(now.getFullYear(), baseMonth, cutoff + 1);
+              const weekStart = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate() + (i * 7));
+              let weekEnd;
+              if (i === 4) {
+                weekEnd = new Date(periodStart.getFullYear(), periodStart.getMonth() + 1, cutoff);
+              } else {
+                weekEnd = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate() + (i * 7) + 6);
+              }
+              const fmt = (d) => `${d.getDate()} ${d.toLocaleString('id-ID', { month: 'short' })}`;
+              return `Mgg ${i + 1}: ${fmt(weekStart)} – ${fmt(weekEnd)}`;
             }
           }
         }
@@ -1374,6 +1482,8 @@ export default {
       if (clockInterval) clearInterval(clockInterval);
       if (timerInterval) clearInterval(timerInterval);
     });
+
+
 
     return {
       activeTab,
@@ -1417,10 +1527,11 @@ export default {
       weeklyChartOptions,
       monthlyChartSeries,
       monthlyChartOptions,
+      weeklyPeriodRange,
+      monthlyPeriodRange,
       settingsOutline, playOutline, stopOutline, cafeOutline, calendarOutline, 
       createOutline, trashOutline, downloadOutline, addOutline,
-      effectiveStartStr,
-      effectiveEndStr
+      effectiveStartStr
     };
   }
 }

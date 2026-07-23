@@ -2,10 +2,11 @@
 import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import * as XLSX from 'xlsx'
 import { useRoute } from 'vue-router'
-import { initDB } from '@/db'
-import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader, IonAlert, IonFooter } from '@ionic/vue';
+import { db } from '@/db/schema'
+import { migrateProjectTransactions, getTransactionsByProject, calcProjectTotals } from '@/db/bukuKasMigration'
+import { IonPage, IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonButton, IonIcon, IonModal, IonHeader, IonToolbar, IonButtons, IonTitle, IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonProgressBar, IonBadge, IonSpinner, IonList, IonListHeader, IonAlert, IonFooter, IonSegment, IonSegmentButton, IonBackButton } from '@ionic/vue';
 import AppToast from '@/components/AppToast.vue';
-import { addOutline, trashOutline, pencilOutline, closeOutline, cloudUploadOutline, cloudDownloadOutline, listOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { addOutline, trashOutline, pencilOutline, closeOutline, cloudUploadOutline, cloudDownloadOutline, listOutline, checkmarkCircleOutline, searchOutline, arrowBackOutline } from 'ionicons/icons';
 const VueApexCharts = defineAsyncComponent(() => import("vue3-apexcharts"));
 
 
@@ -36,6 +37,8 @@ const route = useRoute()
 
 const project = ref<Project | null>(null)
 const loading = ref(false)
+const activeTab = ref('dashboard')
+const txSearchQuery = ref('')
 const dialogTransaction = ref(false)
 const dialogDeleteTxId = ref<number | null>(null)
 const submitting = ref(false)
@@ -83,6 +86,14 @@ const filteredTransactions = computed(() => {
   } else if (filterType.value === 'EXPENSE') {
     txs = txs.filter(t => t.type === 'EXPENSE')
   }
+
+  if (txSearchQuery.value.trim()) {
+    const q = txSearchQuery.value.toLowerCase()
+    txs = txs.filter(t => 
+      (t.category || '').toLowerCase().includes(q) ||
+      (t.description || '').toLowerCase().includes(q)
+    )
+  }
   
   return txs.sort((a, b) => {
     const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -95,15 +106,15 @@ const filteredTransactions = computed(() => {
 
 const netProfit = computed(() => (project.value as any).panen_total - project.value.total_expenses)
 const roi = computed(() => {
-  const expenses = project.value?.total_expenses || 0
-  if (expenses <= 0) return 0
-  return Math.round((netProfit.value / expenses) * 100) || 0
+  const modal = (project.value as any)?.modal_total || 0
+  if (modal <= 0) return 0
+  return Math.floor((netProfit.value / modal) * 100) || 0
 })
 
 const profitPercent = computed(() => {
   const sales = (project.value as any).panen_total || 0
   if (sales <= 0) return 0
-  return Math.round((netProfit.value / sales) * 100) || 0
+  return Math.floor((netProfit.value / sales) * 100) || 0
 })
 
 function getFinancialColor(value: number, positiveColor = '#1565c0') {
@@ -120,7 +131,7 @@ function formatDate(d: string) {
 
 function getStatusColor(status: string) {
   if (status === 'Active' || status === 'Aktif') return 'success'
-  if (status === 'Completed' || status === 'Selesai') return 'primary'
+  if (status === 'Completed' || status === 'Selesai') return 'teal'
   if (status === 'Pending' || status === 'Tunda') return 'warning'
   return 'secondary'
 }
@@ -128,18 +139,22 @@ function getStatusColor(status: string) {
 async function fetchProject() {
   loading.value = true
   try {
-    const db = await initDB()
+    if (!db.isOpen()) await db.open()
     const projectId = Number(route.params.id)
-    let found = await db.get('projects', projectId)
+    const found = await db.table('projects').get(projectId)
     
     if (found) {
-      // Ensure transactions array exists
-      found.transactions = found.transactions || []
-      
-      // Recalculate totals
-      const deposits = found.transactions.filter(t => t.type === 'DEPOSIT');
-      (found as any).modal_total = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-      (found as any).panen_total = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
+      // Baca transaksi dari tabel terpisah
+      const txs = await getTransactionsByProject(projectId)
+      found.transactions = txs
+
+      // Hitung totals dari tabel transactions terpisah
+      const totals = await calcProjectTotals(projectId)
+      found.total_deposits = totals.total_deposits
+      found.total_expenses = totals.total_expenses
+      found.balance = totals.balance
+      ;(found as any).modal_total = totals.modal_total
+      ;(found as any).panen_total = totals.panen_total
     }
     project.value = found || null
   } catch(e) {
@@ -162,44 +177,38 @@ async function saveTransaction() {
   }
 
   try {
-    const db = await initDB()
-    const projects = await db.getAll('projects')
-    const projectIndex = projects.findIndex(p => p.id === project.value!.id)
+    if (!db.isOpen()) await db.open()
+    const projectId = project.value!.id
 
-    if (projectIndex !== -1) {
-      if (editingTxId.value) {
-        const txIndex = projects[projectIndex].transactions.findIndex(t => t.id === editingTxId.value)
-        if (txIndex !== -1) {
-          projects[projectIndex].transactions[txIndex] = { ...projects[projectIndex].transactions[txIndex], ...formTx.value };
-        }
-      } else {
-        const newTx: Transaction = {
-          id: Date.now(),
-          project_id: project.value.id,
-          ...formTx.value
-        }
-        if (!projects[projectIndex].transactions) projects[projectIndex].transactions = []
-        projects[projectIndex].transactions.push(newTx)
+    if (editingTxId.value) {
+      // Update transaksi yang sudah ada
+      const existing = await db.table('transactions').get(editingTxId.value)
+      if (existing) {
+        await db.table('transactions').put({ ...existing, ...formTx.value, project_id: projectId })
       }
-      
-      // Recalculate totals
-      const p = projects[projectIndex];
-      const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
-      p.total_deposits = deposits.reduce((acc, t) => acc + t.amount, 0);
-      p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
-      
-      const modal = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-      const panen = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-      
-      (p as any).modal_total = modal;
-      (p as any).panen_total = panen;
-      p.balance = p.total_deposits - p.total_expenses;
-
-      await db.put('projects', projects[projectIndex])
-      await fetchProject()
-      closeDialog()
-      showSnackbar('Transaksi berhasil disimpan!', 'success')
+    } else {
+      // Tambah transaksi baru
+      const newTx: Transaction = {
+        id: Date.now(),
+        project_id: projectId,
+        ...formTx.value
+      }
+      await db.table('transactions').put(newTx)
     }
+
+    // Hitung ulang totals dan update di project
+    const totals = await calcProjectTotals(projectId)
+    const projectRecord = await db.table('projects').get(projectId)
+    if (projectRecord) {
+      projectRecord.total_deposits = totals.total_deposits
+      projectRecord.total_expenses = totals.total_expenses
+      projectRecord.balance = totals.balance
+      await db.table('projects').put(projectRecord)
+    }
+
+    await fetchProject()
+    closeDialog()
+    showSnackbar('Transaksi berhasil disimpan!', 'success')
   } catch (e) {
     console.error(e)
     showSnackbar('Gagal menyimpan transaksi', 'error')
@@ -210,31 +219,24 @@ async function saveTransaction() {
 
 async function deleteTransaction(id: number) {
     try {
-        const db = await initDB();
-        const projects = await db.getAll('projects');
-        const projectIndex = projects.findIndex(p => p.id === project.value!.id);
+        if (!db.isOpen()) await db.open()
+        const projectId = project.value!.id
 
-        if (projectIndex !== -1) {
-            projects[projectIndex].transactions = projects[projectIndex].transactions.filter(t => t.id !== id);
-            
-            // Recalculate totals
-            const p = projects[projectIndex];
-            const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
-            p.total_deposits = deposits.reduce((acc, t) => acc + t.amount, 0);
-            p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0);
-            
-            const modal = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-            const panen = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-            (p as any).modal_total = modal;
-            (p as any).panen_total = panen;
-            
-            p.balance = p.total_deposits - p.total_expenses;
+        await db.table('transactions').delete(id)
 
-            await db.put('projects', projects[projectIndex]);
-            await fetchProject();
-            dialogDeleteTxId.value = null;
-            showSnackbar('Transaksi berhasil dihapus', 'success');
+        // Hitung ulang totals dan update di project
+        const totals = await calcProjectTotals(projectId)
+        const projectRecord = await db.table('projects').get(projectId)
+        if (projectRecord) {
+          projectRecord.total_deposits = totals.total_deposits
+          projectRecord.total_expenses = totals.total_expenses
+          projectRecord.balance = totals.balance
+          await db.table('projects').put(projectRecord)
         }
+
+        dialogDeleteTxId.value = null
+        await fetchProject()
+        showSnackbar('Transaksi berhasil dihapus', 'success')
     } catch {
         showSnackbar('Gagal menghapus transaksi', 'error');
     }
@@ -280,89 +282,135 @@ function showSnackbar(text: string, color = 'success') {
 const fileInput = ref<HTMLInputElement | null>(null)
 function handleImport() { fileInput.value?.click() }
 
-async function onFileChange(e: Event) {
+async function processImportFile(result: ArrayBuffer) {
+  try {
+    const workbook = XLSX.read(result, { type: 'array' })
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    const json = XLSX.utils.sheet_to_json(sheet) as any[]
 
+    if (!json.length) {
+      showSnackbar('File tidak memiliki data transaksi.', 'warning')
+      return
+    }
+
+    const validCategories = [...categories.DEPOSIT_MODAL, ...categories.DEPOSIT_PENDAPATAN, ...categories.EXPENSE]
+
+    // ── Validasi semua baris dulu sebelum menyimpan apapun ──────────────────
+    const parsedRows: Transaction[] = []
+    const validationErrors: string[] = []
+
+    for (let index = 0; index < json.length; index++) {
+      const row = json[index] as any
+      const rowNumber = index + 2
+      const type = String(row['Tipe'] || '').trim()
+      const category = String(row['Kategori'] || '').trim()
+      const amount = Number(row['Nominal'])
+      const rawDate = row['Tanggal (DD/MM/YYYY)'] || row['Tanggal']
+
+      if (type !== 'DEPOSIT' && type !== 'EXPENSE') {
+        validationErrors.push(`Baris ${rowNumber}: Tipe harus DEPOSIT atau EXPENSE (dapat: "${type}")`)
+        continue
+      }
+      if (!validCategories.includes(category)) {
+        validationErrors.push(`Baris ${rowNumber}: Kategori tidak valid ("${category}")`)
+        continue
+      }
+      if (!Number.isFinite(amount) || amount <= 0) {
+        validationErrors.push(`Baris ${rowNumber}: Nominal tidak valid`)
+        continue
+      }
+      if (!rawDate) {
+        validationErrors.push(`Baris ${rowNumber}: Tanggal wajib diisi`)
+        continue
+      }
+
+      // ID belum di-set di sini, akan di-assign saat insert
+      parsedRows.push({
+        id: 0, // placeholder, diganti di bawah
+        project_id: project.value!.id,
+        type,
+        category,
+        amount,
+        date: parseDate(rawDate),
+        description: row['Deskripsi'] || ''
+      })
+    }
+
+    if (validationErrors.length > 0) {
+      console.warn('[Import] Validation errors:', validationErrors)
+      showSnackbar(
+        `${validationErrors.length} baris gagal validasi, ${parsedRows.length} baris siap disimpan.`,
+        'warning'
+      )
+      if (parsedRows.length === 0) return
+    }
+
+    if (!project.value) return
+    if (!db.isOpen()) await db.open()
+    const projectId = project.value.id
+
+    // ── Ambil max ID yang sudah ada agar ID baru tidak pernah bentrok ───────
+    // Aman untuk integer hingga Number.MAX_SAFE_INTEGER (9 * 10^15)
+    const allExisting = await db.table('transactions').toCollection().primaryKeys()
+    const maxExistingId: number = allExisting.length > 0
+      ? Math.max(...(allExisting as number[]))
+      : 0
+    
+    // ── Insert satu per satu secara berurutan ────────────────────────────────
+    let savedCount = 0
+    const insertErrors: string[] = []
+
+    for (let i = 0; i < parsedRows.length; i++) {
+      const tx = { ...parsedRows[i], id: maxExistingId + i + 1 }
+      try {
+        await db.table('transactions').add(tx) // add (bukan put) → error jika ID sudah ada
+        savedCount++
+      } catch (insertErr: any) {
+        insertErrors.push(`Baris ${i + 2}: ${insertErr.message}`)
+        console.error(`[Import] Gagal insert baris ${i + 2}:`, insertErr)
+      }
+    }
+
+    // ── Update totals project ────────────────────────────────────────────────
+    const totals = await calcProjectTotals(projectId)
+    const projectRecord = await db.table('projects').get(projectId)
+    if (projectRecord) {
+      projectRecord.total_deposits = totals.total_deposits
+      projectRecord.total_expenses = totals.total_expenses
+      projectRecord.balance = totals.balance
+      await db.table('projects').put(projectRecord)
+    }
+
+    await fetchProject()
+
+    if (insertErrors.length > 0) {
+      showSnackbar(
+        `${savedCount} tersimpan, ${insertErrors.length} gagal. Cek console untuk detail.`,
+        'warning'
+      )
+    } else {
+      showSnackbar(`${savedCount} transaksi berhasil diimpor!`, 'success')
+    }
+
+  } catch (e) {
+    console.error(e)
+    showSnackbar('Gagal memproses file: ' + (e as Error).message, 'error')
+  }
+}
+
+async function onFileChange(e: Event) {
   const target = e.target as HTMLInputElement
   if (!target.files?.length) return
   const file = target.files[0]
   const reader = new FileReader()
   reader.onload = (ev) => {
-    try {
-      const data = new Uint8Array(ev.target?.result as ArrayBuffer)
-      const workbook = XLSX.read(data, { type: 'array' })
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const json = XLSX.utils.sheet_to_json(sheet) as any[]
-      
-      const validCategories = [...categories.DEPOSIT_MODAL, ...categories.DEPOSIT_PENDAPATAN, ...categories.EXPENSE]
-      const newTransactions: Transaction[] = json.map((row: any, index: number) => {
-        const rowNumber = index + 2
-        const type = String(row['Tipe'] || '').trim()
-        const category = String(row['Kategori'] || '').trim()
-        const amount = Number(row['Nominal'])
-        const rawDate = row['Tanggal (DD/MM/YYYY)'] || row['Tanggal']
-
-        if (type !== 'DEPOSIT' && type !== 'EXPENSE') {
-          throw new Error(`Baris ${rowNumber}: Tipe harus DEPOSIT atau EXPENSE`)
-        }
-        if (!validCategories.includes(category)) {
-          throw new Error(`Baris ${rowNumber}: Kategori tidak valid`)
-        }
-        if (!Number.isFinite(amount) || amount <= 0) {
-          throw new Error(`Baris ${rowNumber}: Nominal harus angka lebih dari 0`)
-        }
-        if (!rawDate) {
-          throw new Error(`Baris ${rowNumber}: Tanggal wajib diisi`)
-        }
-
-        return {
-          id: Date.now() + Math.random(),
-          project_id: project.value!.id,
-          type,
-          category,
-          amount,
-          date: parseDate(rawDate),
-          description: row['Deskripsi'] || ''
-        }
-      })
-
-      if (project.value) {
-        (async () => {
-          let success = false;
-          try {
-            if (!project.value) throw new Error('Projek tidak ditemukan')
-            const newTxs = [...project.value!.transactions, ...newTransactions];
-            const db = await initDB()
-            const p = await db.get('projects', project.value!.id)
-            if (!p) throw new Error('Projek tidak ditemukan di database')
-            
-            p.transactions = newTxs;
-            p.total_deposits = p.transactions.filter(t => t.type === 'DEPOSIT').reduce((acc, t) => acc + t.amount, 0)
-            p.total_expenses = p.transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + t.amount, 0)
-            p.balance = p.total_deposits - p.total_expenses
-            
-            const deposits = p.transactions.filter(t => t.type === 'DEPOSIT');
-            (p as any).modal_total = deposits.filter(t => categories.DEPOSIT_MODAL.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-            (p as any).panen_total = deposits.filter(t => categories.DEPOSIT_PENDAPATAN.includes(t.category)).reduce((acc, t) => acc + t.amount, 0);
-
-            await db.put('projects', JSON.parse(JSON.stringify(p)))
-            await fetchProject()
-            success = true;
-          } catch (e) {
-            console.error(e)
-            showSnackbar('Gagal menyimpan: ' + (e as Error).message, 'error')
-          }
-          if (success) {
-            showSnackbar('Transaksi berhasil diimpor!', 'success')
-          }
-        })()
-      }
-    } catch (e) {
-      console.error(e)
-      showSnackbar('Gagal memproses file: ' + (e as Error).message, 'error')
-    }
+    processImportFile(ev.target?.result as ArrayBuffer)
   }
+  reader.onerror = () => showSnackbar('Gagal membaca file.', 'error')
   reader.readAsArrayBuffer(file)
+  target.value = '' // reset agar file sama bisa dipilih lagi
 }
+
 
 function getGuideData() {
   return [
@@ -375,6 +423,34 @@ function getGuideData() {
     ['Tanggal', 'DD/MM/YYYY (Contoh: 01/07/2026)'],
     ['Nominal', 'Angka bulat tanpa titik/koma (Contoh: 1000000)']
   ]
+}
+
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+
+async function saveWorkbook(wb: XLSX.WorkBook, fileName: string) {
+  if (Capacitor.isNativePlatform()) {
+    const base64 = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+    const path = `temp_${fileName}`;
+    await Filesystem.writeFile({
+      path,
+      data: base64,
+      directory: Directory.Cache,
+    });
+    const { uri } = await Filesystem.getUri({
+      path,
+      directory: Directory.Cache,
+    });
+    await Share.share({
+      title: 'Download Excel',
+      files: [uri],
+      dialogTitle: 'Simpan file',
+    });
+    return;
+  }
+
+  XLSX.writeFile(wb, fileName)
 }
 
 async function downloadTemplate() {
@@ -392,7 +468,7 @@ async function downloadTemplate() {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Template')
   XLSX.utils.book_append_sheet(wb, wsGuide, 'Panduan')
-  XLSX.writeFile(wb, 'Template Buku Kas.xlsx')
+  await saveWorkbook(wb, 'Template Buku Kas.xlsx')
 }
 
 async function exportToExcel() {
@@ -415,7 +491,7 @@ async function exportToExcel() {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Transaksi')
   XLSX.utils.book_append_sheet(wb, wsGuide, 'Panduan')
-  XLSX.writeFile(wb, `Buku Kas - ${project.value!.name}.xlsx`)
+  await saveWorkbook(wb, `Buku Kas - ${project.value!.name}.xlsx`)
 }
 
 function parseDate(d: any): string {
@@ -443,13 +519,31 @@ const availableCategories = computed(() => {
 const donutOptions = computed(() => ({
   chart: { 
     type: 'donut',
-    height: 300,
-    width: '100%' 
+    height: 240,
+    width: '100%',
+    toolbar: { show: false },
+    zoom: { enabled: false },
+    selection: { enabled: false },
   },
+  plotOptions: {
+    pie: {
+      expandOnClick: false,
+      donut: {
+        size: '75%',
+      }
+    }
+  },
+  colors: ['#059669', '#e11d48', '#3b82f6', '#8b5cf6', '#f59e0b', '#06b6d4', '#ec4899', '#6366f1', '#14b8a6', '#f97316'],
   labels: Object.keys(categoryTotals.value),
+  stroke: {
+    lineCap: 'round',
+    width: 0
+  },
+  legend: { position: 'bottom', labels: { colors: '#64748b' } },
   tooltip: {
     enabled: true,
-    trigger: 'click',
+    shared: true,
+    intersect: false,
     y: {
       formatter: (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
     }
@@ -457,7 +551,13 @@ const donutOptions = computed(() => ({
   responsive: [{ breakpoint: 480, options: { chart: { width: '100%' }, legend: { position: 'bottom' } } }]
 }))
 
-const donutSeries = computed(() => Object.values(categoryTotals.value))
+const donutSeries = computed(() =>
+  Object.values(categoryTotals.value).map(v => (Number.isFinite(v) ? v : 0))
+)
+
+const chartDonutReady = computed(() =>
+  donutSeries.value.length > 0 && donutSeries.value.some(v => v > 0)
+)
 
 const categoryTotals = computed(() => {
   const totals: Record<string, number> = {}
@@ -467,69 +567,103 @@ const categoryTotals = computed(() => {
   return totals
 })
 
-const barOptions = computed(() => {
-  if (!project.value) return { chart: { type: 'bar', height: 250, width: '100%' }, xaxis: { categories: [] } }
+const cashFlowData = computed(() => {
+  if (!project.value) return { months: [], income: [], expense: [] }
   
-  const monthlyData: Record<string, number> = {}
+  const monthsSet = new Set<string>()
   const sortedTxs = [...project.value.transactions].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   sortedTxs.forEach(t => {
-    if (t.type === 'EXPENSE') {
-      const month = new Date(t.date).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
-      monthlyData[month] = (monthlyData[month] || 0) + t.amount
+    const month = new Date(t.date).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
+    monthsSet.add(month)
+  })
+  
+  const months = Array.from(monthsSet)
+  const incomeMap: Record<string, number> = {}
+  const expenseMap: Record<string, number> = {}
+  
+  months.forEach(m => {
+    incomeMap[m] = 0
+    expenseMap[m] = 0
+  })
+  
+  sortedTxs.forEach(t => {
+    const month = new Date(t.date).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
+    if (t.type === 'DEPOSIT') {
+      incomeMap[month] = (incomeMap[month] || 0) + t.amount
+    } else {
+      expenseMap[month] = (expenseMap[month] || 0) + t.amount
     }
   })
+  
+  return {
+    months,
+    income: months.map(m => incomeMap[m]),
+    expense: months.map(m => expenseMap[m])
+  }
+})
 
+const barOptions = computed(() => {
   return {
     chart: { 
       type: 'bar',
       height: 300,
       width: '100%',
-      toolbar: { show: false } 
+      toolbar: { show: false } ,
+      sparkline: { enabled: false }
     },
-    states: {
-      hover: {
-        filter: { type: 'darken', value: 0.15 }
-      }
-    },
-    colors: ['#FFC0CB'],
+    plotOptions: { bar: { borderRadius: 6, columnWidth: '50%', dataLabels: { position: 'top' } } },
     dataLabels: {
-      enabled: true,
-      style: { colors: ['#000000'] },
-      formatter: (val: number) => new Intl.NumberFormat('id-ID').format(val)
+      enabled: false
     },
-    xaxis: { categories: Object.keys(monthlyData) },
+    stroke: {
+      show: true,
+      width: 2,
+      colors: ['transparent']
+    },
+    xaxis: { 
+      categories: cashFlowData.value.months,
+      labels: { style: { colors: '#64748b', fontWeight: 600 } }
+    },
     yaxis: {
       labels: {
+        style: { colors: '#64748b' },
         formatter: (val: number) => new Intl.NumberFormat('id-ID').format(val)
       }
     },
+    colors: ['#059669', '#e11d48'],
     tooltip: {
+      enabled: true,
+      shared: true,
+      intersect: false,
       y: {
-        formatter: (val: number) => new Intl.NumberFormat('id-ID').format(val)
+        formatter: (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val)
       }
-    }
+    },
+    grid: { borderColor: '#e2e8f0', strokeDashArray: 4 }
   }
 })
 
-const barSeries = computed(() => {
-  if (!project.value) return [{ name: 'Arus Kas', data: [] }]
-  
-  const monthlyData: Record<string, number> = {}
-  const sortedTxs = [...project.value.transactions].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  sortedTxs.forEach(t => {
-    if (t.type === 'EXPENSE') {
-      const month = new Date(t.date).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
-      monthlyData[month] = (monthlyData[month] || 0) + t.amount
-    }
-  })
+const barSeries = computed(() => [
+  {
+    name: 'Uang Masuk',
+    data: cashFlowData.value.income.map(v => (Number.isFinite(v) ? v : 0))
+  },
+  {
+    name: 'Uang Keluar',
+    data: cashFlowData.value.expense.map(v => (Number.isFinite(v) ? v : 0))
+  }
+])
 
-  return [{ 
-    name: 'Total Pengeluaran', 
-    data: Object.values(monthlyData) 
-  }]
+const chartBarReady = computed(() =>
+  cashFlowData.value.months.length > 0
+)
+
+onMounted(async () => {
+  // Jalankan migrasi data lama (idempotent — aman dijalankan berulang)
+  await migrateProjectTransactions()
+  await fetchProject()
 })
 
-onMounted(fetchProject)
 
 const chartCarousel = ref(null)
 let interval: any = null
@@ -561,108 +695,191 @@ onUnmounted(() => clearInterval(interval))
             <ion-title class="app-hero-title" style="padding: 0;">
               {{ project?.name || 'Detail Buku Kas' }}
             </ion-title>
-            <ion-badge v-if="project" class="badge-status" :color="getStatusColor(project.status)">{{ project.status }}</ion-badge>
+            <span v-if="project" class="pill-badge" :class="getStatusColor(project.status)">{{ project.status }}</span>
+
           </div>
-          <p class="app-hero-subtitle" style="margin: 0;">{{ project?.description || 'Tidak ada deskripsi.' }}</p>
+          <div class="d-flex justify-content-between align-items-center">
+            <p class="app-hero-subtitle" style="margin: 0;">{{ project?.description || 'Tidak ada deskripsi.' }}</p>
+              <button class="btn btn-action primary btn-md" @click="openCreateDialog">
+                <ion-icon :icon="addOutline" class="me-1" /> Tambah
+              </button>
+          </div>
         </div>
       </ion-toolbar>
+
+      <!-- Tabs Segment -->
+      <div class="px-3 pb-3">
+        <ion-segment v-model="activeTab" class="custom-segment">
+          <ion-segment-button value="dashboard">
+            <ion-label>Dashboard</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="transaksi">
+            <ion-label>Transaksi</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="tools">
+            <ion-label>Aksi</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <ion-content class="app-content-wrap">
       <input ref="fileInput" type="file" @change="onFileChange" accept=".xlsx" style="display: none;" />
-      <div v-if="loading" class="ion-text-center">
+      
+      <div v-if="loading" class="loading-state text-center py-5">
         <ion-spinner />
+        <p>Memuat detail...</p>
       </div>
+
       <div v-else-if="project">
         
-
-        <div class="project-actions d-grid gap-2 m-3">
-          <ion-button class="btn-action warning action-btn" @click="handleImport"><ion-icon :icon="cloudUploadOutline" slot="start" /> Import</ion-button>
-          <ion-button class="btn-action info action-btn" @click="downloadTemplate"><ion-icon :icon="listOutline" slot="start" /> Template</ion-button>
-          <ion-button class="btn-action success action-btn" @click="exportToExcel"><ion-icon :icon="cloudDownloadOutline" slot="start" /> Export</ion-button>
-          <ion-button @click="openCreateDialog" class="btn-action primary action-btn"><ion-icon :icon="addOutline" slot="start" /> Tambah Transaksi</ion-button>
-        </div>
-
-        <ion-grid>
+        <!-- ==================== TAB 1: DASHBOARD ==================== -->
+        <div v-show="activeTab === 'dashboard'" class="ion-padding">
+          
+          <!-- Summary Grid -->
+          <ion-grid class="mx-2">
             <ion-row>
-                <ion-col size="6" size-lg="3">
-                    <div class="summary-card summary-card--green shadow-soft">
-                        <small class="text-muted mb-2">Modal</small>
-                        <div class="summary-value summary-value--green">{{ formatCurrency((project as any).modal_total || 0) }}</div>
+              <ion-col size="6" size-sm="6" size-md="3">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="py-3">
+                    <small class="text-muted d-block text-xs">Modal</small>
+                    <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).modal_total || 0) }}</div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="6" size-sm="6" size-md="3">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="py-3">
+                    <small class="text-muted d-block text-xs">Pengeluaran</small>
+                    <div class="fs-6 fw-black text-danger mt-1">{{ formatCurrency(project.total_expenses) }}</div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="6" size-sm="6" size-md="3" v-if="(project as any).panen_total > 0">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="py-3">
+                    <small class="text-muted d-block text-xs">Pendapatan</small>
+                    <div class="fs-6 fw-black text-success mt-1">{{ formatCurrency((project as any).panen_total || 0) }}</div>
+                    <div class="d-flex justify-content-between align-items-center border-top mt-2 pt-2">
+                      <div class="d-flex flex-column align-items-start">
+                        <small class="text-muted text-xs">Margin</small>
+                        <span class="fw-bold mt-1 text-xs" :class="profitPercent >= 0 ? 'text-success' : 'text-danger'">{{ profitPercent }}%</span>
+                      </div>
+                      <div class="d-flex flex-column align-items-end">
+                        <small class="text-muted text-xs">ROI</small>
+                        <span class="fw-bold mt-1 text-xs" :class="roi >= 0 ? 'text-success' : 'text-danger'">{{ roi }}%</span>
+                      </div>
                     </div>
-                </ion-col>
-                <ion-col size="6" size-lg="3">
-                    <div class="summary-card summary-card--red shadow-soft">
-                        <small class="text-muted mb-2">Pengeluaran</small>
-                        <div class="summary-value summary-value--red">{{ formatCurrency(project.total_expenses) }}</div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="6" size-sm="6" size-md="3">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="py-3">
+                    <div v-if="(project as any).panen_total > 0" class="mb-2">
+                      <small class="text-muted d-block text-xs">Keuntungan</small>
+                      <div class="fs-6 fw-black mt-1" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
+                      <div class="border-bottom my-2"></div>
                     </div>
-                </ion-col>
-                <ion-col size="6" size-lg="3" v-if="(project as any).panen_total > 0">
-                    <div class="summary-card summary-card--green shadow-soft">
-                        <small class="text-muted mb-2">Penjualan</small>
-                        <div class="summary-value summary-value--green">{{ formatCurrency((project as any).panen_total || 0) }}</div>
-                        
-                        <div class="d-flex justify-content-between align-items-center border-top mt-2">
-                            <small class="text-muted my-2">ROI</small>
-                            <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ roi }}%</ion-badge>
-                        </div>
-                        <div class="summary-profit" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
-                    </div>
-                </ion-col>
-                <ion-col size="6" size-lg="3">
-                    <div class="summary-card summary-card--blue shadow-soft">
-                        <div v-if="(project as any).panen_total > 0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted mb-2">Keuntungan</small>
-                                <ion-badge :color="netProfit < 0 ? 'danger' : 'light'" :class="{'text-dark': netProfit > 0}">{{ profitPercent }}%</ion-badge>
-                            </div>
-                            <div class="summary-profit summary-profit--border mb-2" :style="{ color: getFinancialColor(netProfit) }">{{ formatCurrency(netProfit) }}</div>
-                            <div class="border-bottom mb-2"></div>
-                        </div>
-                        <small class="text-muted mb-2">Sisa Modal</small>
-                        <div class="summary-value summary-value--blue">{{ formatCurrency(project.balance) }}</div>
-                    </div>
-                </ion-col>
-                <ion-col size="6" size-lg="3" v-if="(project as any).panen_total <= 0">
-                    <div class="summary-card summary-card--orange shadow-soft">
-                        <small class="text-muted mb-2">Total Transaksi</small>
-                        <div class="summary-value summary-value--orange">{{ (project.transactions || []).length }}</div>
-                    </div>
-                </ion-col>
+                    <small class="text-muted d-block text-xs">Sisa Saldo</small>
+                    <div class="fs-6 fw-black text-primary mt-1">{{ formatCurrency(project.balance) }}</div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="6" size-sm="6" size-md="3" v-if="(project as any).panen_total <= 0">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="py-3">
+                    <small class="text-muted d-block text-xs">Total Transaksi</small>
+                    <div class="fs-6 fw-black text-primary mt-1">{{ (project.transactions || []).length }}</div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
             </ion-row>
-        </ion-grid>
+          </ion-grid>
 
-        <div ref="chartCarousel" class="chart-container mx-3">
-            <ion-card class="chart-card chart-card--wide">
-              <ion-card-header>
-                <ion-card-title class="chart-title">Arus Kas Keluar per Bulan</ion-card-title>
-              </ion-card-header>
-              <VueApexCharts type="bar" :options="barOptions" :series="barSeries" />
-            </ion-card>
-            <ion-card class="chart-card chart-card--wide me-0">
-              <ion-card-header>
-                <ion-card-title class="chart-title">Pengeluaran per Kategori</ion-card-title>
-              </ion-card-header>
-              <VueApexCharts type="donut" :options="donutOptions" :series="donutSeries" />
-            </ion-card>
+          <!-- Charts -->
+          <ion-grid class="mx-2">
+            <ion-row>
+              <ion-col size="12" size-sm="6" size-lg="6" v-if="chartBarReady">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="container-padded">
+                    <h6 class="fw-bold text-dark mb-3">Arus Kas Bulanan</h6>
+                    <VueApexCharts
+                      :key="'bar-' + cashFlowData.months.length"
+                      type="bar" height="240"
+                      :options="barOptions" :series="barSeries"
+                    />
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+
+              <ion-col size="12" size-sm="6" size-lg="6" v-if="chartDonutReady">
+                <ion-card class="mobile-card m-0 h-100">
+                  <ion-card-content class="container-padded">
+                    <h6 class="fw-bold text-dark mb-3">Pengeluaran per Kategori</h6>
+                    <VueApexCharts
+                      :key="'donut-' + donutSeries.length"
+                      type="donut" height="240"
+                      :options="donutOptions" :series="donutSeries"
+                    />
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
         </div>
-        
-        <div class="ion-padding m-3 transaction-section">
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-            <ion-card-title class="section-title">Riwayat Transaksi</ion-card-title>
-            <div class="filter-chips filter-chip-row">
-              <ion-button class="btn-action primary chip-btn" fill="solid" @click="filterType = 'SEMUA'" size="small">Semua <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('SEMUA') }}</ion-badge></ion-button>
-              <ion-button class="btn-action primary chip-btn" fill="solid" @click="filterType = 'MODAL'" size="small">Modal <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('MODAL') }}</ion-badge></ion-button>
-              <ion-button class="btn-action primary chip-btn" fill="solid" @click="filterType = 'EXPENSE'" size="small">Pengeluaran <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('EXPENSE') }}</ion-badge></ion-button>
-              <ion-button class="btn-action primary chip-btn" fill="solid" @click="filterType = 'PENDAPATAN'" size="small">Pendapatan <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount('PENDAPATAN') }}</ion-badge></ion-button>
+
+        <!-- ==================== TAB 2: TRANSAKSI ==================== -->
+        <div v-show="activeTab === 'transaksi'" class="ion-padding px-1">
+          
+          <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between">
+            <!-- Search input -->
+            <div class="w-100 px-3 py-1 search-container">
+              <div class="search-input-wrap position-relative">
+                <input 
+                  type="text" 
+                  v-model="txSearchQuery" 
+                  class="form-control form-control-sm app-control" 
+                  style="padding-left: 30px;" 
+                  placeholder="Cari transaksi..." 
+                />
+                <ion-icon 
+                  :icon="searchOutline" 
+                  style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #94a3b8;" 
+                />
+              </div>
+            </div>
+
+            <!-- Filter chips -->
+            <div class="mx-3 my-2 d-flex gap-2 overflow-x-auto" style="scrollbar-width: none;">
+              <button
+                v-for="opt in filterOptions" 
+                :key="opt.value"
+                class="btn btn-action primary chip-btn btn-md " 
+                :class="filterType === opt.value ? 'pill-badge primary' : 'pill-badge secondary'" 
+                @click="filterType = opt.value" 
+                size="small"
+                style="margin: 0;"
+              >
+                {{ opt.label }} 
+                <ion-badge slot="end" class="ms-2 small-badge">{{ filterCount(opt.value) }}</ion-badge>
+              </button>
             </div>
           </div>
 
-          <div class="transaction-scroll pb-2">
+          <!-- Transactions list -->
+          <div class="px-3 py-2">
+            <div v-if="filteredTransactions.length === 0" class="text-center text-muted py-5">
+              <p>Tidak ada transaksi ditemukan</p>
+            </div>
+
+            <div class="transaction-scroll pb-2">
             <div class="transaction-list d-flex flex-column gap-1">
-              <ion-card v-for="tx in filteredTransactions" :key="tx.id" class="transaction-card">
+              <template v-for="tx in filteredTransactions" :key="tx.id">
+                <ion-card class="transaction-card">
                 <div class="transaction-inner d-flex align-items-center" :class="tx.type === 'DEPOSIT' ? 'deposit-bg' : 'expense-bg'">
-                  <div class="transaction-meta">
+                  <div class="transaction-meta ms-2">
                     <span class="fw-bold" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
                       {{ tx.type === 'DEPOSIT' ? '▲ In' : '▼ Out' }}
                     </span>
@@ -675,32 +892,58 @@ onUnmounted(() => clearInterval(interval))
                   <div class="transaction-amount text-end fw-bold me-2" :class="{ 'text-success': tx.type === 'DEPOSIT', 'text-danger': tx.type === 'EXPENSE' }">
                     {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
                   </div>
-                  <div class="transaction-actions flex-shrink-0 d-flex justify-content-end">
-                    <ion-button class="btn-action primary icon-btn" size="small" @click="openEditDialog(tx)">
+                  <div class="transaction-actions flex-shrink-0 d-flex justify-content-end gap-2">
+                    <button class="btn btn-light btn-md text-primary" @click="openEditDialog(tx)" title="Edit">
                       <ion-icon :icon="pencilOutline" />
-                    </ion-button>
-                    <ion-button class="btn-action danger icon-btn" size="small" @click="dialogDeleteTxId = tx.id">
+                    </button>
+                    <button class="btn btn-light btn-md text-danger" @click="dialogDeleteTxId = tx.id" title="Hapus">
                       <ion-icon :icon="trashOutline" />
-                    </ion-button>
+                    </button>
                   </div>
                 </div>
               </ion-card>
+              </template>
             </div>
           </div>
           
-          <div v-if="filteredTransactions.length === 0" class="text-center text-muted py-5">
-            <p>Belum ada transaksi</p>
-            <ion-button @click="openCreateDialog" size="small" class="btn-action primary mt-2">
-              + Tambah Transaksi
-            </ion-button>
+
+
           </div>
 
         </div>
 
+        <!-- ==================== TAB 3: TOOLS / AKSI ==================== -->
+        <div v-if="activeTab === 'tools'" class="ion-padding">
+          <div class="mobile-card p-4 text-center mb-3 mx-3">
+            <h6 class="fw-bold mb-2">Import / Export Excel</h6>
+            <p class="text-muted small mb-4">Unggah data transaksi menggunakan file Excel atau unduh semua riwayat transaksi buku kas ini ke file Excel.</p>
+            
+            <div class="row g-2">
+              <div class="col-12 col-md-4">
+                <ion-button class="btn-action warning w-100" expand="block" style="margin: 0;" @click="handleImport">
+                  <ion-icon :icon="cloudUploadOutline" slot="start" /> Import
+                </ion-button>
+              </div>
+              <div class="col-12 col-md-4">
+                <ion-button class="btn-action info w-100" expand="block" style="margin: 0;" @click="downloadTemplate">
+                  <ion-icon :icon="listOutline" slot="start" /> Template
+                </ion-button>
+              </div>
+              <div class="col-12 col-md-4">
+                <ion-button class="btn-action success w-100" expand="block" style="margin: 0;" @click="exportToExcel">
+                  <ion-icon :icon="cloudDownloadOutline" slot="start" /> Export
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
+
       <div v-else class="d-flex justify-content-center align-items-center h-100">
         Buku kas tidak ditemukan.
       </div>
+
       <ion-alert
         :is-open="dialogDeleteTxId !== null"
         header="Konfirmasi Hapus"
@@ -739,8 +982,12 @@ onUnmounted(() => clearInterval(interval))
                     </select>
                 </div>
                 <div class="form-section">
+                    <label class="form-label">Tanggal</label>
+                    <input type="date" v-model="formTx.date" class="form-control app-control"/>
+                </div>
+                <div class="form-section">
                     <label class="form-label">Nominal</label>
-                    <input type="number" v-model.number="formTx.amount" class="form-control app-control"/>
+                    <NumberInput v-model="formTx.amount" />
                 </div>
                 <div class="form-section">
                     <label class="form-label">Deskripsi</label>
